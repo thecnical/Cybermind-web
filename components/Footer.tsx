@@ -8,7 +8,7 @@ const footerColumns = [
     links: [
       { href: "/install", label: "Install" },
       { href: "/plans", label: "Plans" },
-      { href: "/extensions", label: "Extensions" },
+      { href: "/get-tools", label: "Get tools" },
     ],
   },
   {
@@ -20,11 +20,21 @@ const footerColumns = [
     ],
   },
   {
-    title: "Account",
+    title: "Company",
     links: [
+      { href: "/about", label: "About" },
+      { href: "/course", label: "Course" },
+      { href: "/careers", label: "Careers" },
+      { href: "/contact", label: "Contact" },
       { href: "/auth/login", label: "Login" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
       { href: "/terms", label: "Terms" },
       { href: "/privacy", label: "Privacy" },
+      { href: "/cookies", label: "Cookies" },
     ],
   },
 ];
@@ -52,7 +62,7 @@ export default function Footer() {
               </p>
             </div>
 
-            <div className="grid gap-8 sm:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-4">
               {footerColumns.map((column) => (
                 <div key={column.title}>
                   <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--text-muted)]">{column.title}</p>

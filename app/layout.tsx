@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import CyberMindAssistant from "@/components/CyberMindAssistant";
 import CookieConsent from "@/components/CookieConsent";
@@ -40,9 +40,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
     >
-      <body className={`${plusJakartaSans.className} app-theme antialiased`}>
+      <body suppressHydrationWarning className={`${plusJakartaSans.className} app-theme antialiased`}>
         <AuthProvider>
           <CursorAura />
           {children}
@@ -53,3 +55,4 @@ export default function RootLayout({
     </html>
   );
 }
+

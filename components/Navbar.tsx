@@ -3,21 +3,52 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, LayoutGrid, LogOut, Menu, Settings, X } from "lucide-react";
+import {
+  ChevronDown,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  Settings,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import CyberMindLogo from "@/components/CyberMindLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { Surface } from "@/components/DesignPrimitives";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+const navLinks: NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/install", label: "Install" },
   { href: "/plans", label: "Plans" },
   { href: "/docs", label: "Docs" },
   { href: "/resources", label: "Resources" },
-  { href: "/changelog", label: "Changelog" },
+  { href: "/about", label: "About" },
+  { href: "/course", label: "Course" },
+  { href: "/contact", label: "Contact" },
 ];
+
+function isResourceRoute(pathname: string) {
+  return (
+    pathname.startsWith("/resources") ||
+    pathname.startsWith("/get-tools") ||
+    pathname.startsWith("/extensions")
+  );
+}
+
+function isLinkActive(pathname: string, link: NavItem) {
+  if (link.label === "Resources") {
+    return isResourceRoute(pathname);
+  }
+  return link.href === "/"
+    ? pathname === "/"
+    : pathname === link.href || pathname.startsWith(`${link.href}/`);
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -28,6 +59,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const { user, profile, signOut } = useAuth();
+
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const showAuthMenu = !!user;
@@ -55,7 +87,8 @@ export default function Navbar() {
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!menuRef.current?.contains(target)) {
         setMenuOpen(false);
       }
     }
@@ -81,7 +114,11 @@ export default function Navbar() {
       animate={
         reduced
           ? { y: 0 }
-          : { y: hidden ? -110 : 0, opacity: hidden ? 0.92 : 1, scale: scrolled ? 0.99 : 1 }
+          : {
+              y: hidden ? -110 : 0,
+              opacity: hidden ? 0.92 : 1,
+              scale: scrolled ? 0.99 : 1,
+            }
       }
       transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -95,25 +132,25 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3">
           <CyberMindLogo size={34} />
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent-cyan)]">CyberMind CLI</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent-cyan)]">
+              CyberMind CLI
+            </p>
             <p className="text-sm font-semibold text-white">Terminal-first security workflow</p>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {
-            const active = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const active = isLinkActive(pathname, link);
+            const linkClass = cn(
+              "rounded-xl px-4 py-2 text-sm transition-all",
+              active
+                ? "surface-brutal text-white"
+                : "text-[var(--text-soft)] hover:bg-white/10 hover:text-white",
+            );
+
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-xl px-4 py-2 text-sm transition-all",
-                  active
-                    ? "surface-brutal text-white"
-                    : "text-[var(--text-soft)] hover:bg-white/10 hover:text-white",
-                )}
-              >
+              <Link key={link.href} href={link.href} className={linkClass}>
                 {link.label}
               </Link>
             );
@@ -133,9 +170,14 @@ export default function Navbar() {
                 </span>
                 <span className="text-left">
                   <span className="block text-sm font-medium leading-none">{displayName}</span>
-                  <span className="mt-1 block font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--text-soft)]">{displayPlan}</span>
+                  <span className="mt-1 block font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--text-soft)]">
+                    {displayPlan}
+                  </span>
                 </span>
-                <ChevronDown size={16} className={menuOpen ? "rotate-180 transition-transform" : "transition-transform"} />
+                <ChevronDown
+                  size={16}
+                  className={menuOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                />
               </button>
 
               <AnimatePresence>
@@ -147,15 +189,27 @@ export default function Navbar() {
                     transition={{ duration: 0.16 }}
                     className="surface-glass absolute right-0 mt-3 w-56 rounded-[22px] border border-white/10 p-2 shadow-[0_28px_90px_rgba(0,0,0,0.44)]"
                   >
-                    <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white transition-colors hover:bg-white/[0.08]">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white transition-colors hover:bg-white/[0.08]"
+                    >
                       <LayoutGrid size={16} />
                       Dashboard
                     </Link>
-                    <Link href="/dashboard/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white transition-colors hover:bg-white/[0.08]">
+                    <Link
+                      href="/dashboard/settings"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white transition-colors hover:bg-white/[0.08]"
+                    >
                       <Settings size={16} />
                       Settings
                     </Link>
-                    <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/[0.08]">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/[0.08]"
+                    >
                       <LogOut size={16} />
                       Logout
                     </button>
@@ -165,10 +219,16 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              <Link href="/auth/login" className="font-mono text-sm text-[var(--text-soft)] transition-colors hover:text-white">
+              <Link
+                href="/auth/login"
+                className="font-mono text-sm text-[var(--text-soft)] transition-colors hover:text-white"
+              >
                 Login
               </Link>
-              <Link href="/auth/register" className="cm-button-primary rounded-xl px-4 py-2 font-mono text-sm">
+              <Link
+                href="/auth/register"
+                className="cm-button-primary rounded-xl px-4 py-2 font-mono text-sm"
+              >
                 Get started
               </Link>
             </>
@@ -208,22 +268,42 @@ export default function Navbar() {
 
               {showAuthMenu ? (
                 <>
-                  <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10"
+                  >
                     Dashboard
                   </Link>
-                  <Link href="/dashboard/settings" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10">
+                  <Link
+                    href="/dashboard/settings"
+                    onClick={() => setOpen(false)}
+                    className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10"
+                  >
                     Settings
                   </Link>
-                  <button type="button" onClick={handleLogout} className="rounded-2xl px-4 py-3 text-left text-sm text-[var(--text-main)] transition-colors hover:bg-white/10">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="rounded-2xl px-4 py-3 text-left text-sm text-[var(--text-main)] transition-colors hover:bg-white/10"
+                  >
                     Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10">
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setOpen(false)}
+                    className="rounded-2xl px-4 py-3 text-sm text-[var(--text-main)] transition-colors hover:bg-white/10"
+                  >
                     Login
                   </Link>
-                  <Link href="/auth/register" onClick={() => setOpen(false)} className="cm-button-primary mt-2 justify-center rounded-2xl px-4 py-3 text-center font-mono text-sm">
+                  <Link
+                    href="/auth/register"
+                    onClick={() => setOpen(false)}
+                    className="cm-button-primary mt-2 justify-center rounded-2xl px-4 py-3 text-center font-mono text-sm"
+                  >
                     Get started
                   </Link>
                 </>
@@ -235,3 +315,4 @@ export default function Navbar() {
     </motion.header>
   );
 }
+

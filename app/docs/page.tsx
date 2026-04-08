@@ -9,14 +9,19 @@ const quickStartCards = [
     description: "Start with install, platform support, and first-run validation.",
   },
   {
-    href: "/docs/reference/commands",
-    label: "I need commands",
-    description: "See the command surface grouped by the job you are trying to do.",
+    href: "/docs/resources/tools-hub",
+    label: "I need tools",
+    description: "Open tools, extensions, command tools, and changelog links in one place.",
   },
   {
     href: "/docs/resources/troubleshooting",
     label: "Something is broken",
     description: "Follow the shortest recovery path instead of searching manually.",
+  },
+  {
+    href: "/docs/changelogs/latest",
+    label: "I need updates",
+    description: "Read the latest changelog directly from docs.",
   },
 ];
 
@@ -29,7 +34,7 @@ export default function DocsHomePage() {
       <Surface variant="glass" tone="cyan" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <p className="cm-label">Choose a path</p>
         <h2 className="mt-3 text-3xl font-semibold text-white">Open the docs by goal, not by route count</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {quickStartCards.map((item) => (
             <LinkCard key={item.href} {...item} variant="skeuo" />
           ))}

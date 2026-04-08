@@ -25,10 +25,6 @@ type ChatMessage = {
   links?: MessageLink[];
 };
 
-function makeId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
 function trimSentence(value: string, max = 240) {
   if (value.length <= max) return value;
   return `${value.slice(0, max).trim()}...`;
@@ -172,12 +168,13 @@ function HackerBotAvatar({
 export default function CyberMindAssistant() {
   const pathname = usePathname();
   const reducedMotion = useReducedMotion();
+  const idCounter = useRef(1);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
-      id: makeId("assistant"),
+      id: "assistant-0",
       role: "assistant",
       text: `CyberMind assistant ready. ${routeHint(pathname)}`,
       links: [
@@ -202,6 +199,12 @@ export default function CyberMindAssistant() {
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  function makeId(prefix: string) {
+    const id = `${prefix}-${idCounter.current}`;
+    idCounter.current += 1;
+    return id;
+  }
+
   useEffect(() => {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -215,17 +218,43 @@ export default function CyberMindAssistant() {
     setMessages((current) => [...current, { id: makeId("user"), role: "user", text: prompt }]);
     setPending(true);
 
-    window.setTimeout(
-      () => {
+    // Try real backend first, fall back to local knowledge base
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://cybermind-backend-8yrt.onrender.com";
+
+    fetch(`${BACKEND_URL}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, messages: [] }),
+      signal: AbortSignal.timeout(15000),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.response) {
+          setMessages((current) => [
+            ...current,
+            {
+              id: makeId("assistant"),
+              role: "assistant",
+              text: data.response,
+              links: [
+                { href: "/docs/get-started", label: "Docs" },
+                { href: "/install", label: "Install" },
+              ],
+            },
+          ]);
+        } else {
+          throw new Error("empty");
+        }
+      })
+      .catch(() => {
+        // Fallback to local knowledge base
         const next = buildReply(prompt);
         setMessages((current) => [
           ...current,
           { id: makeId("assistant"), role: "assistant", ...next },
         ]);
-        setPending(false);
-      },
-      reducedMotion ? 30 : 360,
-    );
+      })
+      .finally(() => setPending(false));
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {

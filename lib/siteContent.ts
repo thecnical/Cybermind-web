@@ -37,6 +37,7 @@ export const cybermindDocRoutes = [
   "reference/privacy-and-security",
   "reference/repo-status",
   "resources/faq",
+  "resources/tools-hub",
   "resources/troubleshooting",
   "resources/terms-and-disclaimer",
   "changelogs",
@@ -64,13 +65,14 @@ const quickLinks: PageLink[] = [
   { href: "/install", label: "Install page", description: "Generate a platform-specific command with your API key." },
   { href: "/plans", label: "Plans", description: "Compare Free, Pro, and Elite tiers." },
   { href: "/dashboard", label: "Dashboard", description: "Manage keys, usage, billing, and settings." },
+  { href: "/contact", label: "Contact", description: "Reach support, partnership, or onboarding team quickly." },
 ];
 
 const sidebarGroups: SidebarGroup[] = [
   { group: "Start Here", description: "Install, platform support, and first-run validation.", routes: ["get-started", "get-started/installation", "get-started/windows"] },
   { group: "Core Workflows", description: "The main command paths you will actually run.", routes: ["cli/interactive-chat", "modes/recon", "modes/hunt", "modes/abhimanyu"] },
   { group: "Commands and Safety", description: "Commands, providers, privacy posture, and doctor checks.", routes: ["reference/commands", "modes/doctor", "reference/providers-and-models", "reference/privacy-and-security"] },
-  { group: "Help and Updates", description: "Troubleshooting, legal framing, release notes, and repo status.", routes: ["resources/faq", "resources/troubleshooting", "resources/terms-and-disclaimer", "reference/repo-status", "changelogs/latest"] },
+  { group: "Help and Updates", description: "Troubleshooting, tools hub, legal framing, release notes, and repo status.", routes: ["resources/faq", "resources/tools-hub", "resources/troubleshooting", "resources/terms-and-disclaimer", "reference/repo-status", "changelogs/latest"] },
 ];
 
 const routeLabels: Record<DocRoute, string> = {
@@ -88,6 +90,7 @@ const routeLabels: Record<DocRoute, string> = {
   "reference/privacy-and-security": "Privacy and security",
   "reference/repo-status": "Repository status",
   "resources/faq": "FAQ",
+  "resources/tools-hub": "Tools hub",
   "resources/troubleshooting": "Troubleshooting",
   "resources/terms-and-disclaimer": "Terms and disclaimer",
   changelogs: "Changelog",
@@ -392,6 +395,45 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     command: "cybermind",
     sections: [
       { title: "Short answers", body: "Use this page as the quick answer sheet.", bullets: ["Start with install, doctor, then interactive chat.", "Use Kali/Linux for the deepest automated workflows.", "Use Windows primarily for chat-first operation.", "Move into recon before hunt, and hunt before Abhimanyu.", "Local history lives on your machine."] },
+    ],
+  },
+  "resources/tools-hub": {
+    eyebrow: "Help and Updates",
+    title: "Tools and release hub inside docs",
+    description: "All tool-related discovery links are centralized here so navigation stays clean and direct.",
+    command: "cybermind /tools",
+    sections: [
+      {
+        title: "Tools and extensions",
+        body: "Use these pages when you want tool bundles, extension information, and release updates.",
+        links: [
+          {
+            href: "/get-tools",
+            label: "Get tools",
+            description: "Tool bundles, tracks, and waitlist access.",
+          },
+          {
+            href: "/extensions",
+            label: "Extensions",
+            description: "Extension overview and integration guidance.",
+          },
+          {
+            href: "/docs/reference/commands",
+            label: "Command tools",
+            description: "Command-level tooling reference.",
+          },
+          {
+            href: "/docs/changelogs/latest",
+            label: "Latest changelog",
+            description: "Most recent release notes and direction.",
+          },
+          {
+            href: "/contact",
+            label: "Contact support",
+            description: "Send product, support, or enterprise query to the team.",
+          },
+        ],
+      },
     ],
   },
   "resources/troubleshooting": {

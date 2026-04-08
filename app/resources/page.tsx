@@ -3,27 +3,28 @@ import Footer from "@/components/Footer";
 import { MarketingPageView } from "@/components/SitePrimitives";
 
 const page = {
-  title: "Resources",
-  eyebrow: "Support",
+  title: "Tools",
+  eyebrow: "Resources",
   description:
-    "A simpler resource hub for install help, privacy, troubleshooting, legal pages, and account guidance around CyberMind CLI.",
-  command: "cybermind /doctor",
+    "Tool-focused resource surface for CyberMind CLI bundles, extension tracks, command references, and install diagnostics.",
+  command: "cybermind /tools list",
   sections: [
     {
-      title: "Start with the clearest paths",
+      title: "Tool launch paths",
       body:
-        "If you are blocked, start with install, troubleshooting, privacy, and legal boundaries instead of walking the entire docs tree.",
+        "Use these pages to access tools quickly without navigating the full documentation tree.",
       links: [
+        { href: "/get-tools", label: "Tools hub" },
+        { href: "/extensions", label: "Extensions" },
         { href: "/install", label: "Install" },
-        { href: "/docs/resources/troubleshooting", label: "Troubleshooting" },
-        { href: "/privacy", label: "Privacy" },
-        { href: "/terms", label: "Terms" },
+        { href: "/docs/reference/commands", label: "Command reference" },
+        { href: "/docs/resources/troubleshooting", label: "Tool troubleshooting" },
       ],
     },
     {
-      title: "What this section is for",
+      title: "Operator intent",
       body:
-        "Use resources when you need help deciding what CyberMind stores, what runs on which platform, how to recover a broken setup, and what legal boundary the product expects.",
+        "Resources now stay tools-only so operators can jump directly to command, extension, and setup assets.",
     },
   ],
 };

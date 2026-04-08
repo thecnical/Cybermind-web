@@ -154,6 +154,30 @@ function accountKnowledge(): AssistantKnowledgeItem[] {
         "Dashboard includes API keys, billing, usage, settings, and platform install commands with key embedding.",
       keywords: ["dashboard", "api key", "billing", "usage", "settings"],
     },
+    {
+      id: "company-about",
+      title: "About CyberMind CLI",
+      href: "/about",
+      content:
+        "About page explains mission, design pillars, and why CyberMind is built as command-first security infrastructure.",
+      keywords: ["about", "mission", "company", "cybermind"],
+    },
+    {
+      id: "company-careers",
+      title: "CyberMind careers",
+      href: "/careers",
+      content:
+        "Careers page lists open roles and a dynamic waitlist for the talent network.",
+      keywords: ["careers", "jobs", "hiring", "roles", "waitlist"],
+    },
+    {
+      id: "tools-waitlist",
+      title: "Get tools waitlist",
+      href: "/get-tools",
+      content:
+        "Get tools page includes tool bundle previews and waitlist for early access tracks.",
+      keywords: ["tools", "bundle", "waitlist", "preview"],
+    },
   ];
 }
 
