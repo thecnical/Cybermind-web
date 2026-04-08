@@ -29,7 +29,7 @@ export const mockUser = {
   email: "chandan@cybermind.dev",
   avatar: "CP",
   plan: "free" as PlanTier,
-  apiKey: "sk_live_cm_xxxxxxxxxxxxxxxx",
+  apiKey: "cp_live_xxxxxxxxxxxxxxxx",
   requestsToday: 12,
   requestsTodayLimit: 20,
   requestsMonth: 188,
@@ -41,7 +41,7 @@ export const installCommands = {
     "curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key {key}",
   windows:
     "iwr https://cybermind.thecnical.dev/install.ps1 | iex; cybermind --key {key}",
-  mac: "brew install cybermind; cybermind --key {key}",
+  mac: "curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash -s -- --key {key}",
 };
 
 export const mockActivities: ActivityItem[] = [
@@ -81,7 +81,7 @@ export const mockApiKeys: ApiKeyRecord[] = [
   {
     id: "key-1",
     name: "Primary CLI",
-    key: "sk_live_cm_xxxxxxxxxxxxxxxx",
+    key: "cp_live_xxxxxxxxxxxxxxxx",
     createdAt: "Apr 08, 2026",
     lastUsed: "2 mins ago",
     status: "active",
@@ -90,7 +90,7 @@ export const mockApiKeys: ApiKeyRecord[] = [
   {
     id: "key-2",
     name: "Read-only analytics",
-    key: "sk_live_cm_readonlyxxxxxx",
+    key: "cp_live_readonlyxxxxxx",
     createdAt: "Apr 04, 2026",
     lastUsed: "Yesterday",
     status: "active",
@@ -99,7 +99,7 @@ export const mockApiKeys: ApiKeyRecord[] = [
   {
     id: "key-3",
     name: "Old laptop",
-    key: "sk_live_cm_revokedxxxxxxx",
+    key: "cp_live_revokedxxxxxxx",
     createdAt: "Mar 28, 2026",
     lastUsed: "5 days ago",
     status: "revoked",

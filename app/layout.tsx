@@ -21,7 +21,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "CyberMind CLI - AI-Powered Offensive Security CLI",
-  metadataBase: new URL("https://cybermind.local"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://cybermind.thecnical.dev"),
   description:
     "CyberMind CLI is an AI-powered offensive security CLI with interactive AI chat, recon, hunt, Abhimanyu workflows, and terminal-first documentation.",
   openGraph: {
@@ -44,6 +44,16 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
     >
+      <head>
+        {/* Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your publisher ID */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body suppressHydrationWarning className={`${plusJakartaSans.className} app-theme antialiased`}>
         {/* Source protection: disable right-click, devtools shortcut, text selection on production */}
         <script
