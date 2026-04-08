@@ -1,85 +1,78 @@
 "use client";
 
+import { useState } from "react";
+import { Mail, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { CheckCircle2, Loader2, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import AuthShell from "@/components/AuthShell";
-import { writeMockSession } from "@/lib/mockAuth";
+import { supabase } from "@/lib/supabase";
+import CyberMindLogo from "@/components/CyberMindLogo";
 
 export default function VerifyEmailPage() {
-  const router = useRouter();
-  const [seconds, setSeconds] = useState(6);
-  const [resendCount, setResendCount] = useState(0);
-  const [verified, setVerified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setSeconds((current) => {
-        if (current <= 1) {
-          window.clearInterval(interval);
-          setVerified(true);
-          writeMockSession({
-            authenticated: true,
-            name: "Chandan Pandey",
-            email: "chandan@cybermind.dev",
-            avatar: "CP",
-            plan: "free",
-          });
-          window.setTimeout(() => router.push("/dashboard"), 1200);
-          return 0;
-        }
-
-        return current - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(interval);
-  }, [router]);
+  async function handleResend() {
+    setResending(true);
+    setError("");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) {
+      setError("No email found. Please register again.");
+      setResending(false);
+      return;
+    }
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email: user.email,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    setResending(false);
+    if (resendError) { setError(resendError.message); return; }
+    setResent(true);
+  }
 
   return (
-    <AuthShell
-      title="Check your inbox"
-      description="We sent a verification link to your email. Once the address is confirmed, the account will continue into the dashboard automatically."
-      footer={
-        <p>
-          Need a different email?{" "}
-          <Link href="/auth/register" className="text-white underline decoration-white/20 underline-offset-4">
-            Return to signup
-          </Link>
-        </p>
-      }
-    >
-      <div className="grid gap-5">
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 text-center">
-          <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-[22px] border border-[var(--accent-cyan)]/20 bg-[rgba(0,255,255,0.08)] text-[var(--accent-cyan)]">
-            {verified ? <CheckCircle2 size={30} /> : <Mail size={30} />}
-          </div>
-          <h2 className="mt-5 text-2xl font-semibold text-white">
-            {verified ? "Email verified" : "Verification pending"}
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">
-            {verified
-              ? "Verification received. Redirecting you into CyberMind CLI..."
-              : `Listening for your verification callback. Redirect starts in ${seconds}s.`}
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#06070B]">
+      <div className="w-full max-w-md text-center">
+        <Link href="/" className="inline-flex justify-center mb-8">
+          <CyberMindLogo size={48} />
+        </Link>
+
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--accent-cyan)]/10 border border-[var(--accent-cyan)]/30 mb-6">
+          <Mail size={28} className="text-[var(--accent-cyan)]" />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setResendCount((current) => current + 1)}
-          className="cm-button-secondary w-full gap-2"
-        >
-          {resendCount > 0 ? <Loader2 size={16} className="animate-spin" /> : null}
-          Resend verification email
-        </button>
+        <h1 className="text-2xl font-semibold text-white mb-3">Verify your email</h1>
+        <p className="text-[var(--text-soft)] text-sm mb-6">
+          Your account needs email verification before you can access the dashboard.
+          Check your inbox for the confirmation link.
+        </p>
 
-        {resendCount > 0 ? (
-          <p className="text-center text-sm text-[var(--text-soft)]">
-            Verification email resent {resendCount} {resendCount === 1 ? "time" : "times"}.
+        {error && (
+          <p className="text-sm text-[#FF4444] bg-[#FF4444]/10 rounded-xl px-4 py-3 mb-4">{error}</p>
+        )}
+
+        {resent ? (
+          <p className="text-sm text-[#00FF88] bg-[#00FF88]/10 rounded-xl px-4 py-3 mb-4">
+            ✓ Verification email resent. Check your inbox.
           </p>
-        ) : null}
+        ) : (
+          <button onClick={handleResend} disabled={resending}
+            className="cm-button-secondary gap-2 text-sm mb-4">
+            <RefreshCw size={14} className={resending ? "animate-spin" : ""} />
+            {resending ? "Sending..." : "Resend verification email"}
+          </button>
+        )}
+
+        <div className="flex justify-center gap-4 text-sm">
+          <Link href="/auth/login" className="text-[var(--accent-cyan)] hover:underline">
+            Back to login
+          </Link>
+          <span className="text-[var(--text-muted)]">·</span>
+          <Link href="/contact" className="text-[var(--text-soft)] hover:text-white">
+            Need help?
+          </Link>
+        </div>
       </div>
-    </AuthShell>
+    </div>
   );
 }

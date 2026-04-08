@@ -44,6 +44,11 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
+      return;
+    }
+    // Block unverified users
+    if (!loading && user && !user.email_confirmed_at) {
+      router.push("/auth/verify-email");
     }
   }, [loading, router, user]);
 

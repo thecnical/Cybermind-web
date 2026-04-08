@@ -1,38 +1,17 @@
 ﻿"use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import {
-  MOCK_AUTH_EVENT,
-  clearMockSession,
-  readMockSession,
-  type MockSession,
-} from "@/lib/mockAuth";
-import { mockUser, type PlanTier } from "@/lib/mockData";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase, UserProfile, fetchProfile } from "@/lib/supabase";
 
-type AuthUser = {
-  id: string;
-  email: string;
-};
-
-type AuthProfile = {
-  id: string;
-  email: string;
-  full_name: string;
-  plan: PlanTier;
-  requests_today: number;
-  requests_month: number;
-  created_at: string;
-  avatar: string;
-};
-
-type AuthContextType = {
-  user: AuthUser | null;
-  session: MockSession | null;
-  profile: AuthProfile | null;
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-};
+}
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -43,76 +22,61 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
-const REQUESTS_BY_PLAN: Record<PlanTier, { today: number; month: number }> = {
-  free: { today: mockUser.requestsToday, month: mockUser.requestsMonth },
-  pro: { today: 52, month: 974 },
-  elite: { today: 188, month: 5120 },
-};
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-function buildAuthState(session: MockSession) {
-  if (!session.authenticated) {
-    return { user: null, profile: null };
-  }
-
-  const usage = REQUESTS_BY_PLAN[session.plan];
-  return {
-    user: {
-      id: `mock-${session.email.toLowerCase()}`,
-      email: session.email,
-    },
-    profile: {
-      id: `mock-${session.email.toLowerCase()}`,
-      email: session.email,
-      full_name: session.name,
-      plan: session.plan,
-      requests_today: usage.today,
-      requests_month: usage.month,
-      created_at: "2026-01-01T00:00:00.000Z",
-      avatar: session.avatar,
-    },
-  };
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const initialSession = readMockSession();
-  const [loading] = useState(false);
-  const [session, setSession] = useState<MockSession | null>(initialSession);
-  const [{ user, profile }, setState] = useState(() => buildAuthState(initialSession));
-
-  function applySession(next: MockSession) {
-    setSession(next);
-    setState(buildAuthState(next));
+  async function loadProfile() {
+    const p = await fetchProfile();
+    setProfile(p);
   }
 
   useEffect(() => {
-    function onAuthChange() {
-      applySession(readMockSession());
-    }
-
-    function onStorage(event: StorageEvent) {
-      if (event.key?.includes("cybermind_cli_mock_session")) {
-        applySession(readMockSession());
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile();
       }
-    }
+      setLoading(false);
+    });
 
-    window.addEventListener(MOCK_AUTH_EVENT, onAuthChange);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(MOCK_AUTH_EVENT, onAuthChange);
-      window.removeEventListener("storage", onStorage);
-    };
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await loadProfile();
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function signOut() {
-    clearMockSession();
-    applySession(readMockSession());
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
   }
 
-  async function refreshProfile() {
-    applySession(readMockSession());
-  }
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      loading,
+      signOut,
+      refreshProfile: loadProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -121,4 +85,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-
