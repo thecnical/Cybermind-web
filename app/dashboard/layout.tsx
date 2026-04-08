@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  UserPlus,
   X,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/api-keys", label: "API Keys", icon: KeyRound },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+  { href: "/dashboard/invite", label: "Invite", icon: UserPlus },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

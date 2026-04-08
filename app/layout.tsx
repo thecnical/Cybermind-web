@@ -45,6 +45,25 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
     >
       <body suppressHydrationWarning className={`${plusJakartaSans.className} app-theme antialiased`}>
+        {/* Source protection: disable right-click, devtools shortcut, text selection on production */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                if(typeof window==='undefined') return;
+                // Disable right-click context menu
+                document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+                // Disable common devtools shortcuts
+                document.addEventListener('keydown', function(e){
+                  if(e.key==='F12') e.preventDefault();
+                  if(e.ctrlKey && e.shiftKey && (e.key==='I'||e.key==='J'||e.key==='C')) e.preventDefault();
+                  if(e.ctrlKey && e.key==='U') e.preventDefault();
+                  if(e.ctrlKey && e.key==='S') e.preventDefault();
+                });
+              })();
+            `,
+          }}
+        />
         <AuthProvider>
           <CursorAura />
           {children}

@@ -28,6 +28,7 @@ export interface UserProfile {
   requests_today: number;
   requests_month: number;
   created_at: string;
+  avatar?: string; // optional initials or avatar URL
 }
 
 export interface ApiKey {

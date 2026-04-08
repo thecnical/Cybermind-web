@@ -589,3 +589,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Source protection — disable text selection on sensitive UI ── */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* Disable right-click context menu hint via CSS (JS handles actual block) */
+body {
+  -webkit-touch-callout: none;
+}
+
+/* Disable print — hides content when printing/screenshotting via print dialog */
+@media print {
+  body {
+    display: none !important;
+  }
+}
