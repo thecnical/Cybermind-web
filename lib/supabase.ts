@@ -93,22 +93,39 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
   }
 }
 
-// Create a new API key
-export async function createApiKey(name: string): Promise<ApiKey | null> {
+// Create a new API key with device info
+export async function createApiKey(name: string, deviceType?: string): Promise<ApiKey | null> {
   const token = await getToken();
   if (!token) return null;
   try {
     const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.slice(0, 64) }), // sanitize length
+      body: JSON.stringify({
+        name: name.slice(0, 64),
+        device_type: deviceType || detectDeviceType(),
+      }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (err.limit) throw new Error(err.error || "Device limit reached");
+      return null;
+    }
     const data = await res.json();
     return data.success ? data : null;
-  } catch {
-    return null;
+  } catch (e) {
+    throw e;
   }
+}
+
+// Detect device type from user agent
+function detectDeviceType(): string {
+  if (typeof window === "undefined") return "unknown";
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes("linux")) return "linux";
+  if (ua.includes("windows")) return "windows";
+  if (ua.includes("mac")) return "mac";
+  return "unknown";
 }
 
 // Revoke an API key

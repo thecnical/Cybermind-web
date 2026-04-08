@@ -154,18 +154,28 @@ export default function PlansPage() {
                 </ul>
                 <div className="mt-8 grid gap-3">
                   <Link
-                    href={plan.id === "free" ? "/auth/register" : `/auth/register?plan=${plan.id}`}
-                    className={highlighted ? "cm-button-primary w-full" : "cm-button-secondary w-full"}
+                    href={plan.id === "free"
+                      ? "/auth/register"
+                      : plan.id === "elite"
+                      ? "/auth/register?plan=elite"
+                      : `/auth/register?plan=${plan.id}`}
+                    className={highlighted ? "cm-button-primary w-full text-center" : "cm-button-secondary w-full text-center"}
                   >
-                    {plan.id === "free" ? "Get started free" : `Choose ${plan.name}`}
+                    {plan.id === "free" ? "Get started free" :
+                     plan.id === "elite" ? "Get Elite — instant key" :
+                     `Choose ${plan.name}`}
                   </Link>
                   {plan.id !== "free" ? (
                     <button type="button" onClick={() => setCheckoutPlan(plan.name)} className="cm-button-secondary w-full">
-                      Upgrade
+                      Upgrade existing account
                     </button>
                   ) : null}
-                </div>
-              </div>
+                  <p className="text-center text-xs text-[var(--text-muted)]">
+                    {plan.id === "free" ? "1 device · No credit card" :
+                     plan.id === "pro" ? "3 devices · Select device on signup" :
+                     "Unlimited devices · Key auto-generated"}
+                  </p>
+                </div>              </div>
             );
           })}
         </section>
