@@ -1,128 +1,156 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
-import { Copy, RefreshCw, Terminal, Check } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Copy, KeyRound, RefreshCw } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { fetchApiKeys, createApiKey, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
+import {
+  installCommands,
+  mockActivities,
+  mockApiKeys,
+  withApiKey,
+} from "@/lib/mockData";
 
-const BACKEND_URL = "https://cybermind-backend-8yrt.onrender.com";
-
-const INSTALL_COMMANDS: Record<string, (key: string) => string> = {
-  linux: (k) => `curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key ${k}`,
-  windows: (k) => `iwr https://cybermind.thecnical.dev/install.ps1 | iex; cybermind --key ${k}`,
-  mac: (k) => `brew install cybermind; cybermind --key ${k}`,
+const PLAN_LIMITS: Record<string, number> = {
+  free: 20,
+  pro: 200,
+  elite: Number.POSITIVE_INFINITY,
 };
 
+type Platform = "linux" | "windows" | "mac";
+
 export default function DashboardPage() {
-  const { user, profile } = useAuth();
-  const [keys, setKeys] = useState<ApiKey[]>([]);
-  const [platform, setPlatform] = useState<"linux" | "windows" | "mac">("linux");
+  const { profile } = useAuth();
+  const [platform, setPlatform] = useState<Platform>("linux");
   const [copied, setCopied] = useState<string | null>(null);
-  const [creatingKey, setCreatingKey] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
-  useEffect(() => {
-    fetchApiKeys().then(setKeys);
-  }, []);
+  const activeKey = useMemo(
+    () => mockApiKeys.find((key) => key.status === "active")?.key ?? "sk_live_cm_xxxxxxxxxxxxxxxx",
+    [],
+  );
 
-  const activeKey = keys.find(k => k.is_active);
-  const displayKey = activeKey ? `sk_live_cm_${"•".repeat(20)}` : "No active key";
-  const plan = profile?.plan || "free";
-  const limit = PLAN_LIMITS[plan];
-  const used = profile?.requests_today || 0;
+  const keyMask = `${activeKey.slice(0, 10)}${"*".repeat(14)}`;
+  const plan = profile?.plan ?? "free";
+  const planLimit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
+  const today = profile?.requests_today ?? 12;
+  const month = profile?.requests_month ?? 188;
 
-  async function handleCopy(text: string, id: string) {
+  const installCommand = withApiKey(installCommands[platform], activeKey);
+
+  async function copy(text: string, id: string) {
     await navigator.clipboard.writeText(text);
     setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
+    window.setTimeout(() => setCopied(null), 1400);
   }
 
-  async function handleCreateKey() {
-    setCreatingKey(true);
-    const key = await createApiKey("Default Key");
-    if (key) {
-      setKeys(prev => [key as ApiKey, ...prev]);
-    }
-    setCreatingKey(false);
+  function regenerateMock() {
+    setRegenerating(true);
+    window.setTimeout(() => setRegenerating(false), 800);
   }
-
-  const installCmd = activeKey
-    ? INSTALL_COMMANDS[platform](activeKey.key || "YOUR_KEY")
-    : INSTALL_COMMANDS[platform]("YOUR_API_KEY");
 
   return (
-    <div className="p-8 max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-white">
-          Welcome back, {profile?.full_name || user?.email?.split("@")[0] || "User"} 👋
-        </h1>
-        <p className="text-[var(--text-soft)] mt-1">
-          You&apos;re on the <span className="font-mono text-[var(--accent-cyan)] uppercase">{plan}</span> plan
-          {plan === "free" && <> — <a href="/plans" className="text-[var(--accent-cyan)] hover:underline">upgrade for more</a></>}
-        </p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: "Requests Today", value: `${used}${limit !== Infinity ? `/${limit}` : ""}`, sub: limit === Infinity ? "Unlimited" : `${limit - used} remaining` },
-          { label: "Requests This Month", value: profile?.requests_month || 0, sub: "All time" },
-          { label: "Active Keys", value: keys.filter(k => k.is_active).length, sub: "API keys" },
-        ].map(stat => (
-          <div key={stat.label} className="rounded-[24px] border border-white/8 bg-white/[0.03] p-5">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">{stat.label}</p>
-            <p className="text-3xl font-semibold text-white mt-2">{stat.value}</p>
-            <p className="text-xs text-[var(--text-soft)] mt-1">{stat.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* API Key */}
-      <div className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="mx-auto grid w-full max-w-6xl gap-6">
+      <section className="cm-card cm-spotlight-card p-6 md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">Your API Key</p>
-            <p className="text-sm text-[var(--text-soft)] mt-1">Use this key in your CLI install command</p>
+            <p className="cm-label">Dashboard</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
+              Welcome back, {profile?.full_name ?? "Chandan Pandey"}
+            </h1>
+            <p className="mt-3 text-sm text-[var(--text-soft)]">
+              Current plan: <span className="text-[var(--accent-cyan)] uppercase">{plan}</span>
+            </p>
           </div>
-          {!activeKey && (
-            <button onClick={handleCreateKey} disabled={creatingKey} className="flex items-center gap-2 rounded-2xl border border-[var(--accent-strong)]/30 bg-[rgba(141,117,255,0.18)] px-4 py-2 text-sm text-white hover:bg-[rgba(141,117,255,0.28)] disabled:opacity-50">
-              <RefreshCw size={14} className={creatingKey ? "animate-spin" : ""} />
-              Generate Key
-            </button>
-          )}
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-          <Terminal size={16} className="text-[var(--accent-cyan)] flex-shrink-0" />
-          <code className="flex-1 font-mono text-sm text-[var(--text-main)]">{displayKey}</code>
-          {activeKey && (
-            <button onClick={() => handleCopy(activeKey.key || "", "apikey")} className="text-[var(--text-muted)] hover:text-white transition-colors">
-              {copied === "apikey" ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
-            </button>
-          )}
-        </div>
-      </div>
+      </section>
 
-      {/* Install command */}
-      <div className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)] mb-4">Install Command</p>
-        <div className="flex gap-2 mb-4">
-          {(["linux", "windows", "mac"] as const).map(p => (
-            <button key={p} onClick={() => setPlatform(p)} className={`rounded-xl px-4 py-2 text-sm font-mono transition-colors ${platform === p ? "bg-white/8 text-white" : "text-[var(--text-soft)] hover:text-white"}`}>
-              {p === "linux" ? "🐧 Linux" : p === "windows" ? "🪟 Windows" : "🍎 Mac"}
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="cm-card-soft p-5">
+          <p className="cm-label">Requests today</p>
+          <p className="mt-2 text-3xl font-semibold text-white">
+            {today}{planLimit !== Number.POSITIVE_INFINITY ? `/${planLimit}` : ""}
+          </p>
+        </div>
+        <div className="cm-card-soft p-5">
+          <p className="cm-label">Requests this month</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{month}</p>
+        </div>
+        <div className="cm-card-soft p-5">
+          <p className="cm-label">Plan limit</p>
+          <p className="mt-2 text-3xl font-semibold text-white">
+            {planLimit === Number.POSITIVE_INFINITY ? "Unlimited" : `${planLimit}/day`}
+          </p>
+        </div>
+      </section>
+
+      <section className="cm-card cm-spotlight-card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="cm-label">API key</p>
+            <p className="mt-2 text-sm text-[var(--text-soft)]">Primary live key for your CLI commands</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => copy(activeKey, "key")} className="cm-button-secondary gap-2">
+              {copied === "key" ? <Check size={14} /> : <Copy size={14} />}
+              Copy
+            </button>
+            <button type="button" onClick={regenerateMock} className="cm-button-secondary gap-2" disabled={regenerating}>
+              <RefreshCw size={14} className={regenerating ? "animate-spin" : ""} />
+              Regenerate
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 font-mono text-sm text-white">
+          <KeyRound size={16} className="text-[var(--accent-cyan)]" />
+          {keyMask}
+        </div>
+      </section>
+
+      <section className="cm-card p-6">
+        <p className="cm-label">Quick install</p>
+        <div className="mt-4 inline-flex rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+          {([
+            ["linux", "Linux/Kali"],
+            ["windows", "Windows"],
+            ["mac", "macOS"],
+          ] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setPlatform(id)}
+              className={`rounded-xl px-4 py-2 text-sm transition-colors ${platform === id ? "bg-white/10 text-white" : "text-[var(--text-soft)]"}`}
+            >
+              {label}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-          <code className="flex-1 font-mono text-xs text-[var(--text-main)] break-all">{installCmd}</code>
-          <button onClick={() => handleCopy(installCmd, "install")} className="text-[var(--text-muted)] hover:text-white flex-shrink-0">
-            {copied === "install" ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
+
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          <code className="flex-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-[var(--text-main)]">{installCommand}</code>
+          <button type="button" onClick={() => copy(installCommand, "install")} className="text-[var(--text-muted)] hover:text-white">
+            {copied === "install" ? <Check size={16} className="text-[var(--success)]" /> : <Copy size={16} />}
           </button>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-3">
-          {platform === "linux" ? "Run on Kali Linux for full recon + hunt + Abhimanyu pipeline" :
-           platform === "windows" ? "Windows supports AI chat mode. Use Kali for full pipeline." :
-           "macOS supports AI chat mode. Use Kali for full pipeline."}
-        </p>
-      </div>
+      </section>
+
+      <section className="cm-card p-6">
+        <p className="cm-label">Recent activity</p>
+        <div className="mt-4 grid gap-3">
+          {mockActivities.slice(0, 5).map((item) => (
+            <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-white">{item.endpoint}</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">{item.timestamp}</p>
+              </div>
+              <span className={`cm-pill ${item.status === "success" ? "text-[var(--success)]" : item.status === "warning" ? "text-[var(--warning)]" : "text-[var(--error)]"}`}>
+                {item.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
+

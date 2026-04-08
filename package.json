@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "clean": "node -e \"const fs=require('fs');['.next','tsconfig.tsbuildinfo'].forEach((p)=>{try{fs.rmSync(p,{recursive:true,force:true});}catch{}});\"",
+    "dev:clean": "npm run clean && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

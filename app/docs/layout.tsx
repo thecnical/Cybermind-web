@@ -16,7 +16,9 @@ export default function DocsLayout({
             <DocsSidebar />
           </div>
         </aside>
-        <main className="min-w-0">{children}</main>
+        <main className="min-w-0">
+          <div className="cm-noise-overlay">{children}</div>
+        </main>
       </div>
       <Footer />
     </div>

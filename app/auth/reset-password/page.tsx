@@ -1,70 +1,112 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import CyberMindLogo from "@/components/CyberMindLogo";
 import Link from "next/link";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import AuthShell from "@/components/AuthShell";
+import PasswordField from "@/components/PasswordField";
+import PasswordStrength from "@/components/PasswordStrength";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
-    // Supabase handles the token from URL hash automatically
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        // User is in password recovery mode — form is ready
-      }
-    });
-  }, []);
+    if (!done) return;
+    const timer = window.setTimeout(() => {
+      router.push("/auth/login?reset=success");
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [done, router]);
 
-  async function handleReset(e: React.FormEvent) {
-    e.preventDefault();
-    if (password !== confirmPassword) { setError("Passwords do not match"); return; }
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) { setError(error.message); return; }
-    router.push("/auth/login?reset=success");
+
+    window.setTimeout(() => {
+      setLoading(false);
+      setDone(true);
+    }, 900);
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[#06070B]">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/"><CyberMindLogo size={40} /></Link>
-          <h1 className="text-2xl font-semibold text-white mt-4">Set new password</h1>
+    <AuthShell
+      title="Set a new password"
+      description="Create a strong password and confirm it to finish account recovery."
+      footer={
+        <p>
+          Want to sign in instead?{" "}
+          <Link href="/auth/login" className="text-white underline decoration-white/20 underline-offset-4">
+            Go to login
+          </Link>
+        </p>
+      }
+    >
+      {done ? (
+        <div className="rounded-[28px] border border-[var(--success)]/25 bg-[rgba(0,255,136,0.08)] p-6 text-center">
+          <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--success)]/30 bg-[rgba(0,255,136,0.08)] text-[var(--success)]">
+            <CheckCircle2 size={24} />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold text-white">Password updated</h2>
+          <p className="mt-2 text-sm leading-7 text-[var(--text-soft)]">Redirecting to login...</p>
         </div>
-        <div className="rounded-[28px] border border-white/8 bg-white/[0.03] p-8">
-          <form onSubmit={handleReset} className="space-y-4">
-            <div>
-              <label className="block font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)] mb-2">New Password</label>
-              <div className="relative">
-                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••"
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-12 text-sm text-white placeholder-[var(--text-muted)] focus:border-[var(--accent-cyan)]/50 focus:outline-none" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+      ) : (
+        <form className="grid gap-5" onSubmit={handleSubmit}>
+          {error ? (
+            <div className="rounded-2xl border border-[var(--error)]/30 bg-[rgba(255,68,68,0.08)] px-4 py-3 text-sm text-white">
+              {error}
             </div>
-            <div>
-              <label className="block font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)] mb-2">Confirm Password</label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required placeholder="••••••••"
-                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-[var(--text-muted)] focus:border-[var(--accent-cyan)]/50 focus:outline-none" />
-            </div>
-            {error && <p className="text-sm text-[#FF4444] bg-[#FF4444]/10 rounded-xl px-4 py-3">{error}</p>}
-            <button type="submit" disabled={loading} className="w-full rounded-2xl border border-[var(--accent-strong)]/30 bg-[rgba(141,117,255,0.18)] px-4 py-3 text-sm font-medium text-white hover:bg-[rgba(141,117,255,0.28)] disabled:opacity-50">
-              {loading ? "Updating..." : "Update password"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
+          ) : null}
+
+          <div className="grid gap-2">
+            <PasswordField
+              id="reset-password"
+              name="password"
+              label="New password"
+              value={password}
+              onChange={setPassword}
+              placeholder="Create a strong password"
+              autoComplete="new-password"
+              error={error && password.length < 8 ? "Password must be at least 8 characters." : undefined}
+            />
+            <PasswordStrength password={password} />
+          </div>
+
+          <PasswordField
+            id="reset-confirm-password"
+            name="confirmPassword"
+            label="Confirm password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            placeholder="Confirm your password"
+            autoComplete="new-password"
+            error={error && password !== confirmPassword ? "Passwords must match." : undefined}
+          />
+
+          <button type="submit" className="cm-button-primary w-full gap-2" disabled={loading}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+            {loading ? "Updating..." : "Update password"}
+          </button>
+        </form>
+      )}
+    </AuthShell>
   );
 }
+

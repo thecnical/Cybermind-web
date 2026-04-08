@@ -1,95 +1,102 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import { Check, Zap } from "lucide-react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import Modal from "@/components/Modal";
 import { useAuth } from "@/components/AuthProvider";
-import { PLAN_PRICES, UserPlan } from "@/lib/supabase";
+import { planDetails, mockInvoices } from "@/lib/mockData";
 
-const plans: { id: UserPlan; name: string; features: string[] }[] = [
-  {
-    id: "free",
-    name: "Free",
-    features: ["20 requests/day", "AI chat only", "5 recon tools", "Community support"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    features: ["200 requests/day", "Full 20-tool recon", "Full 11-tool hunt", "Priority backend", "Email support"],
-  },
-  {
-    id: "elite",
-    name: "Elite",
-    features: ["Unlimited requests", "All modes + Abhimanyu", "Session persistence", "PDF reports", "Priority support", "Early access"],
-  },
-];
+const planOrder = ["free", "pro", "elite"] as const;
 
 export default function BillingPage() {
   const { profile } = useAuth();
   const [annual, setAnnual] = useState(false);
-  const currentPlan = profile?.plan || "free";
+  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+
+  const currentPlan = profile?.plan ?? "free";
+  const priceLabel = useMemo(
+    () =>
+      planOrder.reduce<Record<string, string>>((acc, tier) => {
+        const details = planDetails[tier];
+        acc[tier] = annual ? details.priceAnnual : details.priceMonthly;
+        return acc;
+      }, {}),
+    [annual],
+  );
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-white">Billing</h1>
-        <p className="text-[var(--text-soft)] mt-1">Manage your plan and subscription</p>
-      </div>
+    <div className="mx-auto grid w-full max-w-6xl gap-6">
+      <section className="cm-card p-6 md:p-8">
+        <p className="cm-label">Dashboard</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">Billing</h1>
+        <p className="mt-2 text-sm text-[var(--text-soft)]">Current plan: <span className="uppercase text-[var(--accent-cyan)]">{currentPlan}</span></p>
+      </section>
 
-      {/* Current plan */}
-      <div className="rounded-[24px] border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 p-5 mb-8">
-        <div className="flex items-center gap-3">
-          <Zap size={18} className="text-[var(--accent-cyan)]" />
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">Current Plan</p>
-            <p className="text-lg font-semibold text-white capitalize">{currentPlan}</p>
-          </div>
-          {currentPlan === "free" && (
-            <a href="#upgrade" className="ml-auto text-sm text-[var(--accent-cyan)] hover:underline">Upgrade →</a>
-          )}
-        </div>
-      </div>
-
-      {/* Billing toggle */}
-      <div id="upgrade" className="flex items-center gap-4 mb-6">
-        <p className="text-sm text-[var(--text-soft)]">Billing cycle:</p>
-        <div className="flex rounded-2xl border border-white/10 overflow-hidden">
-          <button onClick={() => setAnnual(false)} className={`px-4 py-2 text-sm transition-colors ${!annual ? "bg-white/8 text-white" : "text-[var(--text-soft)]"}`}>Monthly</button>
-          <button onClick={() => setAnnual(true)} className={`px-4 py-2 text-sm transition-colors ${annual ? "bg-white/8 text-white" : "text-[var(--text-soft)]"}`}>
-            Annual <span className="text-[#00FF88] text-xs ml-1">-20%</span>
+      <section className="cm-card-soft flex flex-wrap items-center justify-between gap-4 p-5">
+        <p className="text-sm text-[var(--text-soft)]">Billing cycle</p>
+        <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
+          <button type="button" onClick={() => setAnnual(false)} className={`rounded-lg px-4 py-2 text-sm ${!annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]"}`}>
+            Monthly
+          </button>
+          <button type="button" onClick={() => setAnnual(true)} className={`rounded-lg px-4 py-2 text-sm ${annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]"}`}>
+            Annual (2 months free)
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* Plan cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {plans.map(plan => {
-          const price = annual ? PLAN_PRICES[plan.id].annual : PLAN_PRICES[plan.id].monthly;
-          const isCurrent = plan.id === currentPlan;
-          const isPro = plan.id === "pro";
+      <section className="grid gap-4 md:grid-cols-3">
+        {planOrder.map((tier) => {
+          const details = planDetails[tier];
+          const featured = tier === "pro";
           return (
-            <div key={plan.id} className={`rounded-[28px] border p-6 ${isPro ? "border-[var(--accent-cyan)]/40 bg-[var(--accent-cyan)]/5" : "border-white/8 bg-white/[0.03]"}`}>
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">{plan.name}</p>
-              <p className="text-3xl font-semibold text-white mt-2">
-                {price === 0 ? "Free" : `$${price}`}
-                {price > 0 && <span className="text-sm font-normal text-[var(--text-soft)]">/mo</span>}
-              </p>
-              <ul className="mt-4 space-y-2">
-                {plan.features.map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-[var(--text-soft)]">
-                    <Check size={14} className="text-[#00FF88] mt-0.5 flex-shrink-0" />
-                    {f}
-                  </li>
+            <div key={tier} className={`cm-spotlight-card rounded-[30px] border p-5 ${featured ? "border-[var(--accent-cyan)]/35 bg-[rgba(0,255,255,0.08)]" : "border-white/8 bg-white/[0.03]"}`}>
+              <p className="cm-label">{details.name}</p>
+              <h2 className="mt-3 text-3xl font-semibold text-white">{priceLabel[tier]}</h2>
+              <p className="mt-1 text-sm text-[var(--text-soft)]">{tier === "free" ? "" : annual ? "/ year" : "/ month"}</p>
+              <ul className="mt-4 grid gap-2">
+                {details.features.map((feature) => (
+                  <li key={feature} className="text-sm text-[var(--text-soft)]">• {feature}</li>
                 ))}
               </ul>
-              <button disabled={isCurrent} className={`mt-6 w-full rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${isCurrent ? "border border-white/10 text-[var(--text-muted)] cursor-default" : isPro ? "border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 text-white hover:bg-[var(--accent-cyan)]/20" : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}>
-                {isCurrent ? "Current plan" : plan.id === "free" ? "Downgrade" : "Upgrade — Coming soon"}
+              <button
+                type="button"
+                className={featured ? "cm-button-primary mt-5 w-full" : "cm-button-secondary mt-5 w-full"}
+                onClick={() => (tier === currentPlan ? undefined : setCheckoutPlan(details.name))}
+                disabled={tier === currentPlan}
+              >
+                {tier === currentPlan ? "Current plan" : `Upgrade to ${details.name}`}
               </button>
             </div>
           );
         })}
-      </div>
+      </section>
 
-      <p className="text-xs text-[var(--text-muted)] text-center">Stripe payment integration coming soon. Contact support to upgrade manually.</p>
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Payment method</h2>
+        <p className="mt-2 text-sm text-[var(--text-soft)]">Visa ending in •••• 4242</p>
+      </section>
+
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Invoice history</h2>
+        <div className="mt-4 grid gap-3">
+          {mockInvoices.map((invoice) => (
+            <div key={invoice.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3 text-sm">
+              <span className="text-white">{invoice.date}</span>
+              <span className="text-[var(--text-soft)]">{invoice.amount}</span>
+              <span className="cm-pill">{invoice.status}</span>
+              <Link href="#" className="text-[var(--accent-cyan)]">Download PDF</Link>
+            </div>
+          ))}
+        </div>
+        <button type="button" className="mt-5 text-sm text-[var(--error)]">Cancel subscription</button>
+      </section>
+
+      <Modal open={Boolean(checkoutPlan)} onClose={() => setCheckoutPlan(null)} title="Checkout placeholder">
+        <p className="text-sm leading-7 text-[var(--text-soft)]">
+          {checkoutPlan} checkout is a Stripe placeholder right now. Flow is intentionally UI-only.
+        </p>
+      </Modal>
     </div>
   );
 }
+

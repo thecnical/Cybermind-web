@@ -1,8 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xaxbbonibqoxcxtqkhth.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhheGJib25pYnFveGN4dHFraHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NjI5MDIsImV4cCI6MjA5MTIzODkwMn0.DnXolvQdN7qw5CMQIVqnFBoCppLoVtYtqpw6Fypg1Mk";
+// SECURITY: All credentials MUST come from environment variables.
+// Never hardcode keys here. Set them in .env.local (dev) or Vercel dashboard (prod).
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
+
+if (typeof window !== "undefined" && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
+  console.error("[CyberMind] NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in environment variables.");
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -27,7 +33,7 @@ export interface UserProfile {
 export interface ApiKey {
   id: string;
   name: string;
-  key?: string; // only returned on creation
+  key?: string; // only returned on creation — never stored client-side after that
   plan: UserPlan;
   is_active: boolean;
   requests_today: number;
@@ -48,61 +54,75 @@ export const PLAN_PRICES: Record<UserPlan, { monthly: number; annual: number }> 
   elite: { monthly: 29, annual: 24 },
 };
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://cybermind-backend-8yrt.onrender.com";
-
 // Get auth token from current session
 async function getToken(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token || null;
+  return session?.access_token ?? null;
 }
 
 // Fetch user profile from backend
 export async function fetchProfile(): Promise<UserProfile | null> {
   const token = await getToken();
   if (!token) return null;
-  const res = await fetch(`${BACKEND_URL}/auth/profile`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.success ? data.profile : null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.profile : null;
+  } catch {
+    return null;
+  }
 }
 
 // Fetch user's API keys
 export async function fetchApiKeys(): Promise<ApiKey[]> {
   const token = await getToken();
   if (!token) return [];
-  const res = await fetch(`${BACKEND_URL}/auth/keys`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.success ? data.keys : [];
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/keys`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.success ? data.keys : [];
+  } catch {
+    return [];
+  }
 }
 
 // Create a new API key
 export async function createApiKey(name: string): Promise<ApiKey | null> {
   const token = await getToken();
   if (!token) return null;
-  const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.success ? data : null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.slice(0, 64) }), // sanitize length
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 // Revoke an API key
 export async function revokeApiKey(keyId: string): Promise<boolean> {
   const token = await getToken();
   if (!token) return false;
-  const res = await fetch(`${BACKEND_URL}/auth/revoke-key`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ key_id: keyId }),
-  });
-  const data = await res.json();
-  return data.success === true;
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/revoke-key`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ key_id: keyId }),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch {
+    return false;
+  }
 }

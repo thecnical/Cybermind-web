@@ -35,12 +35,13 @@ export default function CyberMindTerminal() {
   }, []);
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-[32px] border border-[rgba(149,111,255,0.34)] bg-[linear-gradient(180deg,#080a0f_0%,#101824_100%)] shadow-[0_32px_120px_rgba(0,0,0,0.42)]">
+    <div className="cm-spotlight-card min-w-0 overflow-hidden rounded-[32px] border border-[rgba(149,111,255,0.34)] bg-[linear-gradient(180deg,#080a0f_0%,#101824_100%)] shadow-[0_32px_120px_rgba(0,0,0,0.42)]">
       <div className="border-b border-white/8 bg-[linear-gradient(90deg,rgba(33,44,68,0.85),rgba(12,16,25,0.85))] px-5 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--accent-cyan)]">
+          <div className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.32em] text-[var(--accent-cyan)]">
+            <span className="text-base tracking-normal">&gt;_</span>
             CyberMind CLI
-          </p>
+          </div>
           <p className="font-mono text-xs text-[var(--text-muted)]">
             Official prompt shell
           </p>

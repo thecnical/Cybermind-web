@@ -1,4 +1,5 @@
-﻿import { DocsPageView, LinkCard } from "@/components/SitePrimitives";
+﻿import { Surface } from "@/components/DesignPrimitives";
+import { DocsPageView, LinkCard } from "@/components/SitePrimitives";
 import { cybermindDocRoutes, getDocPage, getSidebarGroups } from "@/lib/siteContent";
 
 const quickStartCards = [
@@ -25,38 +26,45 @@ export default function DocsHomePage() {
 
   return (
     <div className="grid gap-6">
-      <section className="cm-card p-6 md:p-8">
+      <Surface variant="glass" tone="cyan" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <p className="cm-label">Choose a path</p>
         <h2 className="mt-3 text-3xl font-semibold text-white">Open the docs by goal, not by route count</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {quickStartCards.map((item) => (
-            <LinkCard key={item.href} {...item} />
+            <LinkCard key={item.href} {...item} variant="skeuo" />
           ))}
         </div>
-      </section>
+      </Surface>
+
       <DocsPageView page={page} />
-      <section className="cm-card p-6 md:p-8">
+
+      <Surface variant="glass" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <h2 className="text-2xl font-semibold text-white">What is inside the docs</h2>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">
           The docs are grouped into four buckets: start here, core workflows, commands and safety, and help and updates.
         </p>
         <div className="mt-6 grid gap-4 xl:grid-cols-2">
-          {groups.map((group) => (
-            <div key={group.group} className="cm-card-soft p-5">
+          {groups.map((group, index) => (
+            <Surface key={group.group} variant={index % 2 === 0 ? "clay" : "glass"} elevation="low" className="rounded-[24px] p-5">
               <p className="cm-label text-[var(--accent-cyan)]">{group.group}</p>
               <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">{group.description}</p>
               <div className="mt-4 grid gap-3">
                 {group.items.slice(0, 3).map((item) => (
-                  <LinkCard key={item.href} href={item.href} label={item.label} description={`Open ${item.label.toLowerCase()} in the ${group.group.toLowerCase()} section.`} />
+                  <LinkCard
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    description={`Open ${item.label.toLowerCase()} in the ${group.group.toLowerCase()} section.`}
+                    variant="skeuo"
+                    motion="fast"
+                  />
                 ))}
               </div>
-            </div>
+            </Surface>
           ))}
         </div>
-        <p className="mt-6 text-sm text-[var(--text-muted)]">
-          Total generated docs routes: {cybermindDocRoutes.length}
-        </p>
-      </section>
+        <p className="mt-6 text-sm text-[var(--text-muted)]">Total generated docs routes: {cybermindDocRoutes.length}</p>
+      </Surface>
     </div>
   );
 }

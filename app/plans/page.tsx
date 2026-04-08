@@ -128,7 +128,7 @@ export default function PlansPage() {
               <div
                 key={plan.id}
                 className={cn(
-                  "relative overflow-hidden rounded-[32px] border p-6 shadow-[0_24px_80px_rgba(0,0,0,0.26)]",
+                  "cm-spotlight-card relative overflow-hidden rounded-[32px] border p-6 shadow-[0_24px_80px_rgba(0,0,0,0.26)]",
                   highlighted
                     ? "border-[var(--accent-cyan)]/30 bg-[radial-gradient(circle_at_top,rgba(0,255,255,0.14),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))]"
                     : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]",

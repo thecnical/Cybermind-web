@@ -1,6 +1,8 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import CyberMindAssistant from "@/components/CyberMindAssistant";
 import CookieConsent from "@/components/CookieConsent";
+import CursorAura from "@/components/CursorAura";
 import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
@@ -42,7 +44,9 @@ export default function RootLayout({
     >
       <body className={`${plusJakartaSans.className} app-theme antialiased`}>
         <AuthProvider>
+          <CursorAura />
           {children}
+          <CyberMindAssistant />
           <CookieConsent />
         </AuthProvider>
       </body>

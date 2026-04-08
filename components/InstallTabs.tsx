@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Laptop, TerminalSquare, MonitorCog } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
+import { Surface } from "@/components/DesignPrimitives";
 import { withApiKey } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
@@ -115,7 +116,7 @@ export default function InstallTabs({
         })}
       </div>
 
-      <div className="cm-card grid gap-5 p-5 md:p-6">
+      <Surface variant="glass" tone="cyan" elevation="medium" motion="medium" className="grid gap-5 rounded-[30px] p-5 md:p-6">
         <div>
           <p className="cm-label">{activeTab.eyebrow}</p>
           <h3 className="mt-3 text-2xl font-semibold text-white">{activeTab.label}</h3>
@@ -123,16 +124,16 @@ export default function InstallTabs({
 
         <div className="grid gap-3 md:grid-cols-3">
           {activeTab.steps.map((step, index) => (
-            <div key={step} className="cm-card-soft p-4">
+            <Surface key={step} variant={index === 1 ? "clay" : "skeuo"} tone="default" elevation="low" motion="fast" className="rounded-2xl p-4">
               <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent-cyan)]">
                 Step {index + 1}
               </p>
               <p className="mt-3 text-sm leading-6 text-[var(--text-soft)]">{step}</p>
-            </div>
+            </Surface>
           ))}
         </div>
 
-        <div className="rounded-[24px] border border-[var(--accent-strong)]/15 bg-[rgba(141,117,255,0.09)] p-4">
+        <Surface variant="skeuo" tone="accent" elevation="low" motion="fast" className="rounded-[24px] p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="cm-label">Install command</p>
             <CopyButton text={activeTab.command} />
@@ -140,8 +141,8 @@ export default function InstallTabs({
           <code className="mt-3 block overflow-x-auto whitespace-nowrap font-mono text-sm text-white">
             {activeTab.command}
           </code>
-        </div>
-      </div>
+        </Surface>
+      </Surface>
     </div>
   );
 }

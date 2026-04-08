@@ -30,7 +30,7 @@ export default function CopyButton({
       aria-label={copied ? "Copied" : "Copy command"}
       title={copied ? "Copied" : "Copy command"}
       className={cn(
-        "rounded-xl border border-white/8 bg-white/5 p-2 text-[var(--text-soft)] transition-all duration-200 hover:border-[var(--accent-strong)]/40 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-strong)]/60",
+        "surface-skeuo rounded-xl border p-2 text-[var(--text-soft)] transition-all duration-200 hover:border-[var(--accent-cyan)]/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-strong)]/60",
         className,
       )}
     >

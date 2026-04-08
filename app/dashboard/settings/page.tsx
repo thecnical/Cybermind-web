@@ -1,72 +1,119 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Modal from "@/components/Modal";
+import PasswordField from "@/components/PasswordField";
 import { useAuth } from "@/components/AuthProvider";
-import { supabase } from "@/lib/supabase";
 
 export default function SettingsPage() {
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
   const router = useRouter();
-  const [fullName, setFullName] = useState(profile?.full_name || "");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState("");
-  const [deleting, setDeleting] = useState(false);
 
-  async function handleSaveProfile(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    await supabase.from("profiles").update({ full_name: fullName }).eq("id", user!.id);
-    setSaving(false);
+  const [name, setName] = useState(profile?.full_name ?? "Chandan Pandey");
+  const [email] = useState(profile?.email ?? "chandan@cybermind.dev");
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const [notifyUsage, setNotifyUsage] = useState(true);
+  const [notifyFeatures, setNotifyFeatures] = useState(true);
+  const [notifySecurity, setNotifySecurity] = useState(true);
+  const [theme, setTheme] = useState("dark");
+
+  function handleProfileSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    window.setTimeout(() => setSaved(false), 1500);
   }
 
-  async function handleDeleteAccount() {
-    if (deleteConfirm !== "DELETE") return;
-    setDeleting(true);
+  async function handleDelete() {
     await signOut();
     router.push("/");
   }
 
   return (
-    <div className="p-8 max-w-2xl">
-      <h1 className="text-2xl font-semibold text-white mb-8">Settings</h1>
+    <div className="mx-auto grid w-full max-w-4xl gap-6">
+      <section className="cm-card p-6 md:p-8">
+        <p className="cm-label">Dashboard</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">Settings</h1>
+      </section>
 
-      {/* Profile */}
-      <div className="rounded-[28px] border border-white/8 bg-white/[0.03] p-6 mb-6">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--text-muted)] mb-4">Profile</p>
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-2">Full Name</label>
-            <input value={fullName} onChange={e => setFullName(e.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white focus:border-[var(--accent-cyan)]/50 focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-2">Email</label>
-            <input value={user?.email || ""} disabled
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-[var(--text-muted)] cursor-not-allowed" />
-          </div>
-          <button type="submit" disabled={saving} className="rounded-2xl border border-[var(--accent-strong)]/30 bg-[rgba(141,117,255,0.18)] px-5 py-2.5 text-sm text-white hover:bg-[rgba(141,117,255,0.28)] disabled:opacity-50">
-            {saving ? "Saving..." : saved ? "✓ Saved" : "Save changes"}
-          </button>
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Profile</h2>
+        <form className="mt-4 grid gap-4" onSubmit={handleProfileSave}>
+          <label className="grid gap-2">
+            <span className="cm-label">Name</span>
+            <input value={name} onChange={(event) => setName(event.target.value)} className="cm-input" />
+          </label>
+          <label className="grid gap-2">
+            <span className="cm-label">Email</span>
+            <input value={email} disabled className="cm-input opacity-70" />
+          </label>
+          <label className="grid gap-2">
+            <span className="cm-label">Avatar upload</span>
+            <input type="file" onChange={(event) => setAvatar(event.target.files?.[0] ?? null)} className="cm-input" />
+            {avatar ? <span className="text-xs text-[var(--text-soft)]">Selected: {avatar.name}</span> : null}
+          </label>
+          <button type="submit" className="cm-button-primary w-fit">{saved ? "Saved" : "Save profile"}</button>
         </form>
-      </div>
+      </section>
 
-      {/* Danger zone */}
-      <div className="rounded-[28px] border border-[#FF4444]/20 bg-[#FF4444]/5 p-6">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-[#FF4444] mb-4">Danger Zone</p>
-        <p className="text-sm text-[var(--text-soft)] mb-4">Permanently delete your account and all associated data. This cannot be undone.</p>
-        <div className="space-y-3">
-          <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder='Type "DELETE" to confirm'
-            className="w-full rounded-2xl border border-[#FF4444]/20 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-[var(--text-muted)] focus:border-[#FF4444]/50 focus:outline-none" />
-          <button onClick={handleDeleteAccount} disabled={deleteConfirm !== "DELETE" || deleting}
-            className="rounded-2xl border border-[#FF4444]/30 bg-[#FF4444]/10 px-5 py-2.5 text-sm text-[#FF4444] hover:bg-[#FF4444]/20 disabled:opacity-30 disabled:cursor-not-allowed">
-            {deleting ? "Deleting..." : "Delete account"}
-          </button>
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Change password</h2>
+        <form className="mt-4 grid gap-4" onSubmit={(event) => event.preventDefault()}>
+          <PasswordField
+            id="current-password"
+            name="currentPassword"
+            label="Current password"
+            value={oldPassword}
+            onChange={setOldPassword}
+            placeholder="Current password"
+          />
+          <PasswordField
+            id="new-password"
+            name="newPassword"
+            label="New password"
+            value={newPassword}
+            onChange={setNewPassword}
+            placeholder="New password"
+          />
+          <button type="submit" className="cm-button-secondary w-fit">Update password</button>
+        </form>
+      </section>
+
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Notification preferences</h2>
+        <div className="mt-4 grid gap-3 text-sm text-[var(--text-soft)]">
+          <label className="inline-flex items-center gap-2"><input type="checkbox" checked={notifyUsage} onChange={(e) => setNotifyUsage(e.target.checked)} /> Usage limit alerts</label>
+          <label className="inline-flex items-center gap-2"><input type="checkbox" checked={notifyFeatures} onChange={(e) => setNotifyFeatures(e.target.checked)} /> New feature updates</label>
+          <label className="inline-flex items-center gap-2"><input type="checkbox" checked={notifySecurity} onChange={(e) => setNotifySecurity(e.target.checked)} /> Security alerts</label>
         </div>
-      </div>
+      </section>
+
+      <section className="cm-card p-6">
+        <h2 className="text-xl font-semibold text-white">Theme preference</h2>
+        <div className="mt-4 inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
+          <button type="button" onClick={() => setTheme("dark")} className={`rounded-lg px-4 py-2 text-sm ${theme === "dark" ? "bg-white/10 text-white" : "text-[var(--text-soft)]"}`}>Dark</button>
+          <button type="button" onClick={() => setTheme("light")} className={`rounded-lg px-4 py-2 text-sm ${theme === "light" ? "bg-white/10 text-white" : "text-[var(--text-soft)]"}`}>Light (coming soon)</button>
+        </div>
+      </section>
+
+      <section className="rounded-[30px] border border-[var(--error)]/25 bg-[rgba(255,68,68,0.06)] p-6">
+        <h2 className="text-xl font-semibold text-white">Danger zone</h2>
+        <p className="mt-2 text-sm text-[var(--text-soft)]">Delete your account and end access permanently.</p>
+        <button type="button" onClick={() => setDeleteOpen(true)} className="cm-button-danger mt-4">Delete account</button>
+      </section>
+
+      <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete account">
+        <div className="grid gap-4">
+          <p className="text-sm leading-7 text-[var(--text-soft)]">This action removes your mock session and signs you out immediately.</p>
+          <button type="button" onClick={handleDelete} className="cm-button-danger w-full">Confirm delete</button>
+        </div>
+      </Modal>
     </div>
   );
 }
+

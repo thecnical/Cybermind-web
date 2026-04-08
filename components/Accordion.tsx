@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Surface } from "@/components/DesignPrimitives";
 
 export type AccordionItem = {
   title: string;
@@ -17,7 +18,14 @@ export default function Accordion({ items }: { items: AccordionItem[] }) {
       {items.map((item, index) => {
         const open = index === openIndex;
         return (
-          <div key={item.title} className="cm-card-soft overflow-hidden">
+          <Surface
+            key={item.title}
+            variant={open ? "skeuo" : "glass"}
+            tone={open ? "cyan" : "default"}
+            elevation="low"
+            motion="fast"
+            className="overflow-hidden rounded-[24px]"
+          >
             <button
               type="button"
               onClick={() => setOpenIndex(open ? -1 : index)}
@@ -43,7 +51,7 @@ export default function Accordion({ items }: { items: AccordionItem[] }) {
                 </motion.div>
               ) : null}
             </AnimatePresence>
-          </div>
+          </Surface>
         );
       })}
     </div>
