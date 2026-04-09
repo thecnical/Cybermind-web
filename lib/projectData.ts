@@ -23,10 +23,10 @@ export const cybermindProjectMeta = {
 };
 
 export const cybermindProjectMetrics: ProjectMetric[] = [
-  { label: "Stars", value: "26", detail: "GitHub stars (as of Apr 9, 2026)" },
-  { label: "Forks", value: "3", detail: "Public forks on GitHub" },
-  { label: "Open issues", value: "1", detail: "Active issue count" },
-  { label: "Primary language", value: "Go", detail: "Core CLI implementation language" },
+  { label: "Stars",            value: "26",  detail: "GitHub stars (as of Apr 9, 2026)" },
+  { label: "Forks",            value: "3",   detail: "Public forks on GitHub" },
+  { label: "Open issues",      value: "1",   detail: "Active issue count" },
+  { label: "Primary language", value: "Go",  detail: "Core CLI implementation language" },
 ];
 
 export const cybermindProjectTopics = [
@@ -36,6 +36,12 @@ export const cybermindProjectTopics = [
   "bug-bounty",
   "osint",
   "security-tools",
+  "penetration-testing",
+  "ai-security",
+  "offensive-security",
+  "recon-automation",
+  "exploit-engine",
+  "cli-tool",
 ];
 
 export const cybermindTimeline: TimelineItem[] = [
@@ -71,46 +77,84 @@ export const cybermindTimeline: TimelineItem[] = [
   },
 ];
 
+// ─── Leadership (Creator + CEO) ───────────────────────────────────────────────
 export const leadershipProfiles = [
   {
     name: "Chandan Pandey",
     role: "Creator & Lead Developer",
+    badge: "Founder",
     summary:
-      "Founder and primary builder of CyberMind CLI, focused on secure AI-driven offensive security tooling.",
-    avatarUrl: "https://api.dicebear.com/9.x/glass/svg?seed=Chandan%20Pandey",
-    githubUrl: "",
+      "Architect and primary builder of CyberMind CLI. Designed the full offensive security pipeline — recon, hunt, Abhimanyu exploit engine — and the AI-first CLI experience.",
+    avatarUrl: "/team/chandan.jpg",
+    githubUrl: "https://github.com/thecnical",
     websiteUrl: "https://cybermind.thecnical.dev",
+    skills: ["Go", "Node.js", "AI/ML", "Offensive Security", "DevSecOps"],
+    accent: "cyan" as const,
   },
   {
     name: "Sanjay Pandey",
     role: "CEO",
+    badge: "Leadership",
     summary:
-      "Leads product direction, execution strategy, and growth across cybersecurity and developer experience initiatives.",
-    avatarUrl: "https://api.dicebear.com/9.x/glass/svg?seed=Sanjay%20Pandey",
+      "Leads product direction, execution strategy, and growth across cybersecurity and developer experience initiatives. Drives the vision for CyberMind as a production-grade security platform.",
+    avatarUrl: "/team/sanjay.jpg",
     githubUrl: "",
     websiteUrl: "",
+    skills: ["Product Strategy", "Business Development", "Security Operations", "Team Leadership"],
+    accent: "purple" as const,
   },
 ];
 
+// ─── Tech Team ────────────────────────────────────────────────────────────────
+export const techTeamProfiles = [
+  {
+    name: "Omkar Vijay Gavali",
+    role: "Tech Team",
+    summary: "Core contributor to CyberMind's security toolchain and CLI infrastructure.",
+    avatarUrl: "/team/omkar.jpg",
+    githubUrl: "",
+  },
+  {
+    name: "Divyanshu Upadhaya",
+    role: "Tech Team",
+    summary: "Contributes to backend systems, API design, and platform reliability for CyberMind.",
+    avatarUrl: "/team/divyanshu.jpg",
+    githubUrl: "",
+  },
+  {
+    name: "Laxman Singh",
+    role: "Tech Team",
+    summary: "Works on recon automation, tool integration, and offensive security workflows.",
+    avatarUrl: "https://api.dicebear.com/9.x/glass/svg?seed=Laxman%20Singh",
+    githubUrl: "",
+  },
+];
+
+// ─── Contributors tooltip (shown in Project Topics section) ───────────────────
 export const contributorTooltipPeople = [
   {
     name: "Chandan Pandey",
-    role: "Creator",
-    avatar: "https://avatars.githubusercontent.com/u/141616063?v=4",
+    role: "Creator & Lead Developer",
+    avatar: "/team/chandan.jpg",
   },
   {
-    name: "Security Research Team",
-    role: "Recon and exploit testing",
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=CyberMind%20Research",
+    name: "Sanjay Pandey",
+    role: "CEO",
+    avatar: "/team/sanjay.jpg",
   },
   {
-    name: "Platform Engineering",
-    role: "CLI and backend reliability",
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=CyberMind%20Platform",
+    name: "Omkar Vijay Gavali",
+    role: "Tech Team",
+    avatar: "/team/omkar.jpg",
   },
   {
-    name: "DX Team",
-    role: "Docs and onboarding",
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=CyberMind%20DX",
+    name: "Divyanshu Upadhaya",
+    role: "Tech Team",
+    avatar: "/team/divyanshu.jpg",
+  },
+  {
+    name: "Laxman Singh",
+    role: "Tech Team",
+    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Laxman%20Singh",
   },
 ];

@@ -39,7 +39,7 @@ export default function AnimatedTooltip({
               width={44}
               height={44}
               unoptimized
-              className="h-full w-full rounded-full object-cover"
+              className="h-full w-full rounded-full object-cover object-top"
               loading="lazy"
             />
           </button>
