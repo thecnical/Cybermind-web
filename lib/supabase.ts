@@ -177,60 +177,75 @@ export async function createApiKey(
   const token = await getToken();
   if (!token) throw new Error("Not logged in. Please refresh and try again.");
 
-  // First try a quick ping — if backend is awake this resolves in <2s
+  // Step 1: wake the backend
   onWakeProgress?.(2);
   const isAwake = await wakeBackend();
 
   if (!isAwake) {
-    // Backend is sleeping on Render free tier — wait up to 60s for it to wake
     onWakeProgress?.(5);
-    const woke = await waitForBackend(60000, onWakeProgress);
+    const woke = await waitForBackend(90000, onWakeProgress);
     if (!woke) {
       throw new Error(
-        "Server is starting up (Render free tier cold start). Please wait 30 seconds and click Try again."
+        "Server is taking too long to start. Please wait 30 seconds and click Try again."
       );
     }
   }
 
+  // Step 2: small buffer after wake — server needs ~1s to finish initializing
+  onWakeProgress?.(98);
+  await new Promise(r => setTimeout(r, 1500));
   onWakeProgress?.(100);
 
-  // Backend is awake — now create the key
-  try {
-    const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: name.slice(0, 64),
-        device_type: deviceType || detectDeviceType(),
-      }),
-      signal: AbortSignal.timeout(25000),
-    });
+  // Step 3: create the key — retry up to 3 times on network/timeout errors
+  let lastErr: Error = new Error("Failed to create key.");
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.slice(0, 64),
+          device_type: deviceType || detectDeviceType(),
+        }),
+        signal: AbortSignal.timeout(30000),
+      });
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || `Server error (${res.status}). Please try again.`);
-    }
-    return data;
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      if (err.name === "AbortError" || err.name === "TimeoutError") {
-        throw new Error("Request timed out. The server may still be starting — please try again in 30 seconds.");
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        // Don't retry on auth/plan errors — they won't change
+        throw new Error(data.error || `Server error (${res.status}). Please try again.`);
       }
-      if (
-        err.message.includes("Failed to fetch") ||
-        err.message.includes("NetworkError") ||
-        err.message.includes("Load failed") ||
-        err.message.includes("fetch")
-      ) {
-        throw new Error("Cannot reach the server. Check your internet connection or wait a moment and try again.");
+      return data;
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        const isRetryable =
+          err.name === "AbortError" ||
+          err.name === "TimeoutError" ||
+          err.message.includes("Failed to fetch") ||
+          err.message.includes("NetworkError") ||
+          err.message.includes("Load failed");
+
+        if (isRetryable && attempt < 3) {
+          // Wait 3s between retries
+          await new Promise(r => setTimeout(r, 3000));
+          continue;
+        }
+
+        if (err.name === "AbortError" || err.name === "TimeoutError") {
+          lastErr = new Error("Request timed out. Please try again.");
+        } else if (isRetryable) {
+          lastErr = new Error("Cannot reach the server. Check your internet connection and try again.");
+        } else {
+          lastErr = err;
+        }
       }
-      throw err;
+      break;
     }
-    throw new Error("Failed to create key. Please try again.");
   }
+  throw lastErr;
 }
 
 // Detect device type from user agent
