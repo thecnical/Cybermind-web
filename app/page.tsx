@@ -151,7 +151,7 @@ export default function HomePage() {
           tone="cyan"
           elevation="high"
           motion="hero"
-          className="cm-noise-overlay relative overflow-hidden rounded-[42px] px-6 py-8 md:px-8 md:py-10 xl:px-10 xl:py-12"
+          className="cm-noise-overlay relative overflow-hidden rounded-[32px] px-5 py-7 md:rounded-[42px] md:px-8 md:py-10 xl:px-10 xl:py-12"
         >
           <div className="cm-hero-beams" />
           <div className="absolute inset-0 cm-grid-bg opacity-25" />
@@ -159,7 +159,7 @@ export default function HomePage() {
           <div className="relative grid gap-8 xl:grid-cols-[1fr_480px] xl:items-center 2xl:grid-cols-[1fr_520px]">
             <div className="min-w-0">
               <p className="cm-label text-[var(--accent-cyan)]">Official CyberMind CLI experience</p>
-              <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-white md:text-5xl xl:text-6xl">
+              <h1 className="mt-4 max-w-4xl text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl md:text-5xl xl:text-6xl">
                 CyberMind CLI powers{" "}
                 <TextFlip
                   words={["AI chat", "recon chains", "hunt execution", "exploit workflows"]}
@@ -167,28 +167,40 @@ export default function HomePage() {
                 />{" "}
                 in one command-first surface.
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-soft)] md:text-lg">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-soft)] md:text-base md:leading-8">
                 Run offensive security workflows with platform-aware boundaries, fast install, and account control
                 that stays aligned to real terminal sessions.
               </p>
-              <CommandBar
-                command="curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key sk_live_cm_xxxxxxxxxxxxxxxx"
-                className="mt-7 max-w-2xl"
-                variant="skeuo"
-                tone="cyan"
-              />
-              <div className="mt-7 flex flex-wrap gap-3">
+              {/* FIX: hide long command on mobile, show short version */}
+              <div className="mt-6 hidden sm:block">
+                <CommandBar
+                  command="curl -sL https://cybermind.thecnical.dev/install.sh | bash"
+                  className="max-w-2xl"
+                  variant="skeuo"
+                  tone="cyan"
+                />
+              </div>
+              <div className="mt-6 block sm:hidden">
+                <CommandBar
+                  command="cybermind --install"
+                  className="max-w-full"
+                  variant="skeuo"
+                  tone="cyan"
+                />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/auth/register" className="cm-button-primary gap-2">
                   Start free
                   <ArrowRight size={16} />
                 </Link>
                 <Link href="/install" className="cm-button-secondary">
-                  Install CyberMind CLI
+                  Install guide
                 </Link>
               </div>
             </div>
 
-            <div className="min-w-0 xl:pl-4">
+            {/* Terminal — hidden on small mobile, shown from md+ */}
+            <div className="hidden min-w-0 md:block xl:pl-4">
               <CyberMindTerminal />
             </div>
           </div>

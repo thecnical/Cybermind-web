@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import { fetchApiKeys, createApiKey, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
+import { fetchApiKeys, createApiKey, wakeBackend, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 
 // Device limits per plan
@@ -64,6 +64,7 @@ export default function DashboardPage() {
   const [creatingKey, setCreatingKey] = useState(false);
   const [loadingKeys, setLoadingKeys] = useState(true);
   const [keyError, setKeyError] = useState("");
+  const [wakeProgress, setWakeProgress] = useState(0); // 0 = idle, 1-99 = waking, 100 = ready
   const [showDeviceSelect, setShowDeviceSelect] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<"linux" | "windows" | "mac" | null>(null);
   const [keyName, setKeyName] = useState("");
@@ -75,13 +76,14 @@ export default function DashboardPage() {
   const usagePct = limit === Infinity ? 0 : Math.min(100, (used / limit) * 100);
 
   useEffect(() => {
-    // Auto-detect platform
     setPlatform(detectOS());
+
+    // Wake backend silently when dashboard loads
+    wakeBackend().catch(() => {});
 
     fetchApiKeys().then(k => {
       setKeys(k);
       setLoadingKeys(false);
-      // Elite plan: auto-generate key without asking device
       if (k.length === 0 && plan === "elite") {
         handleAutoCreateKey("linux", "Linux device");
       }
@@ -91,14 +93,16 @@ export default function DashboardPage() {
   async function handleAutoCreateKey(device: string, name?: string) {
     setCreatingKey(true);
     setKeyError("");
+    setWakeProgress(0);
     try {
       const keyLabel = name?.trim() || `${device} device`;
-      const key = await createApiKey(keyLabel, device);
+      const key = await createApiKey(keyLabel, device, (pct) => setWakeProgress(pct));
       if (key) setKeys(prev => [key as ApiKey, ...prev]);
+      setWakeProgress(0);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Failed to create key";
-      // Show a more helpful message for cold start timeouts
       setKeyError(msg);
+      setWakeProgress(0);
     }
     setCreatingKey(false);
   }

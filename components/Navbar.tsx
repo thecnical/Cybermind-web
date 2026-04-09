@@ -265,7 +265,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="mx-auto mt-3 max-w-6xl rounded-[24px] border border-white/10 bg-[rgba(10,12,18,0.94)] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl md:hidden max-h-[calc(100vh-100px)] overflow-y-auto"
+            className="mx-auto mt-3 max-w-6xl rounded-[24px] border border-white/10 bg-[rgba(10,12,18,0.94)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl md:hidden max-h-[calc(100vh-100px-env(safe-area-inset-top))] overflow-y-auto"
           >
             <div className="grid gap-2">
               {navLinks.map((link) => (

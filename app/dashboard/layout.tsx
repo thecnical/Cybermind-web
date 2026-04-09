@@ -98,9 +98,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         Menu
       </button>
 
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-72 border-r border-white/8 bg-[#08090E] p-5 transition-transform duration-300 md:static md:w-auto md:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-white/8 bg-[#08090E] p-5 transition-transform duration-300 md:static md:w-auto md:translate-x-0",
         mobileOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <Link href="/" className="mb-7 flex items-center gap-3">

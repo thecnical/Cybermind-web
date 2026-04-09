@@ -76,6 +76,56 @@ async function getToken(): Promise<string | null> {
   return session?.access_token ?? null;
 }
 
+/**
+ * Wake the Render backend silently.
+ * Call this when the dashboard loads so the server is warm by the time
+ * the user clicks "Generate key".
+ * Returns true if backend responded, false if still sleeping.
+ */
+export async function wakeBackend(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/wake`, {
+      signal: AbortSignal.timeout(10000),
+      // no-cors not needed — /wake returns JSON and CORS is open
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Wait for backend to become available — polls /wake every 3s for up to maxMs.
+ * Shows progress via onProgress callback (0–100).
+ */
+export async function waitForBackend(
+  maxMs = 60000,
+  onProgress?: (pct: number) => void
+): Promise<boolean> {
+  const start = Date.now();
+  const interval = 3000;
+  let attempt = 0;
+
+  while (Date.now() - start < maxMs) {
+    const elapsed = Date.now() - start;
+    onProgress?.(Math.min(95, Math.round((elapsed / maxMs) * 100)));
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/wake`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) {
+        onProgress?.(100);
+        return true;
+      }
+    } catch { /* keep polling */ }
+
+    attempt++;
+    await new Promise(r => setTimeout(r, interval));
+  }
+  return false;
+}
+
 // Fetch user profile from backend
 export async function fetchProfile(): Promise<UserProfile | null> {
   const token = await getToken();
@@ -105,32 +155,59 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
     if (!res.ok) return [];
     const data = await res.json();
     return data.success ? data.keys : [];
-  } catch {
+  } catch (err: unknown) {
+    if (err instanceof Error && (
+      err.message.includes("Failed to fetch") ||
+      err.message.includes("NetworkError") ||
+      err.message.includes("Load failed") ||
+      err.name === "TimeoutError"
+    )) {
+      throw new Error("Cannot reach the server. Check your internet connection and try again.");
+    }
     return [];
   }
 }
 
-// Create a new API key with device info
-export async function createApiKey(name: string, deviceType?: string): Promise<ApiKey | null> {
+// Create a new API key — with automatic backend wake-up on cold start
+export async function createApiKey(
+  name: string,
+  deviceType?: string,
+  onWakeProgress?: (pct: number) => void
+): Promise<ApiKey | null> {
   const token = await getToken();
   if (!token) throw new Error("Not logged in. Please refresh and try again.");
 
-  try {
-    const controller = new AbortController();
-    // 30 second timeout — Render cold start can take up to 30s
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+  // First try a quick ping — if backend is awake this resolves in <2s
+  onWakeProgress?.(2);
+  const isAwake = await wakeBackend();
 
+  if (!isAwake) {
+    // Backend is sleeping on Render free tier — wait up to 60s for it to wake
+    onWakeProgress?.(5);
+    const woke = await waitForBackend(60000, onWakeProgress);
+    if (!woke) {
+      throw new Error(
+        "Server is starting up (Render free tier cold start). Please wait 30 seconds and click Try again."
+      );
+    }
+  }
+
+  onWakeProgress?.(100);
+
+  // Backend is awake — now create the key
+  try {
     const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         name: name.slice(0, 64),
         device_type: deviceType || detectDeviceType(),
       }),
-      signal: controller.signal,
+      signal: AbortSignal.timeout(25000),
     });
-
-    clearTimeout(timeoutId);
 
     const data = await res.json();
     if (!res.ok || !data.success) {
@@ -139,10 +216,15 @@ export async function createApiKey(name: string, deviceType?: string): Promise<A
     return data;
   } catch (err: unknown) {
     if (err instanceof Error) {
-      if (err.name === "AbortError") {
-        throw new Error("Request timed out. The server may be starting up — please wait 30 seconds and try again.");
+      if (err.name === "AbortError" || err.name === "TimeoutError") {
+        throw new Error("Request timed out. The server may still be starting — please try again in 30 seconds.");
       }
-      if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("fetch")) {
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("NetworkError") ||
+        err.message.includes("Load failed") ||
+        err.message.includes("fetch")
+      ) {
         throw new Error("Cannot reach the server. Check your internet connection or wait a moment and try again.");
       }
       throw err;

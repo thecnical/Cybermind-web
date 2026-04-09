@@ -61,7 +61,7 @@ export default function AnimatedTestimonials({
         </div>
       </div>
 
-      <div className="mt-7 min-h-[190px]">
+      <div className="mt-7 min-h-[auto] sm:min-h-[190px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${active.name}-${index}`}

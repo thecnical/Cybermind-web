@@ -32,12 +32,19 @@
 
   html {
     scroll-behavior: smooth;
+    /* FIX: prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh; /* FIX: use dynamic viewport height on mobile */
     overflow-x: hidden;
+    /* FIX: safe area padding for notched phones */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     background:
       radial-gradient(circle at top center, rgba(141, 117, 255, 0.18), transparent 22%),
       radial-gradient(circle at 15% 15%, rgba(139, 220, 255, 0.08), transparent 18%),
@@ -587,6 +594,56 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ── Mobile responsive fixes ─────────────────────────────────────────────── */
+
+/* Prevent any element from causing horizontal scroll */
+.max-w-7xl,
+.max-w-6xl,
+.max-w-5xl,
+.max-w-4xl,
+.max-w-3xl,
+.max-w-2xl {
+  max-width: 100%;
+}
+
+/* Fix: sections that use perspective/3D transforms can go black on mobile Safari */
+@supports (-webkit-touch-callout: none) {
+  [style*="perspective"],
+  .cm-tilt-wrap {
+    transform: none !important;
+    perspective: none !important;
+  }
+}
+
+/* Fix: ensure all page sections have proper background on mobile */
+@media (max-width: 640px) {
+  .cm-hero-beams {
+    filter: blur(12px);
+    opacity: 0.6;
+  }
+
+  /* Reduce heavy blur on mobile for performance */
+  .surface-glass,
+  .surface-clay,
+  .surface-skeuo {
+    backdrop-filter: blur(8px);
+  }
+
+  /* Ensure cards don't overflow viewport */
+  .cm-card,
+  .cm-card-soft,
+  .cm-spotlight-card {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  /* Fix text overflow in terminal and code blocks */
+  code, pre, .font-mono {
+    word-break: break-all;
+    overflow-wrap: break-word;
   }
 }
 

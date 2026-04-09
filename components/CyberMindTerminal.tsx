@@ -48,7 +48,7 @@ export default function CyberMindTerminal() {
         </div>
       </div>
 
-      <div className="space-y-5 px-5 py-6">
+      <div className="space-y-4 px-3 py-4 sm:space-y-5 sm:px-5 sm:py-6">
         <div className="min-w-0 rounded-[28px] border border-[rgba(108,161,255,0.35)] bg-[linear-gradient(180deg,rgba(11,17,27,0.9),rgba(16,25,38,0.86))] px-4 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           <div className="overflow-hidden font-mono text-[clamp(2rem,5vw,4.2rem)] font-semibold uppercase leading-none tracking-[-0.08em] text-transparent [text-shadow:3px_3px_0_rgba(130,24,255,0.45),6px_6px_0_rgba(0,0,0,0.28)] [background:linear-gradient(180deg,#38e8ff_0%,#46b2ff_42%,#7a62ff_70%,#d85bff_100%)] [background-clip:text] [-webkit-background-clip:text]">
             cybermind

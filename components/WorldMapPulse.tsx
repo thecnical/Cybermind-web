@@ -25,6 +25,7 @@ export default function WorldMapPulse() {
       </p>
 
       <div className="relative mt-8 overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,#070b13_0%,#0b1220_100%)] p-4 md:p-6">
+        <div className="overflow-hidden">
         <svg
           viewBox="0 0 1000 460"
           className="h-[240px] w-full md:h-[300px]"
@@ -81,6 +82,7 @@ export default function WorldMapPulse() {
             </g>
           ))}
         </svg>
+        </div>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(0,255,255,0.15),transparent_48%),radial-gradient(circle_at_80%_0%,rgba(138,43,226,0.2),transparent_45%)]" />
       </div>
     </Surface>

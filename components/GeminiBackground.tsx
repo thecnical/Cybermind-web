@@ -12,7 +12,8 @@ export default function GeminiBackground() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      // FIX: use fixed instead of absolute so it doesn't affect page flow/height on mobile
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
       <motion.div
         className="absolute -left-20 top-16 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(0,255,255,0.22),transparent_65%)] blur-xl"
