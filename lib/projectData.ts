@@ -85,7 +85,7 @@ export const leadershipProfiles = [
     badge: "Founder",
     summary:
       "Architect and primary builder of CyberMind CLI. Designed the full offensive security pipeline — recon, hunt, Abhimanyu exploit engine — and the AI-first CLI experience.",
-    avatarUrl: "/team/chandan.jpg",
+    avatarUrl: "/team/chandan.png",
     githubUrl: "https://github.com/thecnical",
     websiteUrl: "https://cybermind.thecnical.dev",
     skills: ["Go", "Node.js", "AI/ML", "Offensive Security", "DevSecOps"],
@@ -97,7 +97,7 @@ export const leadershipProfiles = [
     badge: "Leadership",
     summary:
       "Leads product direction, execution strategy, and growth across cybersecurity and developer experience initiatives. Drives the vision for CyberMind as a production-grade security platform.",
-    avatarUrl: "/team/sanjay.jpg",
+    avatarUrl: "/team/sanjay.png",
     githubUrl: "",
     websiteUrl: "",
     skills: ["Product Strategy", "Business Development", "Security Operations", "Team Leadership"],
@@ -111,14 +111,14 @@ export const techTeamProfiles = [
     name: "Omkar Vijay Gavali",
     role: "Tech Team",
     summary: "Core contributor to CyberMind's security toolchain and CLI infrastructure.",
-    avatarUrl: "/team/omkar.jpg",
+    avatarUrl: "/team/omkar.jpeg",
     githubUrl: "",
   },
   {
     name: "Divyanshu Upadhaya",
     role: "Tech Team",
     summary: "Contributes to backend systems, API design, and platform reliability for CyberMind.",
-    avatarUrl: "/team/divyanshu.jpg",
+    avatarUrl: "/team/divyanshu.jpeg",
     githubUrl: "",
   },
   {
@@ -135,22 +135,22 @@ export const contributorTooltipPeople = [
   {
     name: "Chandan Pandey",
     role: "Creator & Lead Developer",
-    avatar: "/team/chandan.jpg",
+    avatar: "/team/chandan.png",
   },
   {
     name: "Sanjay Pandey",
     role: "CEO",
-    avatar: "/team/sanjay.jpg",
+    avatar: "/team/sanjay.png",
   },
   {
     name: "Omkar Vijay Gavali",
     role: "Tech Team",
-    avatar: "/team/omkar.jpg",
+    avatar: "/team/omkar.jpeg",
   },
   {
     name: "Divyanshu Upadhaya",
     role: "Tech Team",
-    avatar: "/team/divyanshu.jpg",
+    avatar: "/team/divyanshu.jpeg",
   },
   {
     name: "Laxman Singh",
