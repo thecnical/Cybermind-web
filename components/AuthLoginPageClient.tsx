@@ -50,7 +50,8 @@ export default function AuthLoginPageClient({
       return;
     }
 
-    router.push("/dashboard");
+    // Use replace so back button doesn't return to login
+    router.replace("/dashboard");
   }
 
   return (
