@@ -58,6 +58,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const { user, profile, signOut } = useAuth();
 
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -98,10 +99,15 @@ export default function Navbar() {
   }, []);
 
   async function handleLogout() {
-    await signOut();
+    setLoggingOut(true);
+    try {
+      await signOut();
+    } catch {
+      // ignore signOut errors — still redirect
+    }
     setMenuOpen(false);
     setOpen(false);
-    router.push("/");
+    window.location.replace("/");
   }
 
   const avatarInitials = (profile?.full_name || user?.email || "U")[0].toUpperCase();
@@ -135,7 +141,7 @@ export default function Navbar() {
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent-cyan)]">
               CyberMind CLI
             </p>
-            <p className="text-sm font-semibold text-white">Terminal-first security workflow</p>
+            <p className="hidden text-sm font-semibold text-white sm:block">Terminal-first security workflow</p>
           </div>
         </Link>
 
@@ -150,7 +156,8 @@ export default function Navbar() {
             );
 
             return (
-              <Link key={link.href} href={link.href} className={linkClass}>
+              <Link key={link.href} href={link.href} className={linkClass}
+                aria-current={active ? "page" : undefined}>
                 {link.label}
               </Link>
             );
@@ -208,10 +215,11 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/[0.08]"
+                      disabled={loggingOut}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/[0.08] disabled:opacity-60"
                     >
                       <LogOut size={16} />
-                      Logout
+                      {loggingOut ? "Logging out..." : "Logout"}
                     </button>
                   </motion.div>
                 ) : null}
@@ -252,7 +260,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="mx-auto mt-3 max-w-6xl rounded-[24px] border border-white/10 bg-[rgba(10,12,18,0.94)] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl md:hidden"
+            className="mx-auto mt-3 max-w-6xl rounded-[24px] border border-white/10 bg-[rgba(10,12,18,0.94)] p-4 shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl md:hidden max-h-[calc(100vh-100px)] overflow-y-auto"
           >
             <div className="grid gap-2">
               {navLinks.map((link) => (
@@ -285,9 +293,10 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="rounded-2xl px-4 py-3 text-left text-sm text-[var(--text-main)] transition-colors hover:bg-white/10"
+                    disabled={loggingOut}
+                    className="rounded-2xl px-4 py-3 text-left text-sm text-[var(--text-main)] transition-colors hover:bg-white/10 disabled:opacity-60"
                   >
-                    Logout
+                    {loggingOut ? "Logging out..." : "Logout"}
                   </button>
                 </>
               ) : (

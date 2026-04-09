@@ -1,6 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { MarketingPageView } from "@/components/SitePrimitives";
+import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
+
+export const metadata: Metadata = PAGE_META.features;
 
 const page = {
   title: "Features",

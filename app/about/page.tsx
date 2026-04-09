@@ -3,6 +3,10 @@ import { Globe, Sparkles } from "lucide-react";
 import AnimatedTimeline from "@/components/AnimatedTimeline";
 import AnimatedTooltip from "@/components/AnimatedTooltip";
 import CometProfileCard from "@/components/CometProfileCard";
+import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
+
+export const metadata: Metadata = PAGE_META.about;
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import ThreeDMarquee from "@/components/ThreeDMarquee";

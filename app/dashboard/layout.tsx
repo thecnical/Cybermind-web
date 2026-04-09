@@ -139,8 +139,8 @@ export default function DashboardLayout({
           <button
             type="button"
             onClick={async () => {
-              await signOut();
-              router.push("/");
+              try { await signOut(); } catch { /* ignore */ }
+              window.location.replace("/");
             }}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-[var(--text-main)] transition-colors hover:bg-white/[0.08]"
           >

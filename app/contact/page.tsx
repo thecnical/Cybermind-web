@@ -46,6 +46,28 @@ export default function ContactPage() {
       return;
     }
 
+    // Block temp/disposable emails
+    const tempDomains = new Set([
+      "mailinator.com","guerrillamail.com","tempmail.com","throwaway.email","yopmail.com",
+      "sharklasers.com","spam4.me","trashmail.com","trashmail.me","trashmail.net",
+      "trashmail.at","trashmail.io","trashmail.xyz","dispostable.com","maildrop.cc",
+      "10minutemail.com","fakeinbox.com","mailnesia.com","temp-mail.org","temp-mail.io",
+      "tempr.email","getnada.com","lealking.com","moakt.cc","moakt.co","moakt.com",
+      "tempail.com","tempemail.co","tempinbox.com","tempmail.net","tempmail.org",
+      "inboxbear.com","inboxkitten.com","mytemp.email","emailondeck.com",
+    ]);
+    const emailDomain = email.split("@")[1]?.toLowerCase() || "";
+    const emailLocal = email.split("@")[0]?.toLowerCase() || "";
+    const isTempMail =
+      tempDomains.has(emailDomain) ||
+      /^(temp|tmp|trash|spam|fake|disposable|throwaway)/i.test(emailDomain) ||
+      [".cf",".ga",".gq",".ml",".tk",".pw"].some(t => emailDomain.endsWith(t)) ||
+      /^[a-z]{4,10}\d{3,}$/.test(emailLocal);
+    if (isTempMail) {
+      setError("Disposable email addresses are not allowed. Please use a real email.");
+      return;
+    }
+
     if (subject.trim().length < 4) {
       setError("Enter a subject with at least 4 characters.");
       return;
@@ -59,7 +81,6 @@ export default function ContactPage() {
     setError(null);
     setLoading(true);
 
-    // Send to backend /contact endpoint (or fallback to email service)
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://cybermind-backend-8yrt.onrender.com";
     try {
       const res = await fetch(`${BACKEND_URL}/contact`, {
@@ -68,15 +89,17 @@ export default function ContactPage() {
         body: JSON.stringify({ name, email, company, subject, message }),
         signal: AbortSignal.timeout(10000),
       });
-      // Accept both success and non-200 (backend may not have /contact yet — still show success to user)
+      const data = await res.json().catch(() => ({}));
       setLoading(false);
+      if (!res.ok) {
+        setError(data.error || "Failed to send message. Please try again.");
+        return;
+      }
       setSubmitted(true);
       setName(""); setEmail(""); setCompany(""); setSubject(""); setMessage("");
     } catch {
-      // Network error — still show success (message will be handled when backend is ready)
       setLoading(false);
-      setSubmitted(true);
-      setName(""); setEmail(""); setCompany(""); setSubject(""); setMessage("");
+      setError("Network error. Please check your connection and try again.");
     }
   }
 

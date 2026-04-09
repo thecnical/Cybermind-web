@@ -1,5 +1,9 @@
 ﻿import AuthRegisterPageClient from "@/components/AuthRegisterPageClient";
 import type { PlanTier } from "@/lib/mockData";
+import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
+
+export const metadata: Metadata = PAGE_META.register;
 
 function toPlanTier(value: string | string[] | undefined): PlanTier {
   const raw = Array.isArray(value) ? value[0] : value;

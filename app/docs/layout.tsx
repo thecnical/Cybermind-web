@@ -1,6 +1,10 @@
 ﻿import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DocsSidebar from "@/components/DocsSidebar";
+import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
+
+export const metadata: Metadata = PAGE_META.docs;
 
 export default function DocsLayout({
   children,

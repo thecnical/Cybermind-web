@@ -59,11 +59,37 @@ export default function AuthRegisterPageClient({
     },
   ], []);
 
+  function isTempEmail(email: string): boolean {
+    const domain = email.split("@")[1]?.toLowerCase().trim();
+    if (!domain) return false;
+    const blockedDomains = new Set([
+      "mailinator.com","guerrillamail.com","tempmail.com","throwaway.email","yopmail.com",
+      "sharklasers.com","spam4.me","trashmail.com","trashmail.me","trashmail.net",
+      "trashmail.at","trashmail.io","trashmail.xyz","dispostable.com","maildrop.cc",
+      "10minutemail.com","10minutemail.net","fakeinbox.com","mailnesia.com",
+      "temp-mail.org","temp-mail.ru","temp-mail.io","tempr.email","getnada.com",
+      "guerrillamail.info","guerrillamail.biz","guerrillamail.de","guerrillamail.net",
+      "guerrillamail.org","grr.la","lealking.com","moakt.cc","moakt.co","moakt.com",
+      "moakt.ws","emailondeck.com","tempail.com","tempemail.co","tempinbox.com",
+      "tempmail.de","tempmail.eu","tempmail.net","tempmail.org","tempmail.us",
+      "tempmailo.com","inboxbear.com","inboxkitten.com","mytemp.email","mytempemail.com",
+    ]);
+    if (blockedDomains.has(domain)) return true;
+    if (/^(temp|tmp|trash|spam|fake|disposable|throwaway)/i.test(domain)) return true;
+    const tempTLDs = [".cf",".ga",".gq",".ml",".tk",".pw"];
+    if (tempTLDs.some(t => domain.endsWith(t))) return true;
+    // block random-word+numbers local part (e.g. bolate4864@...)
+    const local = email.split("@")[0]?.toLowerCase() || "";
+    if (/^[a-z]{4,10}\d{3,}$/.test(local)) return true;
+    return false;
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (name.trim().length < 2) { setError("Enter your full name."); return; }
     if (!email.includes("@")) { setError("Enter a valid email address."); return; }
+    if (isTempEmail(email)) { setError("Disposable email addresses are not allowed. Please use a real email."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     if (!agreed) { setError("Accept the terms of service to continue."); return; }
@@ -76,7 +102,7 @@ export default function AuthRegisterPageClient({
       password,
       options: {
         data: { full_name: name, plan: selectedPlan },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
       },
     });
 

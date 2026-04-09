@@ -23,7 +23,7 @@ export default function VerifyEmailPage() {
     const { error: resendError } = await supabase.auth.resend({
       type: "signup",
       email: user.email,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/dashboard` },
     });
     setResending(false);
     if (resendError) { setError(resendError.message); return; }

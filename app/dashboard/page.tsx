@@ -135,8 +135,16 @@ export default function DashboardPage() {
           <div>
             <p className="cm-label">Dashboard</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
-              Welcome back, {profile?.full_name || user?.email?.split("@")[0] || "User"} 👋
-            </h1>
+            {(() => {
+              const isNew = user?.created_at
+                ? Date.now() - new Date(user.created_at).getTime() < 5 * 60 * 1000
+                : false;
+              const name = profile?.full_name || user?.email?.split("@")[0];
+              if (!name) return "Welcome to CyberMind 👋";
+              if (isNew) return `Welcome, ${name} 👋`;
+              return `Welcome back, ${name} 👋`;
+            })()}
+          </h1>
             <div className="mt-2 flex items-center gap-3 flex-wrap">
               <span className="font-mono text-xs uppercase tracking-wider text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/30 rounded-full px-3 py-1">
                 {plan}
@@ -159,7 +167,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Stats */}
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div className="cm-card-soft p-5">
           <p className="cm-label">Requests today</p>
           <p className="mt-2 text-3xl font-semibold text-white">
