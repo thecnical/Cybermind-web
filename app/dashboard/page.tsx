@@ -96,7 +96,9 @@ export default function DashboardPage() {
       const key = await createApiKey(keyLabel, device);
       if (key) setKeys(prev => [key as ApiKey, ...prev]);
     } catch (e: unknown) {
-      setKeyError(e instanceof Error ? e.message : "Failed to create key");
+      const msg = e instanceof Error ? e.message : "Failed to create key";
+      // Show a more helpful message for cold start timeouts
+      setKeyError(msg);
     }
     setCreatingKey(false);
   }
@@ -220,7 +222,7 @@ export default function DashboardPage() {
               disabled={creatingKey}
               className="cm-button-primary gap-2 text-sm">
               <RefreshCw size={14} className={creatingKey ? "animate-spin" : ""} />
-              {creatingKey ? "Creating..." : activeKey ? "New device key" : "Generate key"}
+              {creatingKey ? "Creating... (may take 30s)" : activeKey ? "New device key" : "Generate key"}
             </button>
           )}
         </div>
@@ -266,10 +268,23 @@ export default function DashboardPage() {
 
         {keyError && (
           <div className="mb-4 rounded-2xl border border-[#FF4444]/30 bg-[#FF4444]/10 px-4 py-3 text-sm text-white">
-            {keyError}
-            {keyError.includes("limit") && (
-              <> · <Link href="/plans" className="text-[var(--accent-cyan)] hover:underline">Upgrade plan</Link></>
-            )}
+            <p>{keyError}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {keyError.includes("limit") && (
+                <Link href="/plans" className="text-[var(--accent-cyan)] hover:underline text-xs">Upgrade plan →</Link>
+              )}
+              {(keyError.includes("timed out") || keyError.includes("server") || keyError.includes("reach")) && (
+                <button
+                  onClick={() => selectedDevice
+                    ? handleAutoCreateKey(selectedDevice, keyName)
+                    : handleAutoCreateKey(platform)
+                  }
+                  className="text-[var(--accent-cyan)] hover:underline text-xs"
+                >
+                  Try again →
+                </button>
+              )}
+            </div>
           </div>
         )}
 

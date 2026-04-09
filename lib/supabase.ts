@@ -83,6 +83,7 @@ export async function fetchProfile(): Promise<UserProfile | null> {
   try {
     const res = await fetch(`${BACKEND_URL}/auth/profile`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -99,6 +100,7 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
   try {
     const res = await fetch(`${BACKEND_URL}/auth/keys`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -111,21 +113,42 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
 // Create a new API key with device info
 export async function createApiKey(name: string, deviceType?: string): Promise<ApiKey | null> {
   const token = await getToken();
-  if (!token) return null;
-  const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.slice(0, 64),
-      device_type: deviceType || detectDeviceType(),
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    const err = data.error || "Failed to create key";
-    throw new Error(err);
+  if (!token) throw new Error("Not logged in. Please refresh and try again.");
+
+  try {
+    const controller = new AbortController();
+    // 30 second timeout — Render cold start can take up to 30s
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.slice(0, 64),
+        device_type: deviceType || detectDeviceType(),
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || `Server error (${res.status}). Please try again.`);
+    }
+    return data;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      if (err.name === "AbortError") {
+        throw new Error("Request timed out. The server may be starting up — please wait 30 seconds and try again.");
+      }
+      if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("fetch")) {
+        throw new Error("Cannot reach the server. Check your internet connection or wait a moment and try again.");
+      }
+      throw err;
+    }
+    throw new Error("Failed to create key. Please try again.");
   }
-  return data;
 }
 
 // Detect device type from user agent
