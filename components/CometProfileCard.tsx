@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Zap } from "lucide-react";
+import { ExternalLink, GitFork, Zap } from "lucide-react";
 
 export type ProfileCardData = {
   name: string;
@@ -116,7 +116,7 @@ export function LeaderProfileCard({ profile }: { profile: ProfileCardData }) {
             {profile.githubUrl && (
               <Link href={profile.githubUrl} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/[0.08]">
-                <Github size={15} />
+                <GitFork size={15} />
                 GitHub
               </Link>
             )}
@@ -183,7 +183,7 @@ export default function CometProfileCard({ profile }: { profile: ProfileCardData
         <div className="relative mt-4">
           <Link href={profile.githubUrl} target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-[var(--text-soft)] transition-colors hover:text-white">
-            <Github size={13} />
+            <GitFork size={13} />
             GitHub
           </Link>
         </div>
