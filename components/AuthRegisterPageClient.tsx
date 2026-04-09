@@ -76,7 +76,7 @@ export default function AuthRegisterPageClient({
       password,
       options: {
         data: { full_name: name, plan: selectedPlan },
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 

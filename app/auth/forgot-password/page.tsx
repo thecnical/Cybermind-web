@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Mail, Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import AuthShell from "@/components/AuthShell";
+import { supabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -11,21 +12,19 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!email.includes("@")) {
-      setError("Enter a valid email address.");
-      return;
-    }
-
+    if (!email.includes("@")) { setError("Enter a valid email address."); return; }
     setError(null);
     setLoading(true);
 
-    window.setTimeout(() => {
-      setLoading(false);
-      setSent(true);
-    }, 900);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+
+    setLoading(false);
+    if (resetError) { setError(resetError.message); return; }
+    setSent(true);
   }
 
   return (
@@ -49,28 +48,21 @@ export default function ForgotPasswordPage() {
           <h2 className="mt-4 text-xl font-semibold text-white">Check your email</h2>
           <p className="mt-2 text-sm leading-7 text-[var(--text-soft)]">
             A reset link was sent to <span className="text-white">{email}</span>.
+            Click it to set a new password.
           </p>
         </div>
       ) : (
         <form className="grid gap-5" onSubmit={handleSubmit}>
-          {error ? (
+          {error && (
             <div className="rounded-2xl border border-[var(--error)]/30 bg-[rgba(255,68,68,0.08)] px-4 py-3 text-sm text-white">
               {error}
             </div>
-          ) : null}
-
+          )}
           <label className="grid gap-2">
             <span className="cm-label">Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="cm-input"
-              placeholder="name@company.com"
-              autoComplete="email"
-            />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              className="cm-input" placeholder="name@company.com" autoComplete="email" />
           </label>
-
           <button type="submit" className="cm-button-primary w-full gap-2" disabled={loading}>
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? "Sending..." : "Send reset link"}
@@ -80,4 +72,3 @@ export default function ForgotPasswordPage() {
     </AuthShell>
   );
 }
-

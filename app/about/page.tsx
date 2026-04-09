@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, GitFork, Globe, Sparkles } from "lucide-react";
+import { Globe, Sparkles } from "lucide-react";
 import AnimatedTimeline from "@/components/AnimatedTimeline";
 import AnimatedTooltip from "@/components/AnimatedTooltip";
 import CometProfileCard from "@/components/CometProfileCard";
@@ -33,14 +33,14 @@ export default function AboutPage() {
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href={cybermindProjectMeta.repoUrl} target="_blank" rel="noreferrer" className="cm-button-primary gap-2">
-              <GitFork size={15} />
-              Official GitHub repository
-            </Link>
-            <Link href={cybermindProjectMeta.homepage} target="_blank" rel="noreferrer" className="cm-button-secondary gap-2">
+            <a href="https://cybermind.thecnical.dev/docs" className="cm-button-primary gap-2">
               <Globe size={15} />
-              Project homepage
-            </Link>
+              Documentation
+            </a>
+            <a href="https://cybermind.thecnical.dev/plans" className="cm-button-secondary gap-2">
+              <Sparkles size={15} />
+              View plans
+            </a>
           </div>
         </Surface>
 
@@ -103,17 +103,12 @@ export default function AboutPage() {
             <div>
               <p className="cm-label">Animated timeline</p>
               <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">
-                Product evolution from official commits
+                Product evolution
               </h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--text-soft)]">
-                This timeline is based on recent public commit history and release preparation signals from the
-                official repository.
+                Key milestones in the development of CyberMind CLI.
               </p>
             </div>
-            <Link href={cybermindProjectMeta.repoUrl} target="_blank" rel="noreferrer" className="cm-button-secondary gap-2">
-              View all commits
-              <ArrowRight size={15} />
-            </Link>
           </div>
           <div className="mt-7">
             <AnimatedTimeline items={cybermindTimeline} />

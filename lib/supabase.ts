@@ -97,25 +97,20 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
 export async function createApiKey(name: string, deviceType?: string): Promise<ApiKey | null> {
   const token = await getToken();
   if (!token) return null;
-  try {
-    const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name.slice(0, 64),
-        device_type: deviceType || detectDeviceType(),
-      }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (err.limit) throw new Error(err.error || "Device limit reached");
-      return null;
-    }
-    const data = await res.json();
-    return data.success ? data : null;
-  } catch (e) {
-    throw e;
+  const res = await fetch(`${BACKEND_URL}/auth/create-key`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: name.slice(0, 64),
+      device_type: deviceType || detectDeviceType(),
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    const err = data.error || "Failed to create key";
+    throw new Error(err);
   }
+  return data;
 }
 
 // Detect device type from user agent
