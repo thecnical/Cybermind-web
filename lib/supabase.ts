@@ -15,8 +15,20 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    // FIX: after consuming auth token from URL hash, replace URL immediately
+    // prevents access_token appearing in browser history and Referer headers
   },
 });
+
+// FIX: strip auth tokens from URL after Supabase OAuth/magic-link callback
+// Prevents token leakage via browser history and Referer header
+if (typeof window !== "undefined") {
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_IN" && window.location.hash.includes("access_token")) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+}
 
 export type UserPlan = "free" | "pro" | "elite";
 
@@ -34,7 +46,10 @@ export interface UserProfile {
 export interface ApiKey {
   id: string;
   name: string;
-  key?: string; // only returned on creation — never stored client-side after that
+  /** Full key — ONLY present immediately after creation. Never stored persistently. */
+  key?: string;
+  /** Safe display prefix (e.g. "cp_live_xxxx") — always available */
+  key_prefix?: string;
   plan: UserPlan;
   is_active: boolean;
   requests_today: number;

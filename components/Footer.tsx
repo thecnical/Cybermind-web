@@ -34,6 +34,7 @@ const footerColumns = [
     links: [
       { href: "/terms", label: "Terms" },
       { href: "/privacy", label: "Privacy" },
+      { href: "/aup", label: "Acceptable Use" },
       { href: "/cookies", label: "Cookies" },
     ],
   },

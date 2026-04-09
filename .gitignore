@@ -43,3 +43,4 @@ coverage/
 test_write.txt
 devserver.log
 *.tsbuildinfo
+security_best_practices_report.md

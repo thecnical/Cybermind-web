@@ -5,15 +5,17 @@ import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal } from "l
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { fetchApiKeys, createApiKey, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
+import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 
 // Device limits per plan
 const DEVICE_LIMITS: Record<string, number> = { free: 1, pro: 3, elite: Infinity };
 
-// Install commands with key embedded
+// FIX: install commands use env var instead of CLI arg
+// Prevents API key appearing in `ps aux` output during installation
 const INSTALL_COMMANDS: Record<string, (key: string) => string> = {
-  linux:   (k) => `curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key ${k}`,
-  windows: (k) => `iwr https://cybermind.thecnical.dev/install.ps1 | iex; cybermind --key ${k}`,
-  mac:     (k) => `curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash -s -- --key ${k}`,
+  linux:   (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermind.thecnical.dev/install.sh | bash`,
+  windows: (k) => `$env:CYBERMIND_KEY="${k}"; iwr https://cybermind.thecnical.dev/install.ps1 | iex`,
+  mac:     (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash`,
 };
 
 // Detect OS from browser
@@ -119,18 +121,24 @@ export default function DashboardPage() {
   }
 
   const activeKeys = keys.filter(k => k.is_active);
-  const activeKey = activeKeys[0]; // primary key for current platform
-  const maskedKey = activeKey
-    ? `${(activeKey.key || "cp_live_").slice(0, 12)}${"•".repeat(20)}`
+  const activeKey  = activeKeys[0];
+
+  // FIX: never render full key in DOM after initial creation
+  // key_prefix is safe to display (e.g. "cp_live_xxxx")
+  // Full key is only available immediately after creation (stored in newKeyOnce state)
+  const displayKey = activeKey?.key_prefix
+    ? `${activeKey.key_prefix}${"•".repeat(20)}`
     : "No active key";
-  const installCmd = activeKey
-    ? INSTALL_COMMANDS[platform](activeKey.key || "YOUR_KEY")
-    : INSTALL_COMMANDS[platform]("YOUR_API_KEY");
+
+  // Full key for install command — only available right after creation
+  const installKeyValue = activeKey?.key || activeKey?.key_prefix || "YOUR_API_KEY";
+  const installCmd = INSTALL_COMMANDS[platform](installKeyValue);
 
   const canCreateMore = deviceLimit === Infinity || activeKeys.length < deviceLimit;
 
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-6">
+      <EmailVerificationBanner />
 
       {/* Welcome */}
       <section className="cm-card cm-spotlight-card p-6 md:p-8">
@@ -268,13 +276,18 @@ export default function DashboardPage() {
         {/* Masked key display */}
         <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 mb-4">
           <KeyRound size={16} className="text-[var(--accent-cyan)] flex-shrink-0" />
-          <code className="flex-1 font-mono text-sm text-[var(--text-main)]">{maskedKey}</code>
-          {activeKey && (
-            <button onClick={() => handleCopy(activeKey.key || "", "apikey")}
-              className="text-[var(--text-muted)] hover:text-white transition-colors">
+          <code className="flex-1 font-mono text-sm text-[var(--text-main)]">{displayKey}</code>
+          {activeKey && activeKey.key ? (
+            <button onClick={() => handleCopy(activeKey.key!, "apikey")}
+              className="text-[var(--text-muted)] hover:text-white transition-colors"
+              title="Copy API key">
               {copied === "apikey" ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
             </button>
-          )}
+          ) : activeKey ? (
+            <span className="text-xs text-[var(--text-muted)]" title="Key shown once at creation">
+              shown once
+            </span>
+          ) : null}
         </div>
 
         {/* Platform tabs */}

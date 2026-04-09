@@ -2,14 +2,24 @@ import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
+// FIX: tightened connect-src — enumerate specific allowed origins
+// instead of the previous "https: wss:" which allowed any HTTPS endpoint
+const BACKEND_URL  = process.env.NEXT_PUBLIC_BACKEND_URL  || "https://cybermind-backend-8yrt.onrender.com";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+// Extract hostname for CSP (e.g. "xaxbbonibqoxcxtqkhth.supabase.co")
+const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).hostname : "*.supabase.co";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  // unsafe-inline needed for Next.js inline styles/scripts; nonces would require custom server
+  // FIX: 'unsafe-inline' kept for Next.js App Router compatibility
+  // (Next.js inlines critical CSS and hydration scripts — nonces require custom server)
+  // Mitigated by: frame-ancestors 'none', strict connect-src, no user-rendered HTML
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://www.googletagmanager.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https: wss:",
+  // FIX: specific origins only — no wildcard https: or wss:
+  `connect-src 'self' ${BACKEND_URL} https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com`,
   "frame-src 'none'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -22,54 +32,18 @@ const contentSecurityPolicy = [
   .join("; ");
 
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: contentSecurityPolicy,
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains; preload",
-  },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
-  },
-  {
-    key: "X-Frame-Options",
-    value: "DENY",
-  },
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "X-DNS-Prefetch-Control",
-    value: "off",
-  },
-  {
-    key: "X-Download-Options",
-    value: "noopen",
-  },
-  {
-    key: "Cross-Origin-Opener-Policy",
-    value: "same-origin",
-  },
-  {
-    key: "Cross-Origin-Resource-Policy",
-    value: "same-origin",
-  },
-  {
-    key: "Cross-Origin-Embedder-Policy",
-    value: "require-corp",
-  },
-  {
-    key: "X-Permitted-Cross-Domain-Policies",
-    value: "none",
-  },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
-  },
+  { key: "Content-Security-Policy",            value: contentSecurityPolicy },
+  { key: "Strict-Transport-Security",          value: "max-age=31536000; includeSubDomains; preload" },
+  { key: "Referrer-Policy",                    value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options",                    value: "DENY" },
+  { key: "X-Content-Type-Options",             value: "nosniff" },
+  { key: "X-DNS-Prefetch-Control",             value: "off" },
+  { key: "X-Download-Options",                 value: "noopen" },
+  { key: "Cross-Origin-Opener-Policy",         value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy",       value: "same-origin" },
+  { key: "Cross-Origin-Embedder-Policy",       value: "require-corp" },
+  { key: "X-Permitted-Cross-Domain-Policies",  value: "none" },
+  { key: "Permissions-Policy",                 value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
 ];
 
 const nextConfig: NextConfig = {
@@ -78,35 +52,22 @@ const nextConfig: NextConfig = {
   compress: true,
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "avatars.githubusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "api.dicebear.com",
-      },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "api.dicebear.com" },
     ],
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
     return [
-      {
-        source: "/:path*",
-        headers: securityHeaders,
-      },
-      // Cache static assets aggressively
+      { source: "/:path*", headers: securityHeaders },
       {
         source: "/(.*)\\.(ico|png|jpg|jpeg|svg|webp|avif|woff|woff2|ttf|otf)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];
   },
   async redirects() {
     return [
-      // Redirect www to non-www
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.cybermind.thecnical.dev" }],
