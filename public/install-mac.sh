@@ -52,6 +52,7 @@ sudo chmod +x /usr/local/bin/cybermind
 # Save API key
 if [ -n "$API_KEY" ]; then
   mkdir -p "$HOME/.cybermind"
+  chmod 700 "$HOME/.cybermind"
   echo "{\"key\":\"$API_KEY\"}" > "$HOME/.cybermind/config.json"
   chmod 600 "$HOME/.cybermind/config.json"
   echo -e "${GREEN}  ✓ API key saved to ~/.cybermind/config.json${NC}"

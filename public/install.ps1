@@ -36,13 +36,21 @@ go build -o cybermind.exe . 2>$null
 Write-Host "  ⟳ Installing to C:\Windows\System32..." -ForegroundColor DarkGray
 Copy-Item cybermind.exe C:\Windows\System32\cybermind.exe -Force
 
-# Save API key
+# Save API key with restricted permissions
 if ($key -ne "") {
   $configDir = Join-Path $env:USERPROFILE ".cybermind"
   if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir | Out-Null }
   $configPath = Join-Path $configDir "config.json"
   Set-Content -Path $configPath -Value "{`"key`":`"$key`"}"
-  Write-Host "  ✓ API key saved to $configPath" -ForegroundColor Green
+  # Restrict to current user only
+  $acl = Get-Acl $configPath
+  $acl.SetAccessRuleProtection($true, $false)
+  $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $env:USERNAME, "FullControl", "Allow"
+  )
+  $acl.SetAccessRule($rule)
+  Set-Acl $configPath $acl
+  Write-Host "  ✓ API key saved (restricted to current user)" -ForegroundColor Green
 }
 
 # Cleanup
