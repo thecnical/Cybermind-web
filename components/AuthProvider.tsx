@@ -89,13 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.auth.signOut({ scope: "global" });
     } catch { /* ignore */ }
+    // Clear state immediately — don't wait for onAuthStateChange
     setUser(null);
     setSession(null);
     setProfile(null);
     setEmailVerified(false);
+    // Clear all Supabase localStorage tokens
     if (typeof window !== "undefined") {
       Object.keys(localStorage).forEach(k => {
         if (k.startsWith("sb-")) localStorage.removeItem(k);
+      });
+      // Also clear sessionStorage
+      Object.keys(sessionStorage).forEach(k => {
+        if (k.startsWith("sb-")) sessionStorage.removeItem(k);
       });
     }
   }

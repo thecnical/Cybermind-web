@@ -99,15 +99,20 @@ export default function Navbar() {
   }, []);
 
   async function handleLogout() {
+    if (loggingOut) return;
     setLoggingOut(true);
+    setMenuOpen(false);
+    setOpen(false);
     try {
       await signOut();
     } catch {
-      // ignore signOut errors — still redirect
+      // signOut failed — still clear and redirect
+    } finally {
+      // Small delay to let state clear before navigation
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     }
-    setMenuOpen(false);
-    setOpen(false);
-    window.location.replace("/");
   }
 
   const avatarInitials = (profile?.full_name || user?.email || "U")[0].toUpperCase();

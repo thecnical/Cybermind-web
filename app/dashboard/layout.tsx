@@ -140,7 +140,7 @@ export default function DashboardLayout({
             type="button"
             onClick={async () => {
               try { await signOut(); } catch { /* ignore */ }
-              window.location.replace("/");
+              setTimeout(() => { window.location.href = "/"; }, 100);
             }}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-[var(--text-main)] transition-colors hover:bg-white/[0.08]"
           >
