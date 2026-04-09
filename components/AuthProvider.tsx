@@ -62,10 +62,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function signOut() {
-    await supabase.auth.signOut({ scope: "local" });
+    try {
+      // scope: "global" invalidates the session server-side (all devices)
+      await supabase.auth.signOut({ scope: "global" });
+    } catch {
+      // If server-side signout fails, still clear local state
+    }
+    // Always clear local state regardless of server response
     setUser(null);
     setSession(null);
     setProfile(null);
+    // Clear any cached Supabase tokens from localStorage
+    if (typeof window !== "undefined") {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("sb-")) localStorage.removeItem(k);
+      });
+    }
   }
 
   return (

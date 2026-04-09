@@ -64,6 +64,7 @@ export default function DashboardPage() {
   const [keyError, setKeyError] = useState("");
   const [showDeviceSelect, setShowDeviceSelect] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<"linux" | "windows" | "mac" | null>(null);
+  const [keyName, setKeyName] = useState("");
 
   const plan = profile?.plan || "free";
   const limit = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
@@ -80,16 +81,17 @@ export default function DashboardPage() {
       setLoadingKeys(false);
       // Elite plan: auto-generate key without asking device
       if (k.length === 0 && plan === "elite") {
-        handleAutoCreateKey("linux");
+        handleAutoCreateKey("linux", "Linux device");
       }
     });
   }, [plan]);
 
-  async function handleAutoCreateKey(device: string) {
+  async function handleAutoCreateKey(device: string, name?: string) {
     setCreatingKey(true);
     setKeyError("");
     try {
-      const key = await createApiKey(`${device} device`, device);
+      const keyLabel = name?.trim() || `${device} device`;
+      const key = await createApiKey(keyLabel, device);
       if (key) setKeys(prev => [key as ApiKey, ...prev]);
     } catch (e: unknown) {
       setKeyError(e instanceof Error ? e.message : "Failed to create key");
@@ -100,7 +102,8 @@ export default function DashboardPage() {
   async function handleCreateWithDevice() {
     if (!selectedDevice) return;
     setShowDeviceSelect(false);
-    await handleAutoCreateKey(selectedDevice);
+    await handleAutoCreateKey(selectedDevice, keyName);
+    setKeyName("");
     setPlatform(selectedDevice);
   }
 
@@ -217,7 +220,15 @@ export default function DashboardPage() {
         {/* Device selector modal */}
         {showDeviceSelect && (
           <div className="mb-5 rounded-2xl border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 p-5">
-            <p className="text-sm font-semibold text-white mb-3">Select your device type:</p>
+            <p className="text-sm font-semibold text-white mb-3">Name this device & select type:</p>
+            <input
+              type="text"
+              value={keyName}
+              onChange={e => setKeyName(e.target.value)}
+              placeholder="e.g. My Kali VM, Work Laptop..."
+              maxLength={64}
+              className="cm-input mb-4 w-full"
+            />
             <div className="grid grid-cols-3 gap-3 mb-4">
               {(["linux", "windows", "mac"] as const).map(d => (
                 <button key={d} onClick={() => setSelectedDevice(d)}
@@ -235,9 +246,10 @@ export default function DashboardPage() {
             <div className="flex gap-3">
               <button onClick={handleCreateWithDevice} disabled={!selectedDevice}
                 className="cm-button-primary text-sm disabled:opacity-50">
-                Create key for this device
+                Create key
               </button>
-              <button onClick={() => setShowDeviceSelect(false)} className="cm-button-secondary text-sm">
+              <button onClick={() => { setShowDeviceSelect(false); setKeyName(""); setSelectedDevice(null); }}
+                className="cm-button-secondary text-sm">
                 Cancel
               </button>
             </div>
