@@ -1,5 +1,6 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import CyberMindAssistant from "@/components/CyberMindAssistant";
 import CookieConsent from "@/components/CookieConsent";
 import CursorAura from "@/components/CursorAura";
@@ -158,6 +159,7 @@ export default function RootLayout({
           <CyberMindAssistant />
           <CookieConsent />
         </AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
