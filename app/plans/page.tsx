@@ -89,7 +89,7 @@ const plans = [
       "3 devices",
       "Email support",
     ],
-    note: "3 devices · Secure checkout via Razorpay",
+    note: "3 devices · Secure checkout via Stripe",
   },
   {
     id: "elite" as const,
@@ -109,7 +109,7 @@ const plans = [
       "Unlimited devices",
       "Priority support + early access",
     ],
-    note: "Unlimited devices · Secure checkout via Razorpay",
+    note: "Unlimited devices · Secure checkout via Stripe",
   },
 ] as const;
 
@@ -135,15 +135,15 @@ const faqs = [
   },
   {
     title: "What currency is used for payment?",
-    body: "Payments are processed in INR (Indian Rupees) via Razorpay. USD prices shown are approximate equivalents for international users.",
+    body: "Payments are processed via Stripe. INR users get UPI, cards, and netbanking. International users get cards and other local methods.",
   },
   {
     title: "What happens after payment?",
-    body: "Your plan upgrades automatically within seconds. The Razorpay webhook notifies our backend, which upgrades your account. Your CLI will reflect the new plan on the next request.",
+    body: "Your plan upgrades automatically within seconds. The Stripe webhook notifies our backend, which upgrades your account. Your CLI will reflect the new plan on the next request.",
   },
   {
     title: "Is my payment secure?",
-    body: "Yes. Payments are processed entirely by Razorpay — we never see your card details. Our backend verifies every webhook with HMAC-SHA256 signature validation.",
+    body: "Yes. Payments are processed entirely by Stripe — we never see your card details. Our backend verifies every webhook with HMAC-SHA256 signature validation.",
   },
   {
     title: "Does every plan work on every OS?",

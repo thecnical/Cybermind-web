@@ -14,13 +14,13 @@ const contentSecurityPolicy = [
   // FIX: 'unsafe-inline' kept for Next.js App Router compatibility
   // (Next.js inlines critical CSS and hydration scripts — nonces require custom server)
   // Mitigated by: frame-ancestors 'none', strict connect-src, no user-rendered HTML
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://www.googletagmanager.com https://checkout.razorpay.com`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://www.googletagmanager.com https://js.stripe.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   // FIX: specific origins only — no wildcard https: or wss:
-  `connect-src 'self' ${BACKEND_URL} https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com https://api.razorpay.com`,
-  "frame-src 'none' https://api.razorpay.com",
+  `connect-src 'self' ${BACKEND_URL} https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com https://api.stripe.com`,
+  "frame-src 'none' https://js.stripe.com https://hooks.stripe.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

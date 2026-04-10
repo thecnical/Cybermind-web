@@ -65,7 +65,7 @@ export default function TermsPage() {
           <Section title="5. Plans, payments, and refunds">
             <ul>
               <li>Free plan features are provided at no cost and may be modified or discontinued at any time.</li>
-              <li>Paid plans are billed in advance (monthly or annually) via Razorpay.</li>
+              <li>Paid plans are billed in advance (monthly or annually) via Stripe.</li>
               <li>Plan upgrades take effect immediately after payment confirmation via webhook.</li>
               <li>Refunds are not provided for partial billing periods. If you experience a billing error, contact us within 7 days.</li>
               <li>We reserve the right to change pricing with 30 days notice to existing subscribers.</li>

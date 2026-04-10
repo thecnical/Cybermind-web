@@ -32,7 +32,7 @@ export default function PrivacyPage() {
               <li><strong>Account data:</strong> email address, full name (optional), and hashed password managed by Supabase Auth.</li>
               <li><strong>API keys:</strong> stored as SHA-256 hashes only — the plaintext key is shown once at creation and never stored.</li>
               <li><strong>Usage data:</strong> request counts per day/month, endpoint accessed, and IP address of the request — used for plan enforcement and abuse prevention.</li>
-              <li><strong>Payment data:</strong> Razorpay customer ID and payment status. We never store card numbers, CVVs, or bank details — these are handled entirely by Razorpay.</li>
+              <li><strong>Payment data:</strong> Stripe customer ID and payment status. We never store card numbers, CVVs, or bank details — these are handled entirely by Stripe.</li>
               <li><strong>Contact form submissions:</strong> name, email, company (optional), subject, and message — stored for up to 365 days.</li>
               <li><strong>CLI local data:</strong> chat history is stored locally on your machine at <code>~/.cybermind/history.json</code>. We do not have access to this file.</li>
             </ul>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
               <li><strong>Supabase</strong> — authentication and database (supabase.com)</li>
               <li><strong>Vercel</strong> — frontend hosting (vercel.com)</li>
               <li><strong>Render</strong> — backend hosting (render.com)</li>
-              <li><strong>Razorpay</strong> — payment processing (razorpay.com)</li>
+              <li><strong>Stripe</strong> — payment processing (stripe.com)</li>
               <li><strong>AI providers</strong> — prompts are sent to AI providers (Groq, Mistral, etc.) for processing. Prompts are processed statelessly and are not stored by us.</li>
             </ul>
             <p>Each provider operates under their own privacy policy and data processing agreements.</p>
