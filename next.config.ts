@@ -66,7 +66,7 @@ const nextConfig: NextConfig = {
       },
       // Binary downloads — allow cross-origin access so curl/wget/PowerShell can download
       {
-        source: "/cybermind-:platform*",
+        source: "/cybermind-(.*)",
         headers: [
           { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
           { key: "Content-Disposition", value: "attachment" },
