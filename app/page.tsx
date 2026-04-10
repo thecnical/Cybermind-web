@@ -174,7 +174,7 @@ export default function HomePage() {
               {/* FIX: hide long command on mobile, show short version */}
               <div className="mt-6 hidden sm:block">
                 <CommandBar
-                  command="curl -sL https://cybermind.thecnical.dev/install.sh | bash"
+                  command="curl -sL https://cybermindcli1.vercel.app/install.sh | bash"
                   className="max-w-2xl"
                   variant="skeuo"
                   tone="cyan"

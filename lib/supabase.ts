@@ -261,16 +261,21 @@ function detectDeviceType(): string {
 // Revoke an API key
 export async function revokeApiKey(keyId: string): Promise<boolean> {
   const token = await getToken();
-  if (!token) return false;
+  if (!token) throw new Error("Not logged in.");
   try {
     const res = await fetch(`${BACKEND_URL}/auth/revoke-key`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ key_id: keyId }),
+      signal: AbortSignal.timeout(15000),
     });
     const data = await res.json();
-    return data.success === true;
-  } catch {
-    return false;
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || `Server error (${res.status})`);
+    }
+    return true;
+  } catch (err: unknown) {
+    if (err instanceof Error) throw err;
+    throw new Error("Failed to revoke key.");
   }
 }

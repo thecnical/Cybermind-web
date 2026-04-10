@@ -38,10 +38,10 @@ export const mockUser = {
 
 export const installCommands = {
   linux:
-    "curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key {key}",
+    "curl -sL https://cybermindcli1.vercel.app/install.sh | bash -s -- --key {key}",
   windows:
-    "iwr https://cybermind.thecnical.dev/install.ps1 | iex; cybermind --key {key}",
-  mac: "curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash -s -- --key {key}",
+    "iwr https://cybermindcli1.vercel.app/install.ps1 | iex; cybermind --key {key}",
+  mac: "curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash -s -- --key {key}",
 };
 
 export const mockActivities: ActivityItem[] = [

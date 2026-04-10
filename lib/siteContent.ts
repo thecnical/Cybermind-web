@@ -1,4 +1,4 @@
-﻿export type PageLink = {
+export type PageLink = {
   href: string;
   label: string;
   description?: string;
@@ -98,8 +98,8 @@ const routeLabels: Record<DocRoute, string> = {
 };
 
 function commandFor(route: DocRoute) {
-  if (route === "get-started/installation") return "curl -sL https://cybermind.thecnical.dev/install.sh | bash";
-  if (route === "get-started/windows") return "iwr https://cybermind.thecnical.dev/install.ps1 | iex";
+  if (route === "get-started/installation") return "curl -sL https://cybermindcli1.vercel.app/install.sh | bash";
+  if (route === "get-started/windows") return "iwr https://cybermindcli1.vercel.app/install.ps1 | iex";
   if (route === "cli/interactive-chat") return "cybermind";
   if (route === "modes/recon") return "cybermind /recon example.com";
   if (route === "modes/hunt") return "cybermind /hunt example.com";
@@ -114,7 +114,7 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     title: "Get CyberMind CLI running without reading everything first",
     description:
       "Start with install, environment validation, and the first commands that prove your setup works.",
-    command: "curl -sL https://cybermind.thecnical.dev/install.sh | bash",
+    command: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
     sections: [
       {
         title: "What CyberMind actually is",
@@ -157,7 +157,7 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     title: "Installation on Linux and Kali",
     description:
       "The main installation path targets Kali and Linux because that is where the automated recon, hunt, and Abhimanyu workflows are strongest.",
-    command: "curl -sL https://cybermind.thecnical.dev/install.sh | bash",
+    command: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
     sections: [
       {
         title: "What the installer does",
@@ -181,7 +181,7 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     title: "Windows setup and realistic expectations",
     description:
       "Windows is the chat-first environment. The deepest automated offensive chains remain Linux-first.",
-    command: "iwr https://cybermind.thecnical.dev/install.ps1 | iex",
+    command: "iwr https://cybermindcli1.vercel.app/install.ps1 | iex",
     sections: [
       {
         title: "What Windows supports well",

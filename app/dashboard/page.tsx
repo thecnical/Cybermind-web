@@ -1,10 +1,10 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal } from "lucide-react";
+import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import { fetchApiKeys, createApiKey, wakeBackend, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
+import { fetchApiKeys, createApiKey, revokeApiKey, wakeBackend, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 
 // Device limits per plan
@@ -13,9 +13,9 @@ const DEVICE_LIMITS: Record<string, number> = { free: 1, pro: 3, elite: Infinity
 // FIX: install commands use env var instead of CLI arg
 // Prevents API key appearing in `ps aux` output during installation
 const INSTALL_COMMANDS: Record<string, (key: string) => string> = {
-  linux:   (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermind.thecnical.dev/install.sh | bash`,
-  windows: (k) => `$env:CYBERMIND_KEY="${k}"; iwr https://cybermind.thecnical.dev/install.ps1 | iex`,
-  mac:     (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash`,
+  linux:   (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermindcli1.vercel.app/install.sh | bash`,
+  windows: (k) => `$env:CYBERMIND_KEY="${k}"; iwr https://cybermindcli1.vercel.app/install.ps1 | iex`,
+  mac:     (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash`,
 };
 
 // Detect OS from browser
@@ -68,6 +68,8 @@ export default function DashboardPage() {
   const [showDeviceSelect, setShowDeviceSelect] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<"linux" | "windows" | "mac" | null>(null);
   const [keyName, setKeyName] = useState("");
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [revokeError, setRevokeError] = useState("");
 
   const plan = profile?.plan || "free";
   const limit = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
@@ -119,6 +121,24 @@ export default function DashboardPage() {
     await navigator.clipboard.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function handleRevoke(keyId: string, keyName: string) {
+    if (!confirm(`Revoke key "${keyName}"? This cannot be undone.`)) return;
+    setRevokingId(keyId);
+    setRevokeError("");
+    try {
+      const ok = await revokeApiKey(keyId);
+      if (ok) {
+        setKeys(prev => prev.map(k => k.id === keyId ? { ...k, is_active: false } : k));
+      } else {
+        setRevokeError("Failed to revoke key. Please try again.");
+      }
+    } catch {
+      setRevokeError("Failed to revoke key. Please try again.");
+    } finally {
+      setRevokingId(null);
+    }
   }
 
   function handleDownloadReceipt() {
@@ -338,9 +358,12 @@ export default function DashboardPage() {
       </section>
 
       {/* All device keys */}
-      {activeKeys.length > 1 && (
+      {activeKeys.length > 0 && (
         <section className="cm-card-soft p-5">
           <p className="cm-label mb-3">Your devices ({activeKeys.length})</p>
+          {revokeError && (
+            <p className="mb-3 text-xs text-red-400">{revokeError}</p>
+          )}
           <div className="grid gap-2">
             {activeKeys.map(k => (
               <div key={k.id} className="flex items-center justify-between rounded-xl border border-white/8 px-4 py-3">
@@ -348,13 +371,25 @@ export default function DashboardPage() {
                   <Monitor size={14} className="text-[var(--accent-cyan)]" />
                   <div>
                     <p className="text-sm font-medium text-white">{k.name}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{k.requests_today} req today</p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      {k.key_prefix ? `${k.key_prefix}••••••••••••••••` : "key hidden"} · {k.requests_today} req today
+                    </p>
                   </div>
                 </div>
-                <button onClick={() => handleCopy(k.key || "", k.id)}
-                  className="text-[var(--text-muted)] hover:text-white">
-                  {copied === k.id ? <Check size={14} className="text-[#00FF88]" /> : <Copy size={14} />}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleCopy(k.key || k.key_prefix || "", k.id)}
+                    className="text-[var(--text-muted)] hover:text-white transition-colors"
+                    title="Copy key prefix">
+                    {copied === k.id ? <Check size={14} className="text-[#00FF88]" /> : <Copy size={14} />}
+                  </button>
+                  <button
+                    onClick={() => handleRevoke(k.id, k.name)}
+                    disabled={revokingId === k.id}
+                    className="text-[var(--text-muted)] hover:text-[#FF4444] transition-colors disabled:opacity-40"
+                    title="Revoke this key">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
