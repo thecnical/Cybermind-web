@@ -60,6 +60,27 @@ https://cybermind.thecnical.dev
   URL.revokeObjectURL(url);
 }
 
+// Store full key in localStorage for 48hr copy window (encrypted with key ID as namespace)
+function storeKeyFor48Hours(keyId: string, fullKey: string) {
+  try {
+    const expiry = Date.now() + 48 * 60 * 60 * 1000;
+    localStorage.setItem(`cm_key_${keyId}`, JSON.stringify({ key: fullKey, expiry }));
+  } catch { /* localStorage unavailable */ }
+}
+
+function getStoredKey(keyId: string): string | null {
+  try {
+    const raw = localStorage.getItem(`cm_key_${keyId}`);
+    if (!raw) return null;
+    const { key, expiry } = JSON.parse(raw);
+    if (Date.now() > expiry) {
+      localStorage.removeItem(`cm_key_${keyId}`);
+      return null;
+    }
+    return key;
+  } catch { return null; }
+}
+
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -68,12 +89,14 @@ export default function DashboardPage() {
   const [creatingKey, setCreatingKey] = useState(false);
   const [loadingKeys, setLoadingKeys] = useState(true);
   const [keyError, setKeyError] = useState("");
-  const [wakeProgress, setWakeProgress] = useState(0); // 0 = idle, 1-99 = waking, 100 = ready
+  const [wakeProgress, setWakeProgress] = useState(0);
   const [showDeviceSelect, setShowDeviceSelect] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<"linux" | "windows" | "mac" | null>(null);
   const [keyName, setKeyName] = useState("");
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState("");
+  // Newly created key — shown in banner until dismissed
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<{ id: string; key: string; name: string } | null>(null);
   // Live stats
   const [liveToday, setLiveToday] = useState<number | null>(null);
   const [liveMonth, setLiveMonth] = useState<number | null>(null);
@@ -121,10 +144,18 @@ export default function DashboardPage() {
     setCreatingKey(true);
     setKeyError("");
     setWakeProgress(0);
+    setNewlyCreatedKey(null);
     try {
       const keyLabel = name?.trim() || `${device} device`;
       const key = await createApiKey(keyLabel, device, (pct) => setWakeProgress(pct));
-      if (key) setKeys(prev => [key as ApiKey, ...prev]);
+      if (key) {
+        // Store full key in localStorage for 48hr copy window
+        if (key.key && key.id) {
+          storeKeyFor48Hours(key.id, key.key);
+          setNewlyCreatedKey({ id: key.id, key: key.key, name: key.name || keyLabel });
+        }
+        setKeys(prev => [key as ApiKey, ...prev]);
+      }
       setWakeProgress(0);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Failed to create key";
@@ -190,6 +221,37 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-6">
       <EmailVerificationBanner />
+
+      {/* ── Newly created key banner ─────────────────────────────────────── */}
+      {newlyCreatedKey && (
+        <section className="rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 p-5">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <p className="text-sm font-semibold text-[#00FF88]">✓ Key created — copy it now!</p>
+              <p className="text-xs text-[var(--text-soft)] mt-0.5">
+                Full key available for 48 hours. After that only the prefix is shown.
+              </p>
+            </div>
+            <button onClick={() => setNewlyCreatedKey(null)}
+              className="text-xs text-[var(--text-muted)] hover:text-white flex-shrink-0">
+              Dismiss
+            </button>
+          </div>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+            <code className="flex-1 font-mono text-sm text-white break-all select-all">
+              {newlyCreatedKey.key}
+            </code>
+            <button
+              onClick={() => handleCopy(newlyCreatedKey.key, "newkey")}
+              className="flex-shrink-0 text-[var(--text-muted)] hover:text-white transition-colors">
+              {copied === "newkey" ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
+            </button>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] mt-2">
+            Run: <code className="font-mono text-[var(--accent-cyan)]">cybermind --key {newlyCreatedKey.key}</code>
+          </p>
+        </section>
+      )}
 
       {/* Welcome */}
       <section className="cm-card cm-spotlight-card p-6 md:p-8">
@@ -418,6 +480,9 @@ export default function DashboardPage() {
             {activeKeys.map(k => {
               const canCopy = isKeyWithin48Hours(k.created_at);
               const timeLeft = canCopy ? getKeyCopyTimeLeft(k.created_at) : null;
+              // Get full key from localStorage (stored at creation time)
+              const storedFullKey = canCopy ? getStoredKey(k.id) : null;
+              const copyValue = storedFullKey || k.key || null;
               return (
                 <div key={k.id} className="rounded-xl border border-white/8 px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
@@ -426,23 +491,31 @@ export default function DashboardPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white">{k.name}</p>
                         <p className="text-xs text-[var(--text-muted)] font-mono">
-                          {k.key_prefix ? `${k.key_prefix}••••••••••••••••` : "key hidden"}
+                          {storedFullKey
+                            ? storedFullKey.slice(0, 20) + "••••••••••••"
+                            : k.key_prefix
+                            ? `${k.key_prefix}••••••••••••••••`
+                            : "key hidden"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {canCopy ? (
+                      {canCopy && copyValue ? (
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => handleCopy(k.key || k.key_prefix || "", k.id)}
+                            onClick={() => handleCopy(copyValue, k.id)}
                             className="text-[var(--text-muted)] hover:text-white transition-colors"
-                            title={`Copy key — ${timeLeft}`}>
+                            title={`Copy full key — ${timeLeft}`}>
                             {copied === k.id ? <Check size={14} className="text-[#00FF88]" /> : <Copy size={14} />}
                           </button>
                           <span className="text-[10px] text-[#00FF88] bg-[#00FF88]/10 rounded-full px-2 py-0.5">
                             {timeLeft}
                           </span>
                         </div>
+                      ) : canCopy && !copyValue ? (
+                        <span className="text-[10px] text-[var(--text-muted)] bg-white/5 rounded-full px-2 py-0.5">
+                          key not cached
+                        </span>
                       ) : (
                         <span className="text-[10px] text-[var(--text-muted)] bg-white/5 rounded-full px-2 py-0.5">
                           copy expired

@@ -2,7 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { Check, Copy, Key, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
-import { fetchApiKeys, createApiKey, revokeApiKey, wakeBackend, ApiKey } from "@/lib/supabase";
+import { fetchApiKeys, createApiKey, revokeApiKey, wakeBackend, isKeyWithin48Hours, getKeyCopyTimeLeft, ApiKey } from "@/lib/supabase";
+
+// Store full key in localStorage for 48hr copy window
+function storeKeyFor48Hours(keyId: string, fullKey: string) {
+  try {
+    const expiry = Date.now() + 48 * 60 * 60 * 1000;
+    localStorage.setItem(`cm_key_${keyId}`, JSON.stringify({ key: fullKey, expiry }));
+  } catch { /* localStorage unavailable */ }
+}
+
+function getStoredKey(keyId: string): string | null {
+  try {
+    const raw = localStorage.getItem(`cm_key_${keyId}`);
+    if (!raw) return null;
+    const { key, expiry } = JSON.parse(raw);
+    if (Date.now() > expiry) { localStorage.removeItem(`cm_key_${keyId}`); return null; }
+    return key;
+  } catch { return null; }
+}
 
 export default function ApiKeysPage() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -43,6 +61,10 @@ export default function ApiKeysPage() {
     try {
       const key = await createApiKey(newKeyName.trim(), undefined, (pct) => setWakeProgress(pct));
       if (key) {
+        // Store full key in localStorage for 48hr copy window
+        if (key.key && key.id) {
+          storeKeyFor48Hours(key.id, key.key);
+        }
         setNewKeyValue(key.key || null);
         setKeys(prev => [key as ApiKey, ...prev]);
         setNewKeyName("");
@@ -174,7 +196,12 @@ export default function ApiKeysPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {keys.map(key => (
+          {keys.map(key => {
+            const canCopy = isKeyWithin48Hours(key.created_at);
+            const timeLeft = canCopy ? getKeyCopyTimeLeft(key.created_at) : null;
+            const storedKey = canCopy ? getStoredKey(key.id) : null;
+            const copyValue = storedKey || key.key || null;
+            return (
             <div key={key.id}
               className={`cm-card-soft p-5 ${!key.is_active ? "opacity-50" : ""}`}>
               <div className="flex items-center justify-between gap-4">
@@ -191,21 +218,42 @@ export default function ApiKeysPage() {
                     {key.last_used ? ` Last used ${new Date(key.last_used).toLocaleDateString()}` : " Never used"} ·
                     {key.requests_today} req today
                   </p>
-                  {key.key_prefix && (
-                    <p className="mt-1 font-mono text-xs text-[var(--text-soft)]">
-                      {key.key_prefix}{"•".repeat(16)}
-                    </p>
+                  <p className="mt-1 font-mono text-xs text-[var(--text-soft)]">
+                    {storedKey
+                      ? storedKey.slice(0, 20) + "••••••••••••"
+                      : key.key_prefix
+                      ? `${key.key_prefix}${"•".repeat(16)}`
+                      : "key hidden"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {key.is_active && canCopy && copyValue ? (
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => handleCopy(copyValue, key.id)}
+                        className="flex-shrink-0 text-[var(--text-muted)] transition-colors hover:text-white"
+                        title={`Copy full key — ${timeLeft}`}>
+                        {copied === key.id ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
+                      </button>
+                      <span className="text-[10px] text-[#00FF88] bg-[#00FF88]/10 rounded-full px-2 py-0.5">
+                        {timeLeft}
+                      </span>
+                    </div>
+                  ) : key.is_active && !canCopy ? (
+                    <span className="text-[10px] text-[var(--text-muted)] bg-white/5 rounded-full px-2 py-0.5">
+                      copy expired
+                    </span>
+                  ) : null}
+                  {key.is_active && (
+                    <button onClick={() => handleRevoke(key.id)}
+                      className="flex-shrink-0 text-[var(--text-muted)] transition-colors hover:text-[#FF4444]">
+                      <Trash2 size={16} />
+                    </button>
                   )}
                 </div>
-                {key.is_active && (
-                  <button onClick={() => handleRevoke(key.id)}
-                    className="flex-shrink-0 text-[var(--text-muted)] transition-colors hover:text-[#FF4444]">
-                    <Trash2 size={16} />
-                  </button>
-                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
