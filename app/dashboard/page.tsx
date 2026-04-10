@@ -222,6 +222,24 @@ export default function DashboardPage() {
     <div className="mx-auto grid w-full max-w-5xl gap-6">
       <EmailVerificationBanner />
 
+      {/* ── Free Month Promo Banner ──────────────────────────────────────── */}
+      <section className="rounded-2xl border border-[#FFD700]/40 bg-[#FFD700]/6 px-5 py-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl flex-shrink-0">🎉</span>
+            <div>
+              <p className="text-sm font-bold text-white">FREE MONTH ACTIVE — All features unlimited until May 10, 2026</p>
+              <p className="text-xs text-[var(--text-soft)] mt-0.5">
+                Recon, Hunt, Abhimanyu, CVE Intel, Payload Gen, Reports — everything free. No limits.
+              </p>
+            </div>
+          </div>
+          <Link href="/plans" className="text-xs text-[#FFD700] hover:underline flex-shrink-0 whitespace-nowrap">
+            View plans →
+          </Link>
+        </div>
+      </section>
+
       {/* ── Newly created key banner ─────────────────────────────────────── */}
       {newlyCreatedKey && (
         <section className="rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 p-5">
@@ -545,11 +563,14 @@ export default function DashboardPage() {
         <p className="cm-label mb-3">Plan limits</p>
         <div className="grid gap-2 text-sm">
           {[
-            ["Daily requests", limit === Infinity ? "Unlimited" : `${limit}/day`],
-            ["Devices (API keys)", deviceLimit === Infinity ? "Unlimited" : `${deviceLimit} devices`],
-            ["Recon mode", plan === "free" ? "❌ Pro required" : "✅ Available"],
-            ["Hunt mode", plan === "free" ? "❌ Pro required" : "✅ Available"],
-            ["Abhimanyu mode", plan !== "elite" ? "❌ Elite required" : "✅ Available"],
+            ["Daily requests",      "Unlimited (Free Month 🎉)"],
+            ["Devices (API keys)",  deviceLimit === Infinity ? "Unlimited" : `${deviceLimit} devices`],
+            ["Recon mode",          "✅ Available (Free Month)"],
+            ["Hunt mode",           "✅ Available (Free Month)"],
+            ["Abhimanyu mode",      "✅ Available (Free Month)"],
+            ["CVE Intel",           "✅ Available (Free Month)"],
+            ["Payload Generator",   "✅ Available (Free Month)"],
+            ["Report Writer",       "✅ Available (Free Month)"],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between rounded-xl border border-white/8 px-4 py-2">
               <span className="text-[var(--text-soft)]">{label}</span>
@@ -557,11 +578,9 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-        {plan !== "elite" && (
-          <Link href="/plans" className="cm-button-primary mt-4 text-sm w-full justify-center block text-center">
-            Upgrade plan
-          </Link>
-        )}
+        <p className="mt-3 text-xs text-[#FFD700]">
+          🎉 Free Month active until May 10, 2026 — all limits removed for everyone.
+        </p>
       </section>
     </div>
   );

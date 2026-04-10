@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
-import { Check, Loader2, AlertCircle, CheckCircle2, Zap } from "lucide-react";
+import { Check, Loader2, AlertCircle, CheckCircle2, Zap, Globe } from "lucide-react";
 import Accordion from "@/components/Accordion";
 import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
@@ -11,15 +11,22 @@ import StatusBadge from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
-import { openRazorpayCheckout, waitForPlanUpgrade, type RazorpayPlan } from "@/lib/razorpay";
+import { startStripeCheckout, waitForPlanUpgrade, type StripePlan } from "@/lib/stripe";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
 // ── Free Month Promo ──────────────────────────────────────────────────────────
-const PROMO_END   = "May 10, 2026";
-const PROMO_ACTIVE = true; // set false to hide banner
+const PROMO_END    = "May 10, 2026";
+const PROMO_ACTIVE = true;
 
-const plans = [
+// ── Currency detection ────────────────────────────────────────────────────────
+// Default INR for Indian users, USD for international
+// Users can toggle manually
+function detectCurrency(): "inr" | "usd" {
+  if (typeof window === "undefined") return "inr";
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return tz.startsWith("Asia/") ? "inr" : "usd";
+}
   {
     id: "free" as const,
     name: "Free",
@@ -144,21 +151,22 @@ const faqs = [
 
 type CheckoutState =
   | { status: "idle" }
-  | { status: "loading"; plan: RazorpayPlan }
-  | { status: "polling"; plan: RazorpayPlan }
-  | { status: "success"; plan: RazorpayPlan }
+  | { status: "loading"; plan: StripePlan }
+  | { status: "polling"; plan: StripePlan }
+  | { status: "success"; plan: StripePlan }
   | { status: "error"; message: string };
 
 export default function PlansPage() {
   const { user, profile, refreshProfile } = useAuth();
   const [annual, setAnnual] = useState(false);
+  const [currency, setCurrency] = useState<"inr" | "usd">("inr");
   const [checkout, setCheckout] = useState<CheckoutState>({ status: "idle" });
   const [loginModal, setLoginModal] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<RazorpayPlan | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<StripePlan | null>(null);
 
   const currentPlan = profile?.plan || "free";
 
-  const handleUpgrade = useCallback(async (planId: RazorpayPlan) => {
+  const handleUpgrade = useCallback(async (planId: StripePlan) => {
     if (!user || !profile) {
       setPendingPlan(planId);
       setLoginModal(true);
@@ -169,6 +177,7 @@ export default function PlansPage() {
     setCheckout({ status: "loading", plan: planId });
 
     try {
+      // Get API key for auth
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       if (!token) {
@@ -176,39 +185,34 @@ export default function PlansPage() {
         return;
       }
 
-      await openRazorpayCheckout({
-        userId: user.id,
-        email: user.email ?? "",
-        plan: planId,
-        annual,
-        onSuccess: async () => {
-          setCheckout({ status: "polling", plan: planId });
-          const token2 = (await supabase.auth.getSession()).data.session?.access_token ?? "";
-          const upgraded = await waitForPlanUpgrade(planId, BACKEND_URL, token2);
-          if (upgraded) {
-            await refreshProfile();
-            setCheckout({ status: "success", plan: planId });
-          } else {
-            await refreshProfile();
-            setCheckout({
-              status: "error",
-              message: "Payment received! Plan upgrade may take a moment. Refresh if your plan hasn't updated.",
-            });
-          }
-        },
-        onFailure: (reason) => {
-          setCheckout({ status: "error", message: reason });
-        },
+      // Fetch user's API key for payment auth
+      const keysRes = await fetch(`${BACKEND_URL}/auth/keys`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const keysData = await keysRes.json();
+      const apiKey = keysData.keys?.[0]?.key_prefix
+        ? null // prefix only — use JWT auth instead
+        : keysData.keys?.[0]?.key;
+
+      // Start Stripe checkout — redirects to Stripe hosted page
+      // Stripe handles UPI, cards, netbanking automatically
+      await startStripeCheckout({
+        plan:     planId,
+        billing:  annual ? "annual" : "monthly",
+        currency: currency,
+        apiKey:   apiKey || token, // fallback to JWT
+        email:    user.email ?? "",
       });
 
-      if (checkout.status === "loading") setCheckout({ status: "idle" });
+      // Note: user will be redirected to Stripe, so code below won't run
+      // unless there's an error before redirect
     } catch (err) {
       setCheckout({
         status: "error",
         message: err instanceof Error ? err.message : "Checkout failed. Please try again.",
       });
     }
-  }, [user, profile, currentPlan, annual, refreshProfile, checkout.status]);
+  }, [user, profile, currentPlan, annual, currency, refreshProfile]);
 
   const isLoading = (planId: string) =>
     (checkout.status === "loading" || checkout.status === "polling") && checkout.plan === planId;
@@ -250,6 +254,19 @@ export default function PlansPage() {
                 From free chat to unlimited recon pipelines — pick the tier that matches your workflow.
               </p>
             </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Currency toggle */}
+            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
+              <button type="button" onClick={() => setCurrency("inr")}
+                className={cn("rounded-full px-3 py-1.5 text-xs transition-colors", currency === "inr" ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
+                🇮🇳 INR
+              </button>
+              <button type="button" onClick={() => setCurrency("usd")}
+                className={cn("rounded-full px-3 py-1.5 text-xs transition-colors", currency === "usd" ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
+                🌍 USD
+              </button>
+            </div>
+            {/* Billing toggle */}
             <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
               <button type="button" onClick={() => setAnnual(false)}
                 className={cn("rounded-full px-4 py-2 text-sm transition-colors", !annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
@@ -260,6 +277,7 @@ export default function PlansPage() {
                 Annual <span className="text-[#00FF88] text-xs ml-1">save 17%</span>
               </button>
             </div>
+          </div>
           </div>
         </section>
 
@@ -298,11 +316,15 @@ export default function PlansPage() {
             const isStarter = plan.id === "starter";
             const isCurrent = currentPlan === plan.id;
             const loading = isLoading(plan.id);
-            const price = annual
-              ? (plan.id === "free" ? plan.annualINR : plan.annualINR)
-              : plan.monthlyINR;
+            const price = currency === "inr"
+              ? (annual ? plan.annualINR : plan.monthlyINR)
+              : (annual ? plan.annualUSD : plan.monthlyUSD);
             const period = annual ? "/ year" : "/ month";
-            const originalPrice = annual ? null : ("originalMonthlyINR" in plan ? plan.originalMonthlyINR : null);
+            const originalPrice = currency === "inr" && !annual
+              ? ("originalMonthlyINR" in plan ? plan.originalMonthlyINR : null)
+              : currency === "usd" && !annual
+              ? ("originalMonthlyUSD" in plan ? plan.originalMonthlyUSD : null)
+              : null;
 
             return (
               <div key={plan.id}
@@ -377,7 +399,7 @@ export default function PlansPage() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => handleUpgrade(plan.id as RazorpayPlan)}
+                      onClick={() => handleUpgrade(plan.id as StripePlan)}
                       disabled={loading || checkout.status === "polling"}
                       className={cn(
                         "flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition-all disabled:opacity-60",
@@ -388,11 +410,18 @@ export default function PlansPage() {
                           : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
                       )}>
                       {loading ? (
-                        <><Loader2 size={13} className="animate-spin" /> Processing...</>
+                        <><Loader2 size={13} className="animate-spin" /> Redirecting...</>
+                      ) : currency === "inr" ? (
+                        <>Pay with UPI / Card <span className="text-[10px] opacity-50">→ Stripe</span></>
                       ) : (
-                        `Upgrade to ${plan.name}`
+                        <>Pay with Card <span className="text-[10px] opacity-50">→ Stripe</span></>
                       )}
                     </button>
+                    {currency === "inr" && (
+                      <p className="text-center text-[10px] text-[var(--text-muted)]">
+                        UPI · Cards · Netbanking · Wallets
+                      </p>
+                    )}
                   )}
                   <p className="text-center text-[10px] text-[var(--text-muted)]">{plan.note}</p>
                 </div>
@@ -447,7 +476,8 @@ export default function PlansPage() {
         <section className="rounded-[24px] border border-white/8 bg-white/[0.02] px-6 py-5">
           <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-soft)]">
             <span className="text-[#00FF88]">🔒 Secure payments</span>
-            <span>Powered by Razorpay · HMAC-verified webhooks · No card data stored by CyberMind</span>
+            <span>Powered by Stripe · UPI + Cards + Netbanking · No card data stored by CyberMind</span>
+            <span className="flex items-center gap-1"><Globe size={12} /> Available worldwide</span>
             <Link href="/privacy" className="text-[var(--accent-cyan)] hover:underline ml-auto">Privacy Policy</Link>
             <Link href="/terms" className="text-[var(--accent-cyan)] hover:underline">Terms</Link>
           </div>
