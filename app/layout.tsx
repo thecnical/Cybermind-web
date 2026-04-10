@@ -39,11 +39,11 @@ export const metadata: Metadata = {
   publisher: "CyberMind CLI",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.svg", sizes: "any" },
+      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
+      { url: "/favicon.svg?v=2", sizes: "any" },
     ],
-    apple: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    apple: "/favicon.svg?v=2",
+    shortcut: "/favicon.svg?v=2",
   },
   robots: {
     index: true,
@@ -121,11 +121,11 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
     >
       <head>
-        {/* Favicon — SVG for modern browsers, fallback for older */}
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/favicon.svg" sizes="any" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.svg" />
+        {/* Favicon v2 — Neural Shield logo */}
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.svg?v=2" />
+        <link rel="apple-touch-icon" href="/favicon.svg?v=2" />
+        <link rel="shortcut icon" href="/favicon.svg?v=2" />
         {/* Structured data */}
         <script
           type="application/ld+json"
