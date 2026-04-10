@@ -599,6 +599,147 @@
 
 /* ── Mobile responsive fixes ─────────────────────────────────────────────── */
 
+/* Prevent text overflow on small screens */
+@media (max-width: 640px) {
+  /* Hero section — reduce padding and font sizes */
+  .cm-noise-overlay {
+    padding: 1.5rem !important;
+  }
+
+  /* Section cards — full width, reduced padding */
+  .cm-spotlight-card {
+    padding: 1.25rem !important;
+  }
+
+  /* Heading sizes on mobile */
+  h1 {
+    font-size: clamp(1.75rem, 6vw, 3rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Surface cards — reduce border radius on very small screens */
+  .rounded-\[36px\], .rounded-\[32px\], .rounded-\[30px\], .rounded-\[28px\] {
+    border-radius: 20px !important;
+  }
+
+  /* Comparison table — allow horizontal scroll */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Command bar — prevent overflow */
+  .cm-command-bar {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+
+  /* Buttons — full width on mobile */
+  .cm-button-primary,
+  .cm-button-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Plan cards — single column */
+  .xl\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Feature cards — single column */
+  .xl\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* About page — profile cards */
+  .lg\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Docs page — sidebar hidden on mobile (handled by layout) */
+
+  /* Footer — stack columns */
+  footer .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Navbar logo text — hide subtitle on very small screens */
+  .navbar-subtitle {
+    display: none !important;
+  }
+
+  /* World map — reduce height */
+  .world-map-container {
+    height: 200px !important;
+  }
+
+  /* Testimonials — single column */
+  .testimonials-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Timeline — reduce spacing */
+  .timeline-item {
+    padding-left: 1rem !important;
+  }
+
+  /* Promo banner — stack on mobile */
+  .promo-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+/* Tablet fixes (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Plan cards — 2 columns on tablet */
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Feature cards — 2 columns */
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Hero terminal — show on tablet */
+  .hero-terminal {
+    display: block !important;
+  }
+}
+
+/* Fix overflow issues globally */
+* {
+  min-width: 0; /* Prevent flex/grid children from overflowing */
+}
+
+/* Safe area support for notched phones */
+@supports (padding: max(0px)) {
+  .navbar-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Touch target sizes — minimum 44px for interactive elements */
+@media (max-width: 768px) {
+  button,
+  a[role="button"],
+  .cm-button-primary,
+  .cm-button-secondary {
+    min-height: 44px;
+  }
+
+  /* Increase tap target for nav links */
+  nav a {
+    padding: 0.75rem 1rem !important;
+  }
+}
+
 /* Prevent any element from causing horizontal scroll */
 .max-w-7xl,
 .max-w-6xl,

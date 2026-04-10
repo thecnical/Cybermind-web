@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
-import { Check, Loader2, AlertCircle, CheckCircle2, Zap, Timer } from "lucide-react";
+import { Check, Loader2, AlertCircle, CheckCircle2, Zap } from "lucide-react";
 import Accordion from "@/components/Accordion";
 import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
@@ -15,8 +15,9 @@ import { openRazorpayCheckout, waitForPlanUpgrade, type RazorpayPlan } from "@/l
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
-// ── Offer ends date (30 days from now — update as needed) ─────────────────────
-const OFFER_ENDS = "May 10, 2026";
+// ── Free Month Promo ──────────────────────────────────────────────────────────
+const PROMO_END   = "May 10, 2026";
+const PROMO_ACTIVE = true; // set false to hide banner
 
 const plans = [
   {
@@ -69,7 +70,7 @@ const plans = [
     originalMonthlyUSD: "$19",
     description: "Unlimited recon, hunt, and full pipeline for serious researchers.",
     badge: "Most popular",
-    offer: `Limited offer — save 23% until ${OFFER_ENDS}`,
+    offer: `Limited offer — save 23% until ${PROMO_END}`,
     features: [
       "200 requests/day",
       "Unlimited recon targets",
@@ -217,21 +218,25 @@ export default function PlansPage() {
       <Navbar />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 pb-20 pt-28 md:px-8">
 
-        {/* ── Limited offer banner ─────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 rounded-2xl border border-[#FFD700]/30 bg-[#FFD700]/5 px-5 py-4">
-          <Timer size={18} className="text-[#FFD700] flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">
-              🎉 Limited-time offer — Pro plan at ₹1,149/mo (was ₹1,499)
-            </p>
-            <p className="text-xs text-[var(--text-soft)] mt-0.5">
-              Save 23% · Offer ends {OFFER_ENDS} · No code needed
-            </p>
+        {/* ── Free Month Promo Banner ──────────────────────────────────────── */}
+        {PROMO_ACTIVE && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#FFD700]/40 bg-[#FFD700]/8 px-5 py-5 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <span className="text-2xl flex-shrink-0">🎉</span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white">
+                  FREE MONTH — All features unlimited until {PROMO_END}
+                </p>
+                <p className="text-xs text-[var(--text-soft)] mt-0.5">
+                  Every plan gets Elite-level access: unlimited requests, all modes, Abhimanyu, reports, wordlists, CVE intel — no credit card needed.
+                </p>
+              </div>
+            </div>
+            <Link href="/auth/register" className="cm-button-primary text-xs px-4 py-2 flex-shrink-0 whitespace-nowrap">
+              Get free access
+            </Link>
           </div>
-          <Link href="/auth/register" className="cm-button-primary text-xs px-4 py-2 flex-shrink-0">
-            Grab offer
-          </Link>
-        </div>
+        )}
 
         {/* Hero */}
         <section className="linear-shell rounded-[36px] p-7 md:p-10">

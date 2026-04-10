@@ -353,30 +353,30 @@ export default function HomePage() {
           </Surface>
 
           <Surface variant="clay" tone="accent" elevation="high" className="rounded-[30px] p-6 md:p-8">
-            <p className="cm-label">Pricing teaser</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white">Start free, upgrade when ready</h2>
+            <p className="cm-label">🎉 Free Month Active</p>
+            <h2 className="mt-3 text-3xl font-semibold text-white">Everything free until May 10, 2026</h2>
             <p className="mt-4 text-sm leading-7 text-[var(--text-soft)]">
-              Free gets you into the product quickly. Pro unlocks full recon and hunt. Elite adds persistence, reporting, and full mode coverage.
+              All plans get Elite-level access for free — unlimited requests, recon, hunt, Abhimanyu, CVE intel, payload generator, and reports. No credit card needed.
             </p>
             <div className="mt-6 grid gap-3">
               {[
-                ["Free", "$0/mo", "20 requests/day"],
-                ["Pro", "$9/mo", "200 requests/day"],
-                ["Elite", "$29/mo", "Unlimited + Abhimanyu"],
+                ["Unlimited requests", "All plans", "✓"],
+                ["All modes (recon, hunt, Abhimanyu)", "All plans", "✓"],
+                ["CVE Intel + Payload Gen + Reports", "All plans", "✓"],
               ].map((item) => (
                 <Surface key={item[0]} variant="skeuo" elevation="low" className="rounded-2xl p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-base font-semibold text-white">{item[0]}</p>
-                      <p className="mt-1 text-sm text-[var(--text-soft)]">{item[2]}</p>
+                      <p className="text-sm font-semibold text-white">{item[0]}</p>
+                      <p className="mt-1 text-xs text-[var(--text-soft)]">{item[1]}</p>
                     </div>
-                    <p className="text-lg font-semibold text-white">{item[1]}</p>
+                    <p className="text-lg font-semibold text-[#00FF88]">{item[2]}</p>
                   </div>
                 </Surface>
               ))}
             </div>
             <Link href="/plans" className="cm-button-primary mt-6">
-              Compare all plans
+              See all features
             </Link>
           </Surface>
         </section>
