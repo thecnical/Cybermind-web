@@ -40,7 +40,7 @@ export const installCommands = {
   linux:
     "curl -sL https://cybermindcli1.vercel.app/install.sh | bash -s -- --key {key}",
   windows:
-    "iwr https://cybermindcli1.vercel.app/install.ps1 | iex; cybermind --key {key}",
+    "(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex; cybermind --key {key}",
   mac: "curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash -s -- --key {key}",
 };
 

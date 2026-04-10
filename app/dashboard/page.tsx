@@ -18,7 +18,7 @@ const DEVICE_LIMITS: Record<string, number> = { free: 1, pro: 3, elite: Infinity
 // Prevents API key appearing in `ps aux` output during installation
 const INSTALL_COMMANDS: Record<string, (key: string) => string> = {
   linux:   (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermindcli1.vercel.app/install.sh | bash`,
-  windows: (k) => `$env:CYBERMIND_KEY="${k}"; iwr https://cybermindcli1.vercel.app/install.ps1 | iex`,
+  windows: (k) => `$env:CYBERMIND_KEY="${k}"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex`,
   mac:     (k) => `CYBERMIND_KEY=${k} curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash`,
 };
 

@@ -99,7 +99,7 @@ const routeLabels: Record<DocRoute, string> = {
 
 function commandFor(route: DocRoute) {
   if (route === "get-started/installation") return "curl -sL https://cybermindcli1.vercel.app/install.sh | bash";
-  if (route === "get-started/windows") return "iwr https://cybermindcli1.vercel.app/install.ps1 | iex";
+  if (route === "get-started/windows") return "(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex";
   if (route === "cli/interactive-chat") return "cybermind";
   if (route === "modes/recon") return "cybermind /recon example.com";
   if (route === "modes/hunt") return "cybermind /hunt example.com";
@@ -181,7 +181,7 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     title: "Windows setup and realistic expectations",
     description:
       "Windows is the chat-first environment. The deepest automated offensive chains remain Linux-first.",
-    command: "iwr https://cybermindcli1.vercel.app/install.ps1 | iex",
+    command: "(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex",
     sections: [
       {
         title: "What Windows supports well",
