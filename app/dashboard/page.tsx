@@ -1,10 +1,14 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
-import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal, Trash2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Check, Copy, Download, KeyRound, Monitor, RefreshCw, Terminal, Trash2, Activity } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import { fetchApiKeys, createApiKey, revokeApiKey, wakeBackend, ApiKey, PLAN_LIMITS } from "@/lib/supabase";
+import {
+  fetchApiKeys, createApiKey, revokeApiKey, wakeBackend,
+  fetchLiveUsage, isKeyWithin48Hours, getKeyCopyTimeLeft,
+  ApiKey, PLAN_LIMITS, PLAN_TARGET_LIMITS
+} from "@/lib/supabase";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 
 // Device limits per plan
@@ -70,19 +74,35 @@ export default function DashboardPage() {
   const [keyName, setKeyName] = useState("");
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState("");
+  // Live stats
+  const [liveToday, setLiveToday] = useState<number | null>(null);
+  const [liveMonth, setLiveMonth] = useState<number | null>(null);
+  const [liveTargets, setLiveTargets] = useState<number | null>(null);
+  const [liveUpdated, setLiveUpdated] = useState<Date | null>(null);
 
   const plan = profile?.plan || "free";
   const limit = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
+  const targetLimit = PLAN_TARGET_LIMITS[plan as keyof typeof PLAN_TARGET_LIMITS];
   const deviceLimit = DEVICE_LIMITS[plan] ?? 1;
-  const used = profile?.requests_today || 0;
+  const used = liveToday ?? profile?.requests_today ?? 0;
+  const usedMonth = liveMonth ?? profile?.requests_month ?? 0;
+  const targetsUsed = liveTargets ?? (profile as { recon_targets_used?: number })?.recon_targets_used ?? 0;
   const usagePct = limit === Infinity ? 0 : Math.min(100, (used / limit) * 100);
+
+  // Live stats polling — every 30s
+  const pollLiveStats = useCallback(async () => {
+    const stats = await fetchLiveUsage();
+    if (stats) {
+      setLiveToday(stats.requests_today);
+      setLiveMonth(stats.requests_month);
+      setLiveTargets(stats.recon_targets_used);
+      setLiveUpdated(new Date());
+    }
+  }, []);
 
   useEffect(() => {
     setPlatform(detectOS());
-
-    // Wake backend silently when dashboard loads
     wakeBackend().catch(() => {});
-
     fetchApiKeys().then(k => {
       setKeys(k);
       setLoadingKeys(false);
@@ -90,7 +110,12 @@ export default function DashboardPage() {
         handleAutoCreateKey("linux", "Linux device");
       }
     });
-  }, [plan]);
+    // Initial live stats fetch
+    pollLiveStats();
+    // Poll every 30 seconds
+    const interval = setInterval(pollLiveStats, 30000);
+    return () => clearInterval(interval);
+  }, [plan, pollLiveStats]);
 
   async function handleAutoCreateKey(device: string, name?: string) {
     setCreatingKey(true);
@@ -206,7 +231,15 @@ export default function DashboardPage() {
       {/* Stats */}
       <section className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div className="cm-card-soft p-5">
-          <p className="cm-label">Requests today</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="cm-label">Requests today</p>
+            {liveUpdated && (
+              <span className="flex items-center gap-1 text-[10px] text-[#00FF88]">
+                <Activity size={10} className="animate-pulse" />
+                live
+              </span>
+            )}
+          </div>
           <p className="mt-2 text-3xl font-semibold text-white">
             {used}{limit !== Infinity ? `/${limit}` : ""}
           </p>
@@ -219,16 +252,33 @@ export default function DashboardPage() {
         </div>
         <div className="cm-card-soft p-5">
           <p className="cm-label">Requests this month</p>
-          <p className="mt-2 text-3xl font-semibold text-white">{profile?.requests_month || 0}</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{usedMonth}</p>
         </div>
-        <div className="cm-card-soft p-5">
-          <p className="cm-label">Devices</p>
-          <p className="mt-2 text-3xl font-semibold text-white">
-            {loadingKeys ? "..." : activeKeys.length}
-            <span className="text-lg text-[var(--text-soft)]">/{deviceLimit === Infinity ? "∞" : deviceLimit}</span>
-          </p>
-          <p className="mt-1 text-xs text-[var(--text-soft)]">active API keys</p>
-        </div>
+        {plan === "starter" ? (
+          <div className="cm-card-soft p-5">
+            <p className="cm-label">Recon targets used</p>
+            <p className="mt-2 text-3xl font-semibold text-white">
+              {targetsUsed}
+              <span className="text-lg text-[var(--text-soft)]">/{targetLimit === Infinity ? "∞" : targetLimit}</span>
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-soft)]">resets monthly</p>
+            {targetLimit !== Infinity && (
+              <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full transition-all"
+                  style={{ width: `${Math.min(100, (targetsUsed / targetLimit) * 100)}%`, backgroundColor: targetsUsed >= targetLimit ? "#FF4444" : "#FFD700" }} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="cm-card-soft p-5">
+            <p className="cm-label">Devices</p>
+            <p className="mt-2 text-3xl font-semibold text-white">
+              {loadingKeys ? "..." : activeKeys.length}
+              <span className="text-lg text-[var(--text-soft)]">/{deviceLimit === Infinity ? "∞" : deviceLimit}</span>
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-soft)]">active API keys</p>
+          </div>
+        )}
       </section>
 
       {/* API Key + Install */}
@@ -362,36 +412,57 @@ export default function DashboardPage() {
         <section className="cm-card-soft p-5">
           <p className="cm-label mb-3">Your devices ({activeKeys.length})</p>
           {revokeError && (
-            <p className="mb-3 text-xs text-red-400">{revokeError}</p>
+            <p className="mb-3 text-xs text-red-400 bg-red-500/10 rounded-xl px-3 py-2">{revokeError}</p>
           )}
           <div className="grid gap-2">
-            {activeKeys.map(k => (
-              <div key={k.id} className="flex items-center justify-between rounded-xl border border-white/8 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Monitor size={14} className="text-[var(--accent-cyan)]" />
-                  <div>
-                    <p className="text-sm font-medium text-white">{k.name}</p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {k.key_prefix ? `${k.key_prefix}••••••••••••••••` : "key hidden"} · {k.requests_today} req today
-                    </p>
+            {activeKeys.map(k => {
+              const canCopy = isKeyWithin48Hours(k.created_at);
+              const timeLeft = canCopy ? getKeyCopyTimeLeft(k.created_at) : null;
+              return (
+                <div key={k.id} className="rounded-xl border border-white/8 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Monitor size={14} className="text-[var(--accent-cyan)] flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white">{k.name}</p>
+                        <p className="text-xs text-[var(--text-muted)] font-mono">
+                          {k.key_prefix ? `${k.key_prefix}••••••••••••••••` : "key hidden"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {canCopy ? (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleCopy(k.key || k.key_prefix || "", k.id)}
+                            className="text-[var(--text-muted)] hover:text-white transition-colors"
+                            title={`Copy key — ${timeLeft}`}>
+                            {copied === k.id ? <Check size={14} className="text-[#00FF88]" /> : <Copy size={14} />}
+                          </button>
+                          <span className="text-[10px] text-[#00FF88] bg-[#00FF88]/10 rounded-full px-2 py-0.5">
+                            {timeLeft}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-[var(--text-muted)] bg-white/5 rounded-full px-2 py-0.5">
+                          copy expired
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleRevoke(k.id, k.name)}
+                        disabled={revokingId === k.id}
+                        className="text-[var(--text-muted)] hover:text-[#FF4444] transition-colors disabled:opacity-40"
+                        title="Revoke this key">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
+                  <p className="text-xs text-[var(--text-muted)] mt-1 ml-[26px]">
+                    {k.requests_today} req today · Created {new Date(k.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleCopy(k.key || k.key_prefix || "", k.id)}
-                    className="text-[var(--text-muted)] hover:text-white transition-colors"
-                    title="Copy key prefix">
-                    {copied === k.id ? <Check size={14} className="text-[#00FF88]" /> : <Copy size={14} />}
-                  </button>
-                  <button
-                    onClick={() => handleRevoke(k.id, k.name)}
-                    disabled={revokingId === k.id}
-                    className="text-[var(--text-muted)] hover:text-[#FF4444] transition-colors disabled:opacity-40"
-                    title="Revoke this key">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

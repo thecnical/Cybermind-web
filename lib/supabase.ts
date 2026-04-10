@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-export type UserPlan = "free" | "pro" | "elite";
+export type UserPlan = "free" | "starter" | "pro" | "elite";
 
 export interface UserProfile {
   id: string;
@@ -39,8 +39,9 @@ export interface UserProfile {
   plan: UserPlan;
   requests_today: number;
   requests_month: number;
+  recon_targets_used: number;  // for starter plan: 5/month limit
   created_at: string;
-  avatar?: string; // optional initials or avatar URL
+  avatar?: string;
 }
 
 export interface ApiKey {
@@ -50,24 +51,35 @@ export interface ApiKey {
   key?: string;
   /** Safe display prefix (e.g. "cp_live_xxxx") — always available */
   key_prefix?: string;
+  /** Timestamp of creation — used to enforce 48hr copy window */
+  created_at: string;
   plan: UserPlan;
   is_active: boolean;
   requests_today: number;
   requests_month: number;
   last_used: string | null;
-  created_at: string;
 }
 
 export const PLAN_LIMITS: Record<UserPlan, number> = {
-  free: 20,
-  pro: 200,
-  elite: Infinity,
+  free:    20,
+  starter: 50,
+  pro:     200,
+  elite:   Infinity,
 };
 
-export const PLAN_PRICES: Record<UserPlan, { monthly: number; annual: number }> = {
-  free: { monthly: 0, annual: 0 },
-  pro: { monthly: 9, annual: 7 },
-  elite: { monthly: 29, annual: 24 },
+// Recon/Hunt/Abhimanyu target limits per month (starter only)
+export const PLAN_TARGET_LIMITS: Record<UserPlan, number> = {
+  free:    0,
+  starter: 5,
+  pro:     Infinity,
+  elite:   Infinity,
+};
+
+export const PLAN_PRICES: Record<UserPlan, { monthly: number; annual: number; monthlyINR: number; annualINR: number }> = {
+  free:    { monthly: 0,  annual: 0,   monthlyINR: 0,    annualINR: 0 },
+  starter: { monthly: 4,  annual: 3,   monthlyINR: 85,   annualINR: 850 },
+  pro:     { monthly: 14, annual: 11,  monthlyINR: 1149, annualINR: 9990 },
+  elite:   { monthly: 29, annual: 24,  monthlyINR: 2399, annualINR: 23990 },
 };
 
 // Get auth token from current session
@@ -277,5 +289,64 @@ export async function revokeApiKey(keyId: string): Promise<boolean> {
   } catch (err: unknown) {
     if (err instanceof Error) throw err;
     throw new Error("Failed to revoke key.");
+  }
+}
+
+// Check if a key is within the 48-hour copy window
+export function isKeyWithin48Hours(createdAt: string): boolean {
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  const hours48 = 48 * 60 * 60 * 1000;
+  return now - created < hours48;
+}
+
+// Get remaining copy window time as human-readable string
+export function getKeyCopyTimeLeft(createdAt: string): string {
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  const hours48 = 48 * 60 * 60 * 1000;
+  const remaining = hours48 - (now - created);
+  if (remaining <= 0) return "expired";
+  const hours = Math.floor(remaining / (60 * 60 * 1000));
+  const mins = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+  if (hours > 0) return `${hours}h ${mins}m left`;
+  return `${mins}m left`;
+}
+
+// Send teammate invite
+export async function sendInvite(email: string): Promise<void> {
+  const token = await getToken();
+  if (!token) throw new Error("Not logged in.");
+  const res = await fetch(`${BACKEND_URL}/auth/invite`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || "Invite failed.");
+  }
+}
+
+// Fetch live usage stats (for real-time dashboard)
+export async function fetchLiveUsage(): Promise<{ requests_today: number; requests_month: number; recon_targets_used: number } | null> {
+  const token = await getToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.success) return null;
+    return {
+      requests_today: data.profile.requests_today ?? 0,
+      requests_month: data.profile.requests_month ?? 0,
+      recon_targets_used: data.profile.recon_targets_used ?? 0,
+    };
+  } catch {
+    return null;
   }
 }
