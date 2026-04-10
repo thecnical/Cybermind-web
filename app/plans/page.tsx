@@ -27,6 +27,8 @@ function detectCurrency(): "inr" | "usd" {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return tz.startsWith("Asia/") ? "inr" : "usd";
 }
+
+const plans = [
   {
     id: "free" as const,
     name: "Free",
