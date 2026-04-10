@@ -160,19 +160,33 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
     command: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
     sections: [
       {
-        title: "What the installer does",
+        title: "One-command install (recommended)",
         body:
-          "The install flow builds the CLI, places it on your path, and prepares the surrounding toolchain so the shell can move beyond chat-only use.",
-        bullets: [
-          "Installs the CyberMind CLI binary.",
-          "Prepares the tool environment used by recon and hunt.",
-          "Lets you verify health with /doctor after install.",
-        ],
+          "This downloads the binary, installs it to /usr/local/bin, and optionally saves your API key if you pass it via environment variable.",
+        code: "# Basic install\ncurl -sL https://cybermindcli1.vercel.app/install.sh | bash\n\n# Install with API key pre-saved\nCYBERMIND_KEY=cp_live_xxxxx curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
+      },
+      {
+        title: "Manual install (if curl fails)",
+        body:
+          "Download the binary directly and install it yourself.",
+        code: "# Download binary\nwget https://cybermindcli1.vercel.app/cybermind-linux-amd64 -O /tmp/cybermind\n\n# Make executable\nchmod +x /tmp/cybermind\n\n# Install to PATH\nsudo mv /tmp/cybermind /usr/local/bin/cybermind\n\n# Save your API key\nmkdir -p ~/.cybermind\necho '{\"key\":\"cp_live_xxxxx\"}' > ~/.cybermind/config.json\nchmod 600 ~/.cybermind/config.json",
+      },
+      {
+        title: "Set or update your API key after install",
+        body:
+          "If you need to change your API key at any time, run this command. It overwrites the saved key immediately.",
+        code: "cybermind --key cp_live_xxxxx\n\n# Verify it worked\ncybermind whoami",
       },
       {
         title: "First commands after install",
         body: "Do these before you touch a real target.",
         code: "cybermind --version\ncybermind /doctor\ncybermind",
+      },
+      {
+        title: "Uninstall",
+        body:
+          "To fully remove CyberMind CLI from your Linux system:",
+        code: "# Built-in command (recommended)\ncybermind uninstall\n\n# Manual removal (if binary is already gone)\nsudo rm -f /usr/local/bin/cybermind /usr/bin/cybermind\nrm -rf ~/.cybermind",
       },
     ],
   },
@@ -183,6 +197,16 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
       "Windows is the chat-first environment. The deepest automated offensive chains remain Linux-first.",
     command: "(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex",
     sections: [
+      {
+        title: "One-command install",
+        body: "Run this in PowerShell (Admin recommended for System32 install):",
+        code: "# Basic install\n(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex\n\n# Install with API key pre-saved\n$env:CYBERMIND_KEY=\"cp_live_xxxxx\"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex",
+      },
+      {
+        title: "Set or update your API key after install",
+        body: "Run this in any terminal to update your saved key:",
+        code: "cybermind --key cp_live_xxxxx\n\n# Verify\ncybermind whoami",
+      },
       {
         title: "What Windows supports well",
         body:
@@ -204,6 +228,11 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
           "Abhimanyu mode",
           "Broader toolchain orchestration",
         ],
+      },
+      {
+        title: "Uninstall on Windows",
+        body: "Run in PowerShell:",
+        code: "# Built-in command\ncybermind uninstall\n\n# Manual removal\nRemove-Item -Force \"$env:SystemRoot\\System32\\cybermind.exe\" -ErrorAction SilentlyContinue\nRemove-Item -Recurse -Force \"$env:USERPROFILE\\.cybermind\" -ErrorAction SilentlyContinue",
       },
     ],
   },
