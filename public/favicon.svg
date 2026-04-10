@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="16" fill="#0d1220"/>
+  <rect width="64" height="64" rx="16" fill="url(#glow)" opacity="0.4"/>
+  <path d="M11 21L24 32L11 43" stroke="url(#c1)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="28" y="39.5" width="23" height="4" rx="2" fill="url(#c1)"/>
+  <circle cx="47" cy="17" r="3.5" fill="url(#spark)"/>
+  <circle cx="55" cy="23" r="2" fill="#8A2BE2" opacity="0.85"/>
+  <line x1="47" y1="17" x2="55" y2="23" stroke="url(#c1)" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="52" cy="12" r="1.5" fill="white" opacity="0.5"/>
+  <defs>
+    <radialGradient id="glow" cx="0.2" cy="0.2" r="0.8">
+      <stop stop-color="#00FFFF" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#8A2BE2" stop-opacity="0.05"/>
+    </radialGradient>
+    <linearGradient id="c1" x1="11" y1="21" x2="51" y2="44">
+      <stop stop-color="#00FFFF"/>
+      <stop offset="0.5" stop-color="#7B5FFF"/>
+      <stop offset="1" stop-color="#D26BFF"/>
+    </linearGradient>
+    <radialGradient id="spark" cx="0.3" cy="0.3" r="0.8">
+      <stop stop-color="#00FFFF"/>
+      <stop offset="1" stop-color="#8A2BE2"/>
+    </radialGradient>
+  </defs>
+</svg>

@@ -12,9 +12,9 @@ export default function CyberMindLogo({
   return (
     <motion.div
       className={className}
-      style={{ width: size, height: size }}
-      whileHover={{ rotate: 8, scale: 1.04 }}
-      transition={{ duration: 0.25 }}
+      style={{ width: size, height: size, flexShrink: 0 }}
+      whileHover={{ rotate: 6, scale: 1.06 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
     >
       <svg
         viewBox="0 0 64 64"
@@ -22,38 +22,48 @@ export default function CyberMindLogo({
         height={size}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-label="CyberMind CLI logo"
       >
-        <rect
-          x="4"
-          y="4"
-          width="56"
-          height="56"
-          rx="18"
-          fill="url(#logo-panel)"
-          stroke="rgba(255,255,255,0.12)"
+        {/* Background panel — dark with subtle gradient */}
+        <rect width="64" height="64" rx="16" fill="url(#cm-bg)" />
+        <rect width="64" height="64" rx="16" fill="url(#cm-glow)" opacity="0.4" />
+
+        {/* Terminal chevron > */}
+        <path
+          d="M11 21L24 32L11 43"
+          stroke="url(#cm-cyan)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <path d="M15 24L24 32L15 40" stroke="url(#logo-line)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="28" y="38" width="18" height="4.5" rx="2.2" fill="url(#logo-line)" />
-        <rect x="28" y="22" width="21" height="14" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-        <path d="M31 26H36V30H31V26Z" fill="url(#logo-pixel)" />
-        <path d="M38 26H43V30H38V26Z" fill="url(#logo-pixel)" />
-        <circle cx="50" cy="16" r="3.5" fill="url(#logo-spark)" />
+
+        {/* Cursor underscore _ */}
+        <rect x="28" y="39.5" width="23" height="4" rx="2" fill="url(#cm-cyan)" />
+
+        {/* Neural node — top right circuit */}
+        <circle cx="47" cy="17" r="3.5" fill="url(#cm-spark)" />
+        <circle cx="55" cy="23" r="2" fill="#8A2BE2" opacity="0.85" />
+        <line x1="47" y1="17" x2="55" y2="23" stroke="url(#cm-cyan)" strokeWidth="1.5" opacity="0.6" />
+
+        {/* Small accent dot */}
+        <circle cx="52" cy="12" r="1.5" fill="white" opacity="0.5" />
+
         <defs>
-          <linearGradient id="logo-panel" x1="10" y1="8" x2="56" y2="58">
-            <stop stopColor="#181d29" />
-            <stop offset="1" stopColor="#0b0e15" />
+          <linearGradient id="cm-bg" x1="0" y1="0" x2="64" y2="64">
+            <stop stopColor="#0d1220" />
+            <stop offset="1" stopColor="#070a10" />
           </linearGradient>
-          <linearGradient id="logo-line" x1="18" y1="18" x2="48" y2="46">
+          <radialGradient id="cm-glow" cx="0.2" cy="0.2" r="0.8">
+            <stop stopColor="#00FFFF" stopOpacity="0.15" />
+            <stop offset="1" stopColor="#8A2BE2" stopOpacity="0.05" />
+          </radialGradient>
+          <linearGradient id="cm-cyan" x1="11" y1="21" x2="51" y2="44">
             <stop stopColor="#00FFFF" />
-            <stop offset="0.62" stopColor="#8A2BE2" />
+            <stop offset="0.5" stopColor="#7B5FFF" />
             <stop offset="1" stopColor="#D26BFF" />
           </linearGradient>
-          <linearGradient id="logo-pixel" x1="31" y1="26" x2="43" y2="30">
-            <stop stopColor="#89F5FF" />
-            <stop offset="1" stopColor="#D26BFF" />
-          </linearGradient>
-          <radialGradient id="logo-spark" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(48 16) rotate(90) scale(4)">
-            <stop stopColor="#ffffff" />
+          <radialGradient id="cm-spark" cx="0.3" cy="0.3" r="0.8">
+            <stop stopColor="#00FFFF" />
             <stop offset="1" stopColor="#8A2BE2" />
           </radialGradient>
         </defs>

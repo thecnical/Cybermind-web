@@ -6,7 +6,7 @@ import CursorAura from "@/components/CursorAura";
 import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermind.thecnical.dev";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermindcli1.vercel.app";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -37,6 +37,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Chandan Pandey", url: "https://github.com/thecnical" }],
   creator: "Chandan Pandey",
   publisher: "CyberMind CLI",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", sizes: "any" },
+    ],
+    apple: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
   robots: {
     index: true,
     follow: true,
@@ -113,6 +121,11 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
     >
       <head>
+        {/* Favicon — SVG for modern browsers, fallback for older */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.svg" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.svg" />
         {/* Structured data */}
         <script
           type="application/ld+json"
