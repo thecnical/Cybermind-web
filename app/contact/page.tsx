@@ -9,16 +9,16 @@ import { cn } from "@/lib/utils";
 
 const officeLocations = [
   {
-    title: "Lucknow Office (UP)",
-    address: "CyberMind Tower, Gomti Nagar Extension, Lucknow, Uttar Pradesh 226010, India",
-    phone: "+91 522 400 1234",
-    email: "lucknow@cybermindcli.in",
+    title: "India HQ",
+    address: "CyberMind, Uttar Pradesh, India",
+    phone: "+91 (contact via email)",
+    email: "support@cybermind.thecnical.dev",
   },
   {
-    title: "Noida Office (UP)",
-    address: "CyberMind Hub, Sector 62, Noida, Uttar Pradesh 201309, India",
-    phone: "+91 120 490 5678",
-    email: "noida@cybermindcli.in",
+    title: "Online Support",
+    address: "Available 24/7 via email and support portal",
+    phone: "support@cybermind.thecnical.dev",
+    email: "contact@cybermind.thecnical.dev",
   },
 ];
 
