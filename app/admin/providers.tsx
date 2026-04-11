@@ -1,0 +1,12 @@
+"use client";
+
+import { SidebarProvider } from "@/components/admin-ui/Layouts/sidebar/sidebar-context";
+import { ThemeProvider } from "next-themes";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider defaultTheme="dark" attribute="class">
+      <SidebarProvider>{children}</SidebarProvider>
+    </ThemeProvider>
+  );
+}

@@ -1,28 +1,28 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
-import { AdminDemoProvider } from "@/components/admin/admin-context";
-import { AdminShell } from "@/components/admin/admin-shell";
+/**
+ * CyberMind Admin Layout — powered by NextAdmin template
+ *
+ * Auth protection: only users with role='admin' in Supabase profiles can access.
+ * Redirects to /auth/login if not authenticated.
+ * Redirects to /dashboard if authenticated but not admin.
+ */
+import "@/admin-css/satoshi.css";
+import "@/admin-css/style.css";
+import "flatpickr/dist/flatpickr.min.css";
+import "jsvectormap/dist/jsvectormap.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-});
+import type { Metadata } from "next";
+import type { PropsWithChildren } from "react";
+import { AdminAuthGuard } from "@/components/admin-ui/AdminAuthGuard";
 
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-admin-mono-local",
-});
+export const metadata: Metadata = {
+  title: {
+    template: "%s | CyberMind Admin",
+    default: "CyberMind Admin Dashboard",
+  },
+  description: "CyberMind platform administration — users, analytics, payments, security.",
+  robots: { index: false, follow: false }, // never index admin pages
+};
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={`${inter.className} ${jetBrainsMono.variable}`}>
-      <AdminDemoProvider>
-        <AdminShell>{children}</AdminShell>
-      </AdminDemoProvider>
-    </div>
-  );
+export default function AdminLayout({ children }: PropsWithChildren) {
+  return <AdminAuthGuard>{children}</AdminAuthGuard>;
 }
