@@ -3,7 +3,6 @@
  * Auth: Supabase session + profiles.role = 'admin' required
  */
 import "@/admin-css/css/satoshi.css";
-import "@/admin-css/css/style.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/jsvectormap.css";
 

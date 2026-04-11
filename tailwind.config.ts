@@ -140,6 +140,12 @@ const config: Config = {
         "9999": "9999",
         "99999": "99999",
       },
+      // ── NextAdmin custom screens ─────────────────────────────────────────
+      screens: {
+        "2xsm": "375px",
+        xsm: "425px",
+        "3xl": "2000px",
+      },
     },
   },
   plugins: [],
