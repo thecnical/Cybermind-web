@@ -31,6 +31,7 @@ export const cybermindDocRoutes = [
   "modes/recon",
   "modes/hunt",
   "modes/abhimanyu",
+  "modes/planning",
   "modes/doctor",
   "reference/commands",
   "reference/providers-and-models",
@@ -70,7 +71,7 @@ const quickLinks: PageLink[] = [
 
 const sidebarGroups: SidebarGroup[] = [
   { group: "Start Here", description: "Install, platform support, and first-run validation.", routes: ["get-started", "get-started/installation", "get-started/windows"] },
-  { group: "Core Workflows", description: "The main command paths you will actually run.", routes: ["cli/interactive-chat", "modes/recon", "modes/hunt", "modes/abhimanyu"] },
+  { group: "Core Workflows", description: "The main command paths you will actually run.", routes: ["cli/interactive-chat", "modes/recon", "modes/hunt", "modes/abhimanyu", "modes/planning"] },
   { group: "Commands and Safety", description: "Commands, providers, privacy posture, and doctor checks.", routes: ["reference/commands", "modes/doctor", "reference/providers-and-models", "reference/privacy-and-security"] },
   { group: "Help and Updates", description: "Troubleshooting, tools hub, legal framing, release notes, and repo status.", routes: ["resources/faq", "resources/tools-hub", "resources/troubleshooting", "resources/terms-and-disclaimer", "reference/repo-status", "changelogs/latest"] },
 ];
@@ -84,6 +85,7 @@ const routeLabels: Record<DocRoute, string> = {
   "modes/recon": "Recon mode",
   "modes/hunt": "Hunt mode",
   "modes/abhimanyu": "Abhimanyu mode",
+  "modes/planning": "OMEGA Planning mode",
   "modes/doctor": "Doctor",
   "reference/commands": "Commands",
   "reference/providers-and-models": "Providers and models",
@@ -104,6 +106,7 @@ function commandFor(route: DocRoute) {
   if (route === "modes/recon") return "cybermind /recon example.com";
   if (route === "modes/hunt") return "cybermind /hunt example.com";
   if (route === "modes/abhimanyu") return "cybermind /abhimanyu example.com";
+  if (route === "modes/planning") return "cybermind /plan example.com";
   if (route === "modes/doctor") return "cybermind /doctor";
   return "cybermind --help";
 }
@@ -277,6 +280,143 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
         title: "Support commands",
         body: "These keep the operator loop clean and recoverable.",
         code: "cybermind history\ncybermind clear\ncybermind update",
+      },
+    ],
+  },
+  "modes/planning": {
+    eyebrow: "Core Workflows",
+    title: "OMEGA Planning Mode — AI builds your full attack plan before you run a single tool",
+    description:
+      "Planning mode is the most intelligent entry point on Linux. It runs passive recon first, sends all intelligence to AI, and returns a deep 9-phase attack plan tailored to your exact target.",
+    command: "cybermind /plan example.com",
+    sections: [
+      {
+        title: "What OMEGA Planning Mode does",
+        body:
+          "Instead of running tools blindly, /plan first collects passive intelligence about the target — DNS records, Shodan data, HTTP headers, tech stack, open ports — then sends everything to AI. The AI returns a structured JSON attack plan with exact tool flags, skip lists, timing strategy, and CVE pre-detection. CyberMind then executes that plan automatically.",
+        bullets: [
+          "Passive recon first — zero active probing before the plan is built.",
+          "AI analyzes target intelligence and builds a 9-phase plan.",
+          "Every phase has exact tool flags, not just tool names.",
+          "WAF-aware — Cloudflare, Akamai, Imperva bypass strategies built in.",
+          "Target-specific — WordPress gets wpscan, GraphQL gets graphw00f, JWT gets jwt_tool.",
+          "Auto-doctor runs before execution — missing tools are installed automatically.",
+          "System resource check — warns if RAM or disk is low before starting.",
+        ],
+      },
+      {
+        title: "The 9-phase attack plan",
+        body:
+          "OMEGA Planning Mode produces a plan across 9 phases. Each phase is executed in priority order based on the target type.",
+        bullets: [
+          "Phase 1 — Passive OSINT: whois, theHarvester, dig (all DNS records, emails, org intel).",
+          "Phase 2 — Subdomain Enumeration: reconftw (50+ tools), subfinder, amass, dnsx, puredns.",
+          "Phase 3 — Port Scanning: rustscan → nmap → naabu → masscan (full 65535 ports).",
+          "Phase 4 — HTTP Fingerprinting: httpx, whatweb, tlsx, wafw00f (tech stack + TLS + WAF).",
+          "Phase 5 — Directory Discovery: ffuf, feroxbuster, gobuster (recursive, 13 extensions).",
+          "Phase 6 — Vulnerability Scanning: nuclei (500 threads, all CVE tags), nikto, katana.",
+          "Phase 7 — Hunt Mode: waymore, gau, gospider, x8, arjun, dalfox, kxss, ssrfmap, tplmap.",
+          "Phase 8 — Secret Hunting: trufflehog, secretfinder, subjs, mantra, cariddi.",
+          "Phase 9 — Exploitation: sqlmap, commix, wpscan, hydra, metasploit, jwt_tool, graphw00f.",
+        ],
+      },
+      {
+        title: "How to use it — step by step",
+        body: "Planning mode is Linux-only. Run it on Kali or any Debian-based system.",
+        code: `# Basic usage — AI builds full plan for target
+cybermind /plan example.com
+
+# What happens automatically:
+# 1. System resource check (RAM, disk, CPU)
+# 2. Auto-doctor — checks and installs all tools
+# 3. Passive recon — DNS, Shodan, HTTP headers collected
+# 4. AI analysis — 9-phase plan generated
+# 5. Plan displayed — you confirm before execution
+# 6. Execution — phases run in priority order
+# 7. Results — AI analysis after each phase`,
+      },
+      {
+        title: "Full Linux workflow — from zero to exploitation",
+        body:
+          "This is the complete recommended flow on Kali Linux. Planning mode chains into recon, hunt, and Abhimanyu automatically.",
+        code: `# Step 1: Install CyberMind
+curl -sL https://cybermindcli1.vercel.app/install.sh | bash
+
+# Step 2: Save your API key
+cybermind --key cp_live_xxxxx
+
+# Step 3: Install all tools (one time)
+cybermind /install-tools
+
+# Step 4: Run OMEGA Planning Mode
+cybermind /plan target.com
+
+# --- Planning mode auto-runs phases ---
+# After plan completes, you can also run individually:
+
+# Step 5: Deep recon (if you want manual control)
+cybermind /recon target.com
+
+# Step 6: Vulnerability hunt
+cybermind /hunt target.com
+
+# Step 7: Exploit confirmed vulnerabilities (Elite plan)
+cybermind /abhimanyu target.com
+
+# Step 8: Generate professional pentest report
+cybermind report`,
+      },
+      {
+        title: "Difference between /plan, /recon, /hunt, and /abhimanyu",
+        body:
+          "Each mode has a specific role. Use them in order for maximum coverage.",
+        bullets: [
+          "/plan — AI-first. Builds the strategy before running anything. Best starting point.",
+          "/recon — Execution-first. Runs all 20 recon tools immediately. Use when you already know the target type.",
+          "/hunt — Vulnerability-focused. Runs after recon. Finds XSS, SQLi, SSRF, hidden params.",
+          "/abhimanyu — Exploitation. Runs after hunt. Exploits confirmed vulnerabilities. Elite plan only.",
+        ],
+      },
+      {
+        title: "Tool flags used in each phase",
+        body:
+          "Planning mode uses the most powerful flags for every tool — not defaults.",
+        bullets: [
+          "nuclei: -c 500 -rl 100 -tags cve,xss,sqli,ssrf,lfi,rce,xxe,idor,misconfig,exposure,takeover",
+          "subfinder: -all -t 500 (all passive sources, 500 threads)",
+          "ffuf: -t 300 -recursion -recursion-depth 4 -ac (recursive, auto-calibrate)",
+          "nmap: -sS -sV -sC -T4 -p- --min-rate 10000 --script vuln,auth,http-vuln*",
+          "sqlmap: --batch --level 5 --risk 3 --dbs --dump-all --tamper space2comment,between,randomcase",
+          "dalfox: --waf-bypass --trigger alert(1) --follow-redirects",
+        ],
+      },
+      {
+        title: "WAF bypass strategy",
+        body:
+          "If a WAF is detected during passive recon, the AI automatically adjusts the plan.",
+        bullets: [
+          "Cloudflare detected → stealth mode, slow nuclei rate, Cloudflare-specific bypass payloads.",
+          "Akamai detected → header manipulation, rate limiting, Akamai bypass techniques.",
+          "Imperva detected → encoding variations, slow scan mode.",
+          "No WAF → aggressive mode, full speed, all tools at maximum threads.",
+        ],
+      },
+      {
+        title: "Requirements",
+        body: "Planning mode requires Linux (Kali recommended) and an active API key.",
+        bullets: [
+          "OS: Linux or Kali Linux (not available on Windows or macOS).",
+          "API key: any plan — free plan gets AI chat + planning, Elite gets full exploitation.",
+          "Tools: /install-tools installs everything automatically.",
+          "RAM: 2GB minimum recommended for full pipeline.",
+          "Internet: required for passive recon and AI analysis.",
+        ],
+        links: [
+          { href: "/docs/get-started/installation", label: "Installation", description: "Install CyberMind on Linux." },
+          { href: "/docs/modes/recon", label: "Recon mode", description: "Run recon without planning mode." },
+          { href: "/docs/modes/hunt", label: "Hunt mode", description: "Vulnerability hunting after recon." },
+          { href: "/docs/modes/abhimanyu", label: "Abhimanyu mode", description: "Exploitation engine." },
+        ],
       },
     ],
   },
@@ -504,11 +644,60 @@ const specificDocs: Partial<Record<DocRoute, DocPage>> = {
   },
   "changelogs/latest": {
     eyebrow: "Help and Updates",
-    title: "Latest release signals that matter to operators",
-    description: "The most relevant recent changes are the ones that affect install, tool health, and automated workflow depth.",
-    command: "cybermind update",
+    title: "v2.5.2 — OMEGA Planning Mode + GitHub Models + Cloudflare AI",
+    description: "The biggest update since launch. Planning mode, 2 new free AI providers, cold start fix, and full security audit.",
+    command: "cybermind /plan example.com",
     sections: [
-      { title: "What to pay attention to", body: "When CyberMind changes, the highest-value checks are install behavior, doctor behavior, recon depth, and any version mismatch that affects expectations.", links: quickLinks },
+      {
+        title: "New: OMEGA Planning Mode",
+        body: "The most intelligent entry point on Linux. AI builds a 9-phase attack plan before running a single tool.",
+        bullets: [
+          "cybermind /plan <target> — AI-first attack planning.",
+          "9 phases: OSINT → Subdomain → Ports → HTTP → Dirs → Vulns → Hunt → Secrets → Exploit.",
+          "WAF-aware: Cloudflare, Akamai, Imperva bypass strategies built in.",
+          "Target-specific: WordPress, GraphQL, JWT, AD, Cloud all handled differently.",
+          "Auto-doctor runs before execution — missing tools installed automatically.",
+          "System resource check before starting.",
+        ],
+        links: [{ href: "/docs/modes/planning", label: "Planning mode docs", description: "Full guide with step-by-step instructions." }],
+      },
+      {
+        title: "New: GitHub Models + Cloudflare Workers AI",
+        body: "Two new completely free AI providers added. More providers = more reliability.",
+        bullets: [
+          "GitHub Models: GPT-4o, Llama 3.3 70B, DeepSeek R1, Phi-4 — 150 req/day free.",
+          "Cloudflare Workers AI: Llama 70B, DeepSeek R1, Qwen 72B — 10,000 neurons/day free.",
+          "Total: 11 providers, 50+ models in the fallback chain.",
+          "Sequential fallback: Groq → Cerebras → OpenRouter → GitHub → Mistral → Cloudflare → ...",
+        ],
+      },
+      {
+        title: "Fix: Cold start auto-wake",
+        body: "CLI now automatically wakes the backend and retries — no more manual resend.",
+        bullets: [
+          "Shows live progress: ⟳ Backend waking up... (3s)",
+          "Auto-retries after wake — user never needs to resend manually.",
+          "Works on Windows, Linux, and macOS.",
+        ],
+      },
+      {
+        title: "Security audit applied",
+        body: "Full security audit completed. Critical fixes applied.",
+        bullets: [
+          "SSRF protection on all URL fetching.",
+          "AI output sanitization — strips leaked secrets from LLM responses.",
+          "Blocked device enforcement — 403 instead of log-only.",
+          "Exponential backoff on API key brute force.",
+          "GDPR data export endpoint added.",
+          "SQL ambiguous column bug fixed.",
+        ],
+      },
+      {
+        title: "What to do now",
+        body: "Update your CLI binary and try planning mode.",
+        code: "# Update CLI\ncurl -sL https://cybermindcli1.vercel.app/install.sh | bash\n\n# Try planning mode\ncybermind /plan example.com",
+        links: quickLinks,
+      },
     ],
   },
 };

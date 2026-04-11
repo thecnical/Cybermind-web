@@ -5,24 +5,41 @@ import { createClient } from "@supabase/supabase-js";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
+const HAS_SUPABASE_ENV = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-if (typeof window !== "undefined" && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
+if (typeof window !== "undefined" && !HAS_SUPABASE_ENV) {
   console.error("[CyberMind] NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in environment variables.");
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+const mockSupabase = {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // FIX: after consuming auth token from URL hash, replace URL immediately
-    // prevents access_token appearing in browser history and Referer headers
+    getSession: async () => ({ data: { session: null } }),
+    onAuthStateChange: () => ({
+      data: {
+        subscription: {
+          unsubscribe() {},
+        },
+      },
+    }),
+    signOut: async () => ({ error: null }),
   },
-});
+};
+
+export const supabase = HAS_SUPABASE_ENV
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        // FIX: after consuming auth token from URL hash, replace URL immediately
+        // prevents access_token appearing in browser history and Referer headers
+      },
+    })
+  : (mockSupabase as unknown as ReturnType<typeof createClient>);
 
 // FIX: strip auth tokens from URL after Supabase OAuth/magic-link callback
 // Prevents token leakage via browser history and Referer header
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && HAS_SUPABASE_ENV) {
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_IN" && window.location.hash.includes("access_token")) {
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -84,6 +101,7 @@ export const PLAN_PRICES: Record<UserPlan, { monthly: number; annual: number; mo
 
 // Get auth token from current session
 async function getToken(): Promise<string | null> {
+  if (!HAS_SUPABASE_ENV) return null;
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token ?? null;
 }
@@ -116,7 +134,6 @@ export async function waitForBackend(
 ): Promise<boolean> {
   const start = Date.now();
   const interval = 3000;
-  let attempt = 0;
 
   while (Date.now() - start < maxMs) {
     const elapsed = Date.now() - start;
@@ -132,7 +149,6 @@ export async function waitForBackend(
       }
     } catch { /* keep polling */ }
 
-    attempt++;
     await new Promise(r => setTimeout(r, interval));
   }
   return false;

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import CyberMindAssistant from "@/components/CyberMindAssistant";
 import CookieConsent from "@/components/CookieConsent";
 import CursorAura from "@/components/CursorAura";
+import NewFeaturesBanner from "@/components/NewFeaturesBanner";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermindcli1.vercel.app";
@@ -19,6 +21,18 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-ibm-plex-mono",
   weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-admin-sans",
+  display: "swap",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-admin-mono",
   display: "swap",
 });
 
@@ -119,7 +133,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}
+      className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} ${inter.variable} ${jetBrainsMono.variable}`}
     >
       <head>
         {/* Favicon v2 — Neural Shield logo */}
@@ -153,12 +167,15 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <AuthProvider>
-          <CursorAura />
-          {children}
-          <CyberMindAssistant />
-          <CookieConsent />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <CursorAura />
+            {children}
+            <NewFeaturesBanner />
+            <CyberMindAssistant />
+            <CookieConsent />
+          </AuthProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
