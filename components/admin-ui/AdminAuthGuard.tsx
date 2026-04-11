@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * AdminAuthGuard — wraps the entire admin panel with auth + role check.
- *
- * Flow:
- *  1. Check Supabase session
- *  2. If no session → redirect to /auth/login?redirect=/admin
- *  3. If session but role != 'admin' → redirect to /dashboard
- *  4. If admin → render NextAdmin shell with children
- */
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -28,14 +18,11 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     async function checkAuth() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-
         if (!session) {
           router.replace("/auth/login?redirect=/admin");
           setAuthState("unauthorized");
           return;
         }
-
-        // Check role in profiles table
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
@@ -47,14 +34,12 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
           setAuthState("not-admin");
           return;
         }
-
         setAuthState("authorized");
       } catch {
         router.replace("/auth/login?redirect=/admin");
         setAuthState("unauthorized");
       }
     }
-
     checkAuth();
   }, [router]);
 
@@ -69,9 +54,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (authState !== "authorized") {
-    return null; // redirecting
-  }
+  if (authState !== "authorized") return null;
 
   return (
     <Providers>

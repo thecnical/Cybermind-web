@@ -2,7 +2,7 @@ import * as Icons from "../icons";
 
 export const NAV_DATA = [
   {
-    label: "OPERATIONS",
+    label: "MAIN MENU",
     items: [
       {
         title: "Dashboard",
@@ -23,19 +23,6 @@ export const NAV_DATA = [
         icon: Icons.User,
         items: [],
       },
-    ],
-  },
-  {
-    label: "DATA",
-    items: [
-      {
-        title: "Tables",
-        url: "/admin/tables",
-        icon: Icons.Table,
-        items: [
-          { title: "Data Tables", url: "/admin/tables" },
-        ],
-      },
       {
         title: "Forms",
         icon: Icons.Alphabet,
@@ -44,10 +31,18 @@ export const NAV_DATA = [
           { title: "Form Layout", url: "/admin/forms/form-layout" },
         ],
       },
+      {
+        title: "Tables",
+        url: "/admin/tables",
+        icon: Icons.Table,
+        items: [
+          { title: "Tables", url: "/admin/tables" },
+        ],
+      },
     ],
   },
   {
-    label: "ANALYTICS",
+    label: "OTHERS",
     items: [
       {
         title: "Charts",
@@ -62,26 +57,6 @@ export const NAV_DATA = [
         items: [
           { title: "Alerts", url: "/admin/ui-elements/alerts" },
           { title: "Buttons", url: "/admin/ui-elements/buttons" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "SYSTEM",
-    items: [
-      {
-        title: "Pages",
-        icon: Icons.Alphabet,
-        items: [
-          { title: "Settings", url: "/admin/pages/settings" },
-          { title: "Error 404", url: "/admin/pages/error-404" },
-        ],
-      },
-      {
-        title: "Auth",
-        icon: Icons.Authentication,
-        items: [
-          { title: "Sign In", url: "/auth/login" },
         ],
       },
     ],

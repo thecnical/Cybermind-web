@@ -1,9 +1,6 @@
 /**
- * CyberMind Admin Layout — powered by NextAdmin template
- *
- * Auth protection: only users with role='admin' in Supabase profiles can access.
- * Redirects to /auth/login if not authenticated.
- * Redirects to /dashboard if authenticated but not admin.
+ * CyberMind Admin Layout — NextAdmin template
+ * Auth: Supabase session + profiles.role = 'admin' required
  */
 import "@/admin-css/satoshi.css";
 import "@/admin-css/style.css";
@@ -17,10 +14,10 @@ import { AdminAuthGuard } from "@/components/admin-ui/AdminAuthGuard";
 export const metadata: Metadata = {
   title: {
     template: "%s | CyberMind Admin",
-    default: "CyberMind Admin Dashboard",
+    default: "CyberMind Admin",
   },
-  description: "CyberMind platform administration — users, analytics, payments, security.",
-  robots: { index: false, follow: false }, // never index admin pages
+  description: "CyberMind platform administration.",
+  robots: { index: false, follow: false },
 };
 
 export default function AdminLayout({ children }: PropsWithChildren) {

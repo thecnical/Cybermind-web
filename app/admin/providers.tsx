@@ -1,5 +1,4 @@
 "use client";
-
 import { SidebarProvider } from "@/components/admin-ui/Layouts/sidebar/sidebar-context";
 import { ThemeProvider } from "next-themes";
 
