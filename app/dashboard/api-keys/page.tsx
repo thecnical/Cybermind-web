@@ -35,9 +35,9 @@ const DEVICE_TYPES = [
     icon: "🐧",
     label: "Linux / Kali",
     sublabel: "Full hacking pipeline",
-    features: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI chat", "CBM Code"],
+    features: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"],
     color: "#00FF88",
-    note: "Key locked to Linux. Cannot be used on Windows/macOS.",
+    note: "Key locked to Linux. Hacking tools only — CBM Code not available on Linux.",
   },
   {
     id: "windows",

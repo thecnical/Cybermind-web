@@ -15,7 +15,7 @@ const HACKING_TABS = [
     label: "🐧 Linux / Kali",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
     note: "Full pipeline: recon → hunt → Abhimanyu exploit mode. Kali Linux recommended.",
-    features: ["20-tool recon chain", "11-tool hunt engine", "Abhimanyu exploit mode", "AI chat", "CVE intel"],
+    features: ["20-tool recon chain", "11-tool hunt engine", "Abhimanyu exploit mode", "Omega plan mode", "AI security chat"],
   },
   {
     id: "windows-hack",
@@ -170,9 +170,9 @@ export default function InstallPage() {
             {/* What you get per platform */}
             <div className="mt-4 mb-5 grid gap-3 md:grid-cols-3">
               {[
-                { icon: "🐧", platform: "Linux / Kali", color: "#00FF88", items: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "AI chat", "CVE intel"] },
-                { icon: "🪟", platform: "Windows", color: "#FFD700", items: ["AI security chat", "CVE intel", "Payload gen", "Report writer", "CBM Code ✓"] },
-                { icon: "��", platform: "macOS", color: "#FFD700", items: ["AI security chat", "CVE intel", "Payload gen", "Report writer", "CBM Code ✓"] },
+                { icon: "🐧", platform: "Linux / Kali", color: "#00FF88", items: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"] },
+                { icon: "🪟", platform: "Windows", color: "#FFD700", items: ["AI security chat", "CBM Code ✓", "CVE intel", "Payload gen", "Report writer"] },
+                { icon: "🍎", platform: "macOS", color: "#FFD700", items: ["AI security chat", "CBM Code ✓", "CVE intel", "Payload gen", "Report writer"] },
               ].map(p => (
                 <div key={p.platform} className="rounded-2xl border border-white/8 p-4">
                   <p className="text-sm font-semibold text-white mb-2">{p.icon} {p.platform}</p>
