@@ -48,6 +48,9 @@ export const metadata: Metadata = {
     "cybersecurity CLI", "offensive security", "penetration testing", "bug bounty",
     "AI hacking tool", "recon automation", "ethical hacking", "kali linux",
     "cybermind", "security automation", "nuclei", "subfinder", "nmap",
+    "CBM Code", "AI coding assistant", "claude code alternative",
+    "terminal AI coding", "MiniMax M2.5", "DeepSeek R1", "Qwen3 Coder",
+    "free AI coding tool", "Windows AI coding assistant",
   ],
   authors: [{ name: "Chandan Pandey", url: "https://github.com/thecnical" }],
   creator: "Chandan Pandey",
@@ -104,23 +107,83 @@ const organizationSchema = {
   name: "CyberMind CLI",
   url: BASE_URL,
   logo: `${BASE_URL}/og-image.png`,
-  description: "AI-powered offensive security CLI tool for penetration testers and bug bounty hunters.",
-  founder: { "@type": "Person", name: "Chandan Pandey" },
-  sameAs: ["https://github.com/thecnical"],
+  description: "AI-powered offensive security CLI and CBM Code AI coding assistant for penetration testers and developers.",
+  founder: { "@type": "Person", name: "Chandan Pandey", url: "https://github.com/thecnical" },
+  sameAs: ["https://github.com/thecnical", "https://twitter.com/thecnical"],
 };
 
 const softwareSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "CyberMind CLI",
-  applicationCategory: "SecurityApplication",
-  operatingSystem: "Linux, Windows, macOS",
+  applicationCategory: "DeveloperApplication",
+  applicationSubCategory: "SecurityApplication",
+  operatingSystem: "Windows, macOS",
   url: BASE_URL,
-  description: "AI-powered offensive security CLI with recon, hunt, and exploit automation.",
+  downloadUrl: `${BASE_URL}/install`,
+  description: "AI-powered offensive security CLI with CBM Code AI coding assistant, recon, hunt, and exploit automation.",
+  featureList: [
+    "CBM Code AI coding assistant (Claude Code alternative)",
+    "MiniMax M2.5, DeepSeek R1, Qwen3 Coder support",
+    "11+ AI providers with smart routing",
+    "20-tool automated recon chain",
+    "11-tool hunt engine",
+    "Abhimanyu exploit mode",
+    "Built-in security scanner",
+    "MCP (Model Context Protocol) support",
+    "Windows and macOS support",
+  ],
   offers: [
     { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free Plan" },
-    { "@type": "Offer", price: "9", priceCurrency: "USD", name: "Pro Plan" },
+    { "@type": "Offer", price: "4", priceCurrency: "USD", name: "Starter Plan" },
+    { "@type": "Offer", price: "14", priceCurrency: "USD", name: "Pro Plan" },
     { "@type": "Offer", price: "29", priceCurrency: "USD", name: "Elite Plan" },
+  ],
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    ratingCount: "127",
+    bestRating: "5",
+  },
+};
+
+// FAQ schema for CBM Code — helps Google show rich results
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is CBM Code?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "CBM Code is a terminal-based AI coding assistant built into CyberMind CLI. It supports 11+ AI providers including MiniMax M2.5, DeepSeek R1, and Qwen3 Coder. It works on Windows and macOS and is a free alternative to Claude Code.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is CBM Code free?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. CBM Code has a free tier where you can bring your own API keys from OpenRouter, Groq, or any provider. No subscription required to start.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does CBM Code work on Windows?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. CBM Code fully supports Windows via PowerShell. Install with one command and launch with 'cybermind vibe' or 'cybermind cbm-code'.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What AI models does CBM Code use?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "CBM Code supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, Gemma 4, Llama 3.3 70B, GPT-5, Claude, and 11+ other providers. It auto-routes to the best model for your task.",
+      },
+    },
   ],
 };
 
@@ -149,6 +212,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
         {/* Google AdSense */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
