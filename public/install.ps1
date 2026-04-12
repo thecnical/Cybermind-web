@@ -65,18 +65,41 @@ $binaryPath = Join-Path $installDir "cybermind.exe"
 Copy-Item "$tmpDir\cli\cybermind.exe" $binaryPath -Force
 Write-Host "  ✓ Binary installed to $binaryPath" -ForegroundColor Green
 
-# ── Ensure in PATH — User scope (no admin) ───────────────────────────────────
+# ── Remove old binary from System32 if it exists (old install location) ──────
+$oldPaths = @(
+  "C:\Windows\System32\cybermind.exe",
+  "C:\Windows\cybermind.exe",
+  (Join-Path $env:USERPROFILE ".cybermind\cybermind.exe")
+)
+foreach ($oldPath in $oldPaths) {
+  if ($oldPath -ne $binaryPath -and (Test-Path $oldPath)) {
+    try {
+      Remove-Item $oldPath -Force -ErrorAction SilentlyContinue
+      Write-Host "  ✓ Removed old binary from $oldPath" -ForegroundColor Green
+    } catch { <# may need admin for System32 — skip silently #> }
+  }
+}
+
+# ── Ensure in PATH — User scope, PREPEND so it takes priority over System32 ──
 $userPath = [Environment]::GetEnvironmentVariable("PATH", "User") ?? ""
 if ($userPath -notlike "*$installDir*") {
-  [Environment]::SetEnvironmentVariable("PATH", "$userPath;$installDir", "User")
-  Write-Host "  ✓ Added to User PATH" -ForegroundColor Green
+  # Prepend — ensures our binary is found BEFORE any old System32 version
+  [Environment]::SetEnvironmentVariable("PATH", "$installDir;$userPath", "User")
+  Write-Host "  ✓ Added to front of User PATH (takes priority over old installs)" -ForegroundColor Green
+} else {
+  # Already in PATH — move to front to ensure priority
+  $cleanPath = ($userPath -split ";" | Where-Object { $_ -ne $installDir }) -join ";"
+  [Environment]::SetEnvironmentVariable("PATH", "$installDir;$cleanPath", "User")
+  Write-Host "  ✓ Moved to front of PATH (priority over old installs)" -ForegroundColor Green
 }
 
 # ── CRITICAL: Update CURRENT session PATH immediately ────────────────────────
-# This makes `cybermind` work RIGHT NOW without restarting terminal
-# Same trick Claude Code uses — update $env:PATH in current process
+# Prepend so our binary takes priority over any old System32 version
 if ($env:PATH -notlike "*$installDir*") {
-  $env:PATH = "$env:PATH;$installDir"
+  $env:PATH = "$installDir;$env:PATH"
+} else {
+  # Move to front
+  $env:PATH = "$installDir;" + ($env:PATH -replace [regex]::Escape("$installDir;"), "" -replace [regex]::Escape(";$installDir"), "")
 }
 
 # Also try to update parent PowerShell process PATH via registry refresh
