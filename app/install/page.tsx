@@ -60,10 +60,26 @@ const HACKING_TROUBLESHOOT = [
 ];
 
 const CBM_TROUBLESHOOT = [
-  { title: "PowerShell ExecutionPolicy error", body: "Run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser" },
-  { title: "TUI not rendering on Windows", body: "Use Windows Terminal (not cmd.exe). Enable ANSI: Set-ItemProperty HKCU:\\Console VirtualTerminalLevel 1" },
-  { title: "Command not found after install", body: "Close and reopen terminal. On macOS: source ~/.zshrc" },
-  { title: "MCP servers not starting", body: "Install Node.js 16+ first: nodejs.org. MCP servers require npx." },
+  {
+    title: "PowerShell ExecutionPolicy error",
+    body: "Run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser\nThis only affects your user — no admin needed.",
+  },
+  {
+    title: "Does CBM Code need admin rights on Windows?",
+    body: "No. CBM Code installs to C:\\Users\\YourName\\.cybermind\\ (your user folder). It reads/writes files in YOUR project folder only — same permissions as your terminal. It never touches C:\\Windows\\ or C:\\Program Files\\.",
+  },
+  {
+    title: "TUI not rendering on Windows",
+    body: "Use Windows Terminal (not cmd.exe). Enable ANSI: Set-ItemProperty HKCU:\\Console VirtualTerminalLevel 1",
+  },
+  {
+    title: "Command not found after install",
+    body: "Close and reopen your terminal. The PATH update requires a new session. On macOS: source ~/.zshrc",
+  },
+  {
+    title: "MCP servers not starting",
+    body: "Install Node.js 16+ first: nodejs.org. MCP servers require npx.",
+  },
 ];
 
 function CopyBox({ cmd, copied, onCopy }: { cmd: string; copied: boolean; onCopy: () => void }) {

@@ -4,7 +4,7 @@ import { CommandBar } from "@/components/SitePrimitives";
 
 export const metadata = {
   title: "Install CyberMind CLI — Windows & macOS Guide | CyberMind",
-  description: "Step-by-step installation guide for CyberMind CLI on Windows (PowerShell) and macOS. Install CBM Code AI coding assistant in under 2 minutes.",
+  description: "Step-by-step installation guide for CyberMind CLI on Windows (PowerShell) and macOS. No admin rights needed. Install CBM Code AI coding assistant in under 2 minutes.",
 };
 
 export default function InstallationDocsPage() {
@@ -16,12 +16,46 @@ export default function InstallationDocsPage() {
         <h1 className="text-3xl font-semibold text-white md:text-4xl">Installation Guide</h1>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)] max-w-2xl">
           CyberMind CLI works on <strong className="text-white">Windows</strong> and <strong className="text-white">macOS</strong>.
-          Install in under 2 minutes with a single command. Your API key is passed as an environment variable — never stored in shell history.
+          One command installs everything — AI chat + CBM Code. No admin rights needed.
+          Key passed via environment variable — never in shell history.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1 text-xs font-semibold text-[#00d4ff]">🪟 Windows 10/11</span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1 text-xs font-semibold text-[#00d4ff]">🍎 macOS 12+</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10 px-3 py-1 text-xs font-semibold text-[#00FF88]">⚡ No admin rights</span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10 px-3 py-1 text-xs font-semibold text-[#00FF88]">⚡ 2 min setup</span>
+        </div>
+      </Surface>
+
+      {/* Permissions explanation */}
+      <Surface variant="clay" tone="default" elevation="medium" className="rounded-[30px] p-6 md:p-8">
+        <h2 className="text-xl font-semibold text-white mb-3">Does CBM Code need admin rights?</h2>
+        <p className="text-sm leading-7 text-[var(--text-soft)] mb-4">
+          <strong className="text-white">No.</strong> CBM Code installs to <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1 rounded">C:\Users\YourName\.cybermind\</code> on Windows
+          and <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1 rounded">/usr/local/bin/</code> on macOS (requires sudo once for macOS).
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            { icon: "✓", color: "#00FF88", text: "Reads/writes files in YOUR project folder" },
+            { icon: "✓", color: "#00FF88", text: "Creates/deletes files as YOU — your terminal permissions" },
+            { icon: "✓", color: "#00FF88", text: "Runs terminal commands as YOU — no elevation" },
+            { icon: "✓", color: "#00FF88", text: "Creates folders in your workspace — no restrictions" },
+            { icon: "✗", color: "#FF4444", text: "Never touches C:\\Windows\\ or C:\\Program Files\\" },
+            { icon: "✗", color: "#FF4444", text: "Never modifies system files or registry" },
+          ].map(item => (
+            <div key={item.text} className="flex items-center gap-2 text-sm text-[var(--text-soft)]">
+              <span style={{ color: item.color }} className="flex-shrink-0">{item.icon}</span>
+              {item.text}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 rounded-xl border border-[#00d4ff]/20 bg-[#00d4ff]/5 p-3">
+          <p className="text-xs text-[var(--text-soft)]">
+            <strong className="text-white">How it works:</strong> CBM Code runs as your user process.
+            When you run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> in your project folder,
+            it has exactly the same file permissions as you do in that terminal session.
+            It can read/write any file you can read/write — nothing more, nothing less.
+          </p>
         </div>
       </Surface>
 
@@ -34,7 +68,7 @@ export default function InstallationDocsPage() {
           <h2 className="text-xl font-semibold text-white">Get your API key first</h2>
         </div>
         <p className="text-sm leading-7 text-[var(--text-soft)] mb-4">
-          Before installing, get your CyberMind API key from the dashboard. It looks like <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1.5 py-0.5 rounded">cp_live_xxxxxxxxxxxx</code>
+          One key works for both AI chat and CBM Code. Looks like <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1.5 py-0.5 rounded">cp_live_xxxxxxxxxxxx</code>
         </p>
         <Link href="/dashboard" className="cm-button-primary text-sm gap-2 inline-flex">
           Get your key → Dashboard
