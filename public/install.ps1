@@ -1,6 +1,12 @@
-# CyberMind CLI installer for Windows (chat mode only)
-# Usage: iwr https://cybermind.thecnical.dev/install.ps1 | iex; cybermind --key cp_live_xxxxx
-# Or: iwr https://cybermind.thecnical.dev/install.ps1 -OutFile install.ps1; .\install.ps1 --key cp_live_xxxxx
+# CyberMind CLI installer for Windows
+# Installs: AI chat + CBM Code (vibe coder) + all Windows features
+#
+# Usage (recommended — key via env var, never in shell history):
+#   $env:CYBERMIND_KEY="cp_live_xxx"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex
+#
+# Usage (key as param — appears in history, less secure):
+#   (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex
+#   cybermind --key cp_live_xxx
 
 param(
   [string]$key = ""
@@ -8,10 +14,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# FIX: read key from env var first, then fall back to param
+# This way one command installs everything — key never in shell history
+if ($key -eq "" -and $env:CYBERMIND_KEY -ne "") {
+  $key = $env:CYBERMIND_KEY
+}
+
+Write-Host ""
+Write-Host "  ██████╗██████╗ ███╗   ███╗     ██████╗ ██████╗ ██████╗ ███████╗" -ForegroundColor Cyan
+Write-Host " ██╔════╝██╔══██╗████╗ ████║    ██╔════╝██╔═══██╗██╔══██╗██╔════╝" -ForegroundColor Cyan
+Write-Host " ██║     ██████╔╝██╔████╔██║    ██║     ██║   ██║██║  ██║█████╗  " -ForegroundColor Cyan
+Write-Host " ╚██████╗██████╔╝██║ ╚═╝ ██║    ╚██████╗╚██████╔╝██████╔╝███████╗" -ForegroundColor Cyan
+Write-Host "  ╚═════╝╚═════╝ ╚═╝     ╚═╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  ⚡ CyberMind CLI — Windows Installer" -ForegroundColor Cyan
-Write-Host "  Note: Windows supports AI chat mode only." -ForegroundColor DarkGray
-Write-Host "  Use Kali Linux for full recon/hunt/Abhimanyu pipeline." -ForegroundColor DarkGray
+Write-Host "  Includes: AI chat + CBM Code (AI coding assistant)" -ForegroundColor DarkGray
+Write-Host "  Note: Full recon/hunt/Abhimanyu pipeline requires Linux/Kali." -ForegroundColor DarkGray
 Write-Host ""
 
 # Check Go
@@ -32,25 +50,36 @@ Write-Host "  ⟳ Building binary..." -ForegroundColor DarkGray
 Set-Location "$tmpDir\cli"
 go build -o cybermind.exe . 2>$null
 
-# Install to System32
-Write-Host "  ⟳ Installing to C:\Windows\System32..." -ForegroundColor DarkGray
-Copy-Item cybermind.exe C:\Windows\System32\cybermind.exe -Force
+# Install to a directory in PATH
+$installDir = "$env:USERPROFILE\.cybermind"
+if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir | Out-Null }
+Copy-Item cybermind.exe "$installDir\cybermind.exe" -Force
+
+# Add to PATH if not already there
+$userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+if ($userPath -notlike "*$installDir*") {
+  [Environment]::SetEnvironmentVariable("PATH", "$userPath;$installDir", "User")
+  $env:PATH = "$env:PATH;$installDir"
+  Write-Host "  ✓ Added $installDir to PATH" -ForegroundColor Green
+}
 
 # Save API key with restricted permissions
 if ($key -ne "") {
-  $configDir = Join-Path $env:USERPROFILE ".cybermind"
-  if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir | Out-Null }
-  $configPath = Join-Path $configDir "config.json"
+  $configPath = Join-Path $installDir "config.json"
   Set-Content -Path $configPath -Value "{`"key`":`"$key`"}"
   # Restrict to current user only
-  $acl = Get-Acl $configPath
-  $acl.SetAccessRuleProtection($true, $false)
-  $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-    $env:USERNAME, "FullControl", "Allow"
-  )
-  $acl.SetAccessRule($rule)
-  Set-Acl $configPath $acl
+  try {
+    $acl = Get-Acl $configPath
+    $acl.SetAccessRuleProtection($true, $false)
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+      $env:USERNAME, "FullControl", "Allow"
+    )
+    $acl.SetAccessRule($rule)
+    Set-Acl $configPath $acl
+  } catch { <# non-critical #> }
   Write-Host "  ✓ API key saved (restricted to current user)" -ForegroundColor Green
+} else {
+  Write-Host "  ℹ  No API key provided. Run: cybermind --key cp_live_xxx" -ForegroundColor Yellow
 }
 
 # Cleanup
@@ -58,8 +87,12 @@ Set-Location $env:USERPROFILE
 Remove-Item $tmpDir -Recurse -Force
 
 Write-Host ""
-Write-Host "  ✓ CyberMind CLI installed on Windows!" -ForegroundColor Green
+Write-Host "  ✓ CyberMind CLI installed!" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Start chatting:" -ForegroundColor Cyan
-Write-Host "  cybermind" -ForegroundColor DarkGray
+Write-Host "  Commands:" -ForegroundColor Cyan
+Write-Host "    cybermind          — AI security chat" -ForegroundColor DarkGray
+Write-Host "    cybermind vibe     — CBM Code (AI coding assistant)" -ForegroundColor DarkGray
+Write-Host "    cybermind --version" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  Restart your terminal for PATH changes to take effect." -ForegroundColor Yellow
 Write-Host ""

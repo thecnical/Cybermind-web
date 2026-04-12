@@ -1,16 +1,25 @@
 #!/bin/bash
-# CyberMind CLI installer for macOS (chat mode only)
-# Usage: curl -sL https://cybermind.thecnical.dev/install-mac.sh | bash -s -- --key cp_live_xxxxx
+# CyberMind CLI installer for macOS
+# Installs: AI chat + CBM Code (vibe coder) + all macOS features
+#
+# Usage (recommended — key via env var, never in shell history):
+#   CYBERMIND_KEY=cp_live_xxx curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash
+#
+# Usage (key as arg):
+#   curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash -s -- --key cp_live_xxx
 
 set -e
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 DIM='\033[2m'
 NC='\033[0m'
 
-API_KEY=""
+# FIX: read key from env var first, then --key arg
+# One command installs everything — key never in shell history
+API_KEY="${CYBERMIND_KEY:-}"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -20,9 +29,15 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo ""
+echo -e "${CYAN}  ██████╗██████╗ ███╗   ███╗     ██████╗ ██████╗ ██████╗ ███████╗${NC}"
+echo -e "${CYAN} ██╔════╝██╔══██╗████╗ ████║    ██╔════╝██╔═══██╗██╔══██╗██╔════╝${NC}"
+echo -e "${CYAN} ██║     ██████╔╝██╔████╔██║    ██║     ██║   ██║██║  ██║█████╗  ${NC}"
+echo -e "${CYAN} ╚██████╗██████╔╝██║ ╚═╝ ██║    ╚██████╗╚██████╔╝██████╔╝███████╗${NC}"
+echo -e "${CYAN}  ╚═════╝╚═════╝ ╚═╝     ╚═╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝${NC}"
+echo ""
 echo -e "${CYAN}  ⚡ CyberMind CLI — macOS Installer${NC}"
-echo -e "${DIM}  Note: macOS supports AI chat mode only.${NC}"
-echo -e "${DIM}  Use Kali Linux for full recon/hunt/Abhimanyu pipeline.${NC}"
+echo -e "${DIM}  Includes: AI chat + CBM Code (AI coding assistant)${NC}"
+echo -e "${DIM}  Note: Full recon/hunt/Abhimanyu pipeline requires Linux/Kali.${NC}"
 echo ""
 
 # Check Go
@@ -56,6 +71,8 @@ if [ -n "$API_KEY" ]; then
   echo "{\"key\":\"$API_KEY\"}" > "$HOME/.cybermind/config.json"
   chmod 600 "$HOME/.cybermind/config.json"
   echo -e "${GREEN}  ✓ API key saved to ~/.cybermind/config.json${NC}"
+else
+  echo -e "${YELLOW}  ℹ  No API key provided. Run: cybermind --key cp_live_xxx${NC}"
 fi
 
 rm -rf "$TMPDIR"
@@ -63,6 +80,8 @@ rm -rf "$TMPDIR"
 echo ""
 echo -e "${GREEN}  ✓ CyberMind CLI installed on macOS!${NC}"
 echo ""
-echo -e "${CYAN}  Start chatting:${NC}"
-echo -e "${DIM}  cybermind${NC}"
+echo -e "${CYAN}  Commands:${NC}"
+echo -e "${DIM}    cybermind          — AI security chat${NC}"
+echo -e "${DIM}    cybermind vibe     — CBM Code (AI coding assistant)${NC}"
+echo -e "${DIM}    cybermind --version${NC}"
 echo ""

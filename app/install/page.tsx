@@ -15,38 +15,39 @@ const HACKING_TABS = [
     label: "🐧 Linux / Kali",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
     note: "Full pipeline: recon → hunt → Abhimanyu exploit mode. Kali Linux recommended.",
-    features: ["20-tool recon chain", "11-tool hunt engine", "Abhimanyu exploit mode", "Omega plan mode", "AI security chat"],
+    features: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"],
   },
   {
     id: "windows-hack",
     label: "🪟 Windows",
     cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex',
-    note: "AI chat mode only on Windows. Use Kali Linux for full recon/hunt/exploit pipeline.",
-    features: ["AI security chat", "CVE intel", "Payload generator", "Report writer"],
+    note: "One command installs everything — AI chat + CBM Code. Key saved automatically.",
+    features: ["AI security chat", "CBM Code (AI coding)", "CVE intel", "Payload generator", "Report writer"],
   },
   {
     id: "macos-hack",
     label: "🍎 macOS",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash",
-    note: "AI chat mode on macOS. Use Kali Linux VM for full offensive security pipeline.",
-    features: ["AI security chat", "CVE intel", "Payload generator", "Report writer"],
+    note: "One command installs everything — AI chat + CBM Code. Key saved automatically.",
+    features: ["AI security chat", "CBM Code (AI coding)", "CVE intel", "Payload generator", "Report writer"],
   },
 ];
 
-// ─── CBM Code — AI Coding Assistant (Windows + macOS)
+// ─── CBM Code — SAME install command, same binary, same key
+// After install: run `cybermind vibe` to launch CBM Code
 const CBM_TABS = [
   {
     id: "windows-cbm",
     label: "🪟 Windows",
     cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex',
-    note: "PowerShell 5.1+ required. Full CBM Code support — agent mode, MCP, all AI providers.",
+    note: "Same command as above — already installed? Just run: cybermind vibe",
     features: ["Agent mode (autonomous)", "MiniMax M2.5 + 11 providers", "MCP integrations", "Project scaffolding"],
   },
   {
     id: "macos-cbm",
     label: "🍎 macOS",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash",
-    note: "macOS 12 Monterey or later. Full CBM Code support.",
+    note: "Same command as above — already installed? Just run: cybermind vibe",
     features: ["Agent mode (autonomous)", "MiniMax M2.5 + 11 providers", "MCP integrations", "Project scaffolding"],
   },
 ];
@@ -241,6 +242,15 @@ export default function InstallPage() {
               <Link href="/docs/cbm-code" className="hidden md:block cm-button-secondary text-sm flex-shrink-0">
                 CBM Code docs →
               </Link>
+            </div>
+
+            {/* Same command notice */}
+            <div className="mb-5 rounded-2xl border border-[#00FF88]/20 bg-[#00FF88]/5 px-4 py-3">
+              <p className="text-sm text-[#00FF88] font-semibold">✓ Same install command — one binary, two modes</p>
+              <p className="text-xs text-[var(--text-soft)] mt-1">
+                If you already installed CyberMind CLI above, skip this section.
+                Just run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> to launch CBM Code.
+              </p>
             </div>
 
             {/* Platform tabs */}

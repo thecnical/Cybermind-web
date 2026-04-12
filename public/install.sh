@@ -1,16 +1,24 @@
 #!/bin/bash
 # CyberMind CLI installer for Linux/Kali
-# Usage: curl -sL https://cybermind.thecnical.dev/install.sh | bash -s -- --key cp_live_xxxxx
+# Installs: Full hacking pipeline (recon + hunt + Abhimanyu + Omega + AI chat)
+#
+# Usage (recommended — key via env var, never in shell history):
+#   CYBERMIND_KEY=cp_live_xxx curl -sL https://cybermindcli1.vercel.app/install.sh | bash
+#
+# Usage (key as arg):
+#   curl -sL https://cybermindcli1.vercel.app/install.sh | bash -s -- --key cp_live_xxx
 
 set -e
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 DIM='\033[2m'
 NC='\033[0m'
 
-API_KEY=""
+# FIX: read key from env var first, then --key arg
+API_KEY="${CYBERMIND_KEY:-}"
 INSTALL_DIR="/usr/local/bin"
 REPO="https://github.com/thecnical/cybermind"
 VERSION="latest"
