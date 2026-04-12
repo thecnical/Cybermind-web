@@ -37,7 +37,8 @@ echo -e "${CYAN} ██████╗██╗   ██╗██████╗
 echo -e "${CYAN}██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗${NC}"
 echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
 echo ""
-echo -e "${CYAN}  ⚡ CyberMind CLI Installer${NC}"
+echo -e "${CYAN}  ⚡ CyberMind CLI — Global Linux Installer${NC}"
+echo -e "${DIM}  After install: cybermind works from ANY folder immediately${NC}"
 echo ""
 
 # Check Go
@@ -73,10 +74,24 @@ fi
 rm -rf "$TMPDIR"
 
 echo ""
-echo -e "${GREEN}  ✓ CyberMind CLI installed successfully!${NC}"
+echo -e "${GREEN}  ✓ CyberMind CLI installed globally!${NC}"
 echo ""
-echo -e "${CYAN}  Next steps:${NC}"
-echo -e "${DIM}  cybermind --version${NC}"
-echo -e "${DIM}  cybermind /doctor${NC}"
-echo -e "${DIM}  cybermind /recon <target>${NC}"
+echo -e "${CYAN}  Run from ANY folder in ANY terminal:${NC}"
+echo -e "${DIM}    cybermind              — AI security chat${NC}"
+echo -e "${DIM}    cybermind vibe         — CBM Code (AI coding assistant)${NC}"
+echo -e "${DIM}    cybermind recon -t TARGET — automated recon${NC}"
+echo -e "${DIM}    cybermind --version    — check version${NC}"
+echo ""
+
+# Verify immediately
+if command -v cybermind &>/dev/null; then
+  VER=$(cybermind --version 2>/dev/null || echo "installed")
+  echo -e "${GREEN}  ✓ cybermind $VER — ready to use right now!${NC}"
+  echo ""
+  echo -e "${CYAN}  Try it now:${NC}"
+  echo -e "${DIM}    cybermind --version${NC}"
+  echo -e "${DIM}    cd ~/my-project && cybermind vibe${NC}"
+else
+  echo -e "${YELLOW}  ⚠  Run: hash -r && cybermind --version${NC}"
+fi
 echo ""

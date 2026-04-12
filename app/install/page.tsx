@@ -130,6 +130,7 @@ export default function InstallPage() {
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--text-soft)]">
               CyberMind CLI includes both the <strong className="text-white">hacking/security pipeline</strong> and
               <strong className="text-white"> CBM Code AI coding assistant</strong>. Same binary, same key.
+              <strong className="text-white"> Globally installed</strong> — run from any folder, any terminal.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <div className="flex items-center gap-2 rounded-full border border-[#FF4444]/30 bg-[#FF4444]/10 px-3 py-1.5">
@@ -314,7 +315,10 @@ export default function InstallPage() {
 
         {/* Quick reference */}
         <Surface variant="skeuo" elevation="low" className="rounded-[24px] p-5">
-          <p className="text-sm font-semibold text-white mb-3">Quick reference — same binary, two modes</p>
+          <p className="text-sm font-semibold text-white mb-1">Quick reference — globally installed, run from any folder</p>
+          <p className="text-xs text-[var(--text-soft)] mb-3">
+            After install: open any terminal, navigate to any project folder, and run these commands.
+          </p>
           <div className="grid gap-2 md:grid-cols-2 text-sm">
             {[
               { cmd: "cybermind chat",              desc: "AI security chat (all platforms)" },
