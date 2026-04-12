@@ -33,6 +33,7 @@ export const cybermindDocRoutes = [
   "modes/abhimanyu",
   "modes/planning",
   "modes/doctor",
+  "vibe-coder",
   "reference/commands",
   "reference/providers-and-models",
   "reference/privacy-and-security",
@@ -72,6 +73,7 @@ const quickLinks: PageLink[] = [
 const sidebarGroups: SidebarGroup[] = [
   { group: "Start Here", description: "Install, platform support, and first-run validation.", routes: ["get-started", "get-started/installation", "get-started/windows"] },
   { group: "Core Workflows", description: "The main command paths you will actually run.", routes: ["cli/interactive-chat", "modes/recon", "modes/hunt", "modes/abhimanyu", "modes/planning"] },
+  { group: "Vibe Coder (AI Coding)", description: "CyberMind Neural — the AI coding assistant that beats Claude Code.", routes: ["vibe-coder"] },
   { group: "Commands and Safety", description: "Commands, providers, privacy posture, and doctor checks.", routes: ["reference/commands", "modes/doctor", "reference/providers-and-models", "reference/privacy-and-security"] },
   { group: "Help and Updates", description: "Troubleshooting, tools hub, legal framing, release notes, and repo status.", routes: ["resources/faq", "resources/tools-hub", "resources/troubleshooting", "resources/terms-and-disclaimer", "reference/repo-status", "changelogs/latest"] },
 ];
@@ -87,6 +89,7 @@ const routeLabels: Record<DocRoute, string> = {
   "modes/abhimanyu": "Abhimanyu mode",
   "modes/planning": "OMEGA Planning mode",
   "modes/doctor": "Doctor",
+  "vibe-coder": "Vibe Coder (CyberMind Neural)",
   "reference/commands": "Commands",
   "reference/providers-and-models": "Providers and models",
   "reference/privacy-and-security": "Privacy and security",
@@ -101,6 +104,7 @@ const routeLabels: Record<DocRoute, string> = {
 
 function commandFor(route: DocRoute) {
   if (route === "get-started/installation") return "curl -sL https://cybermindcli1.vercel.app/install.sh | bash";
+  if (route === "vibe-coder") return "cybermind vibe";
   if (route === "get-started/windows") return "(iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex";
   if (route === "cli/interactive-chat") return "cybermind";
   if (route === "modes/recon") return "cybermind /recon example.com";

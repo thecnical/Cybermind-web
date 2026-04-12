@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Binary,
   Bot,
+  Check,
   Gauge,
   KeyRound,
   Network,
@@ -380,6 +381,64 @@ export default function HomePage() {
             </Link>
           </Surface>
         </section>
+
+        {/* Vibe Coder Feature Banner */}
+        <Reveal>
+          <Surface variant="clay" tone="accent" elevation="high" className="rounded-[36px] overflow-hidden">
+            <div className="grid xl:grid-cols-2 gap-0">
+              {/* Left: content */}
+              <div className="p-7 md:p-10">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 px-3 py-1.5 mb-4">
+                  <span className="text-xs font-semibold text-[var(--accent-cyan)] uppercase tracking-wider">NEW</span>
+                  <span className="text-xs text-white">CyberMind Neural</span>
+                </div>
+                <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
+                  AI Coding Assistant — Better than Claude Code
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-[var(--text-soft)]">
+                  CyberMind Neural is a terminal-based AI coding assistant that edits files, runs commands, and understands your entire codebase. Free tier available with your own API keys.
+                </p>
+                <ul className="mt-5 grid gap-2">
+                  {["11+ AI providers (GPT-5, DeepSeek, Qwen Coder)", "Works on Windows, macOS, Linux", "Free tier with your own API keys", "Built-in Cyber Mode for security research"].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-[var(--text-main)]">
+                      <Check size={14} className="text-[#00FF88] flex-shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link href="/vibe-coder" className="cm-button-primary gap-2">
+                    Learn more <ArrowRight size={14} />
+                  </Link>
+                  <Link href="/auth/register" className="cm-button-secondary">
+                    Start free
+                  </Link>
+                </div>
+              </div>
+              {/* Right: terminal preview */}
+              <div className="hidden xl:flex items-center justify-center p-8 bg-[rgba(0,0,0,0.3)] border-l border-white/5">
+                <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0a0a0a] p-4 font-mono text-xs">
+                  <div className="flex gap-1.5 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-[#FF5F57]" />
+                    <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
+                    <div className="w-3 h-3 rounded-full bg-[#28C840]" />
+                  </div>
+                  <div className="space-y-1 text-[11px]">
+                    <p className="text-[#777]">$ cybermind vibe</p>
+                    <p className="text-[#00d4ff]">⚡ CyberMind Neural v2.5.0</p>
+                    <p className="text-[#777]">  Workspace: ~/my-project</p>
+                    <p className="text-[#777]">  Model: DeepSeek R1 (auto)</p>
+                    <p className="text-white mt-2">🛡 ⟩ refactor auth to use JWT</p>
+                    <p className="text-[#8A2BE2] mt-1">◆ Neural [deepseek-r1]:</p>
+                    <p className="text-[#777]">  Reading src/auth/handler.go...</p>
+                    <p className="text-[#00FF88]">  ✓ Plan ready — 3 files to edit</p>
+                    <p className="text-[#777]">  [A]pply  [S]kip  [E]dit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Surface>
+        </Reveal>
 
         <WorldMapPulse />
         <AnimatedTestimonials items={testimonials} />
