@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Globe, Sparkles, Users } from "lucide-react";
+import { Globe, Sparkles, Users, Code2, Brain, Shield, Zap } from "lucide-react";
 import AnimatedTimeline from "@/components/AnimatedTimeline";
 import AnimatedTooltip from "@/components/AnimatedTooltip";
 import CometProfileCard, { LeaderProfileCard } from "@/components/CometProfileCard";
@@ -141,6 +141,53 @@ export default function AboutPage() {
             <AnimatedTimeline items={cybermindTimeline} />
           </div>
         </Surface>
+
+        {/* ── CBM Code Product Section ── */}
+        <Reveal>
+          <Surface variant="clay" tone="accent" elevation="high" className="rounded-[36px] p-6 md:p-10">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1 text-xs font-semibold text-[#00d4ff] uppercase tracking-wider">
+                New Product
+              </span>
+            </div>
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
+              CBM Code — AI Coding Assistant
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-soft)]">
+              Built into CyberMind CLI, CBM Code is a terminal-native AI coding assistant that competes with Claude Code.
+              Free tier with your own API keys. Supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, and 11+ providers.
+              Works on Windows and macOS.
+            </p>
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {[
+                { icon: Brain, title: "11+ AI Providers", desc: "MiniMax M2.5, DeepSeek R1, Qwen3 Coder, GPT-5, Claude, Groq, Bytez, Nvidia and more", color: "#00d4ff" },
+                { icon: Code2, title: "Agent Mode Default", desc: "Autonomous task execution — plan, code, debug, fix errors in a single loop", color: "#00FF88" },
+                { icon: Shield, title: "Security Mode", desc: "Built-in vulnerability scanner, CVE checker, and ethical filter for security-aware coding", color: "#8A2BE2" },
+                { icon: Zap, title: "MCP Support", desc: "GitHub, Figma, Playwright, 21st Magic UI — extend with any MCP server", color: "#FF6B35" },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="rounded-2xl border border-white/8 p-4">
+                    <div className="inline-flex rounded-xl p-2.5 mb-3"
+                      style={{ background: `${item.color}15`, border: `1px solid ${item.color}25`, color: item.color }}>
+                      <Icon size={16} />
+                    </div>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-1.5 text-xs leading-5 text-[var(--text-soft)]">{item.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/cbm-code" className="cm-button-primary gap-2 text-sm">
+                <Code2 size={14} /> Learn about CBM Code
+              </Link>
+              <Link href="/docs/cbm-code" className="cm-button-secondary text-sm">
+                Read the docs
+              </Link>
+            </div>
+          </Surface>
+        </Reveal>
 
         <WaitlistPanel
           title="Get roadmap updates from the core team"

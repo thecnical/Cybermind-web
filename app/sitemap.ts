@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermind.thecnical.dev";
+// FIX: correct production URL — cybermindcli1.vercel.app is the live frontend
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermindcli1.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
