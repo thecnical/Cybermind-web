@@ -1,15 +1,13 @@
-﻿# CyberMind CLI — Windows Global Installer
-# After install: `cybermind` and `cybermind vibe` work from ANY terminal, ANY folder.
-# Same as Claude Code — globally available, no restart needed.
+﻿# CyberMind CLI — Windows Installer
+# Downloads pre-built binary directly — NO Go required.
+# After install: `cybermind` and `cybermind vibe` work from ANY terminal.
 #
 # Usage:
 #   $env:CYBERMIND_KEY="cp_live_xxx"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex
 
 param([string]$key = "")
-
 $ErrorActionPreference = "Stop"
 
-# Read key from env var first
 if ($key -eq "" -and $env:CYBERMIND_KEY -ne "") { $key = $env:CYBERMIND_KEY }
 
 Write-Host ""
@@ -19,108 +17,55 @@ Write-Host " ██║     ██████╔╝██╔████╔█�
 Write-Host " ╚██████╗██████╔╝██║ ╚═╝ ██║    ╚██████╗╚██████╔╝██████╔╝███████╗" -ForegroundColor Cyan
 Write-Host "  ╚═════╝╚═════╝ ╚═╝     ╚═╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  ⚡ CyberMind CLI — Global Windows Installer" -ForegroundColor Cyan
-Write-Host "  After install: cybermind + cybermind vibe work from ANY folder" -ForegroundColor DarkGray
+Write-Host "  ⚡ CyberMind CLI — Windows Installer" -ForegroundColor Cyan
+Write-Host "  No Go required — downloads pre-built binary directly." -ForegroundColor DarkGray
 Write-Host ""
 
-# ── Check Go ──────────────────────────────────────────────────────────────────
-if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
-  Write-Host "  ✗ Go not found. Download from https://go.dev/dl" -ForegroundColor Red
-  Write-Host "  Go installer does NOT require admin rights on Windows." -ForegroundColor DarkGray
-  exit 1
-}
-
 # ── Install directory ─────────────────────────────────────────────────────────
-# Use %LOCALAPPDATA%\Programs\cybermind — already in PATH on modern Windows
-# Falls back to ~/.cybermind with manual PATH update
-$localPrograms = Join-Path $env:LOCALAPPDATA "Programs\cybermind"
-$homeDir       = Join-Path $env:USERPROFILE ".cybermind"
+$installDir = Join-Path $env:LOCALAPPDATA "Programs\cybermind"
+$homeDir    = Join-Path $env:USERPROFILE ".cybermind"
 
-# Try LocalAppData\Programs first (no admin, often already in PATH)
-$installDir = $localPrograms
-try {
-  if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
-} catch {
-  $installDir = $homeDir
-  if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
+foreach ($d in @($installDir, $homeDir)) {
+  if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
 }
 
-# Config always in ~/.cybermind (shared between install locations)
-if (-not (Test-Path $homeDir)) { New-Item -ItemType Directory -Path $homeDir -Force | Out-Null }
-
-# ── Clone and build ───────────────────────────────────────────────────────────
-$tmpDir = Join-Path $env:TEMP "cybermind_install_$(Get-Random)"
-if (Test-Path $tmpDir) { Remove-Item $tmpDir -Recurse -Force }
-
-Write-Host "  ⟳ Cloning CyberMind CLI..." -ForegroundColor DarkGray
-git clone --depth=1 https://github.com/thecnical/cybermind.git $tmpDir 2>$null
-
-Write-Host "  ⟳ Building binary..." -ForegroundColor DarkGray
-Push-Location "$tmpDir\cli"
-go build -o cybermind.exe . 2>$null
-Pop-Location
-
-# ── Install binary globally ───────────────────────────────────────────────────
+# ── Download pre-built binary ─────────────────────────────────────────────────
+$binaryUrl  = "https://cybermindcli1.vercel.app/cybermind-windows-amd64.exe"
 $binaryPath = Join-Path $installDir "cybermind.exe"
-Copy-Item "$tmpDir\cli\cybermind.exe" $binaryPath -Force
-Write-Host "  ✓ Binary installed to $binaryPath" -ForegroundColor Green
 
-# ── Remove old binary from System32 if it exists (old install location) ──────
-$oldPaths = @(
-  "C:\Windows\System32\cybermind.exe",
-  "C:\Windows\cybermind.exe",
-  (Join-Path $env:USERPROFILE ".cybermind\cybermind.exe")
-)
-foreach ($oldPath in $oldPaths) {
-  if ($oldPath -ne $binaryPath -and (Test-Path $oldPath)) {
-    try {
-      Remove-Item $oldPath -Force -ErrorAction SilentlyContinue
-      Write-Host "  ✓ Removed old binary from $oldPath" -ForegroundColor Green
-    } catch { <# may need admin for System32 — skip silently #> }
-  }
-}
-
-# ── Ensure in PATH — User scope, PREPEND so it takes priority over System32 ──
-$userPath = [Environment]::GetEnvironmentVariable("PATH", "User") ?? ""
-if ($userPath -notlike "*$installDir*") {
-  # Prepend — ensures our binary is found BEFORE any old System32 version
-  [Environment]::SetEnvironmentVariable("PATH", "$installDir;$userPath", "User")
-  Write-Host "  ✓ Added to front of User PATH (takes priority over old installs)" -ForegroundColor Green
-} else {
-  # Already in PATH — move to front to ensure priority
-  $cleanPath = ($userPath -split ";" | Where-Object { $_ -ne $installDir }) -join ";"
-  [Environment]::SetEnvironmentVariable("PATH", "$installDir;$cleanPath", "User")
-  Write-Host "  ✓ Moved to front of PATH (priority over old installs)" -ForegroundColor Green
-}
-
-# ── CRITICAL: Update CURRENT session PATH immediately ────────────────────────
-# Prepend so our binary takes priority over any old System32 version
-if ($env:PATH -notlike "*$installDir*") {
-  $env:PATH = "$installDir;$env:PATH"
-} else {
-  # Move to front
-  $env:PATH = "$installDir;" + ($env:PATH -replace [regex]::Escape("$installDir;"), "" -replace [regex]::Escape(";$installDir"), "")
-}
-
-# Also try to update parent PowerShell process PATH via registry refresh
+Write-Host "  ⟳ Downloading CyberMind CLI binary..." -ForegroundColor DarkGray
 try {
-  $regPath = "HKCU:\Environment"
-  $currentPath = (Get-ItemProperty -Path $regPath -Name PATH -ErrorAction SilentlyContinue).PATH
-  if ($currentPath -notlike "*$installDir*") {
-    Set-ItemProperty -Path $regPath -Name PATH -Value "$currentPath;$installDir"
+  $wc = New-Object System.Net.WebClient
+  $wc.DownloadFile($binaryUrl, $binaryPath)
+  Write-Host "  ✓ Downloaded to $binaryPath" -ForegroundColor Green
+} catch {
+  Write-Host "  ✗ Download failed: $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "  Trying fallback (iwr)..." -ForegroundColor DarkGray
+  try {
+    Invoke-WebRequest -Uri $binaryUrl -OutFile $binaryPath -UseBasicParsing
+    Write-Host "  ✓ Downloaded (fallback)" -ForegroundColor Green
+  } catch {
+    Write-Host "  ✗ Both download methods failed." -ForegroundColor Red
+    Write-Host "  Please download manually from: https://cybermindcli1.vercel.app/install" -ForegroundColor Yellow
+    exit 1
   }
-  # Broadcast WM_SETTINGCHANGE so Explorer + new terminals pick up PATH immediately
-  Add-Type -TypeDefinition @"
-    using System;
-    using System.Runtime.InteropServices;
-    public class WinEnv {
-      [DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
-      public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
-    }
-"@ -ErrorAction SilentlyContinue
-  $result = [UIntPtr]::Zero
-  [WinEnv]::SendMessageTimeout([IntPtr]0xFFFF, 0x001A, [UIntPtr]::Zero, "Environment", 2, 5000, [ref]$result) | Out-Null
-} catch { <# non-critical #> }
+}
+
+# ── Remove old binary from System32 if it exists ──────────────────────────────
+$oldPaths = @("C:\Windows\System32\cybermind.exe", "C:\Windows\cybermind.exe")
+foreach ($oldPath in $oldPaths) {
+  if (Test-Path $oldPath) {
+    try { Remove-Item $oldPath -Force -ErrorAction SilentlyContinue; Write-Host "  ✓ Removed old binary from $oldPath" -ForegroundColor Green }
+    catch { <# needs admin — skip #> }
+  }
+}
+
+# ── Add to PATH (prepend for priority) ───────────────────────────────────────
+$userPath = [Environment]::GetEnvironmentVariable("PATH", "User") ?? ""
+$cleanPath = ($userPath -split ";" | Where-Object { $_ -ne $installDir -and $_ -ne "" }) -join ";"
+[Environment]::SetEnvironmentVariable("PATH", "$installDir;$cleanPath", "User")
+$env:PATH = "$installDir;" + ($env:PATH -replace [regex]::Escape("$installDir;"), "")
+Write-Host "  ✓ Added to PATH (front — takes priority)" -ForegroundColor Green
 
 # ── Save API key ───────────────────────────────────────────────────────────────
 if ($key -ne "") {
@@ -135,34 +80,40 @@ if ($key -ne "") {
     $acl.SetAccessRule($rule)
     Set-Acl $configPath $acl
   } catch { }
-  Write-Host "  ✓ API key saved" -ForegroundColor Green
+  Write-Host "  ✓ API key saved to $configPath" -ForegroundColor Green
 } else {
   Write-Host "  ℹ  No API key. Run: cybermind --key cp_live_xxx" -ForegroundColor Yellow
 }
 
-# ── Cleanup ───────────────────────────────────────────────────────────────────
-Remove-Item $tmpDir -Recurse -Force
+# ── Broadcast PATH change ─────────────────────────────────────────────────────
+try {
+  Add-Type -TypeDefinition @"
+    using System; using System.Runtime.InteropServices;
+    public class WinEnv {
+      [DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+      public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+    }
+"@ -ErrorAction SilentlyContinue
+  $r = [UIntPtr]::Zero
+  [WinEnv]::SendMessageTimeout([IntPtr]0xFFFF, 0x001A, [UIntPtr]::Zero, "Environment", 2, 5000, [ref]$r) | Out-Null
+} catch { }
 
 Write-Host ""
-Write-Host "  ✓ CyberMind CLI installed globally!" -ForegroundColor Green
+Write-Host "  ✓ CyberMind CLI installed!" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Run from ANY folder in ANY terminal:" -ForegroundColor Cyan
+Write-Host "  Commands (work from ANY folder):" -ForegroundColor Cyan
 Write-Host "    cybermind              — AI security chat" -ForegroundColor DarkGray
 Write-Host "    cybermind vibe         — CBM Code (AI coding assistant)" -ForegroundColor DarkGray
 Write-Host "    cybermind --version    — check version" -ForegroundColor DarkGray
 Write-Host ""
 
-# ── Verify immediately ────────────────────────────────────────────────────────
-Write-Host "  Verifying install..." -ForegroundColor DarkGray
+# ── Verify ────────────────────────────────────────────────────────────────────
 try {
   $ver = & "$binaryPath" --version 2>$null
-  Write-Host "  ✓ cybermind $ver — ready to use!" -ForegroundColor Green
+  Write-Host "  ✓ $ver — ready!" -ForegroundColor Green
   Write-Host ""
-  Write-Host "  Try it now (in this terminal):" -ForegroundColor Cyan
-  Write-Host "    cybermind --version" -ForegroundColor DarkGray
-  Write-Host "    cd C:\Users\$env:USERNAME\my-project" -ForegroundColor DarkGray
-  Write-Host "    cybermind vibe" -ForegroundColor DarkGray
+  Write-Host "  ⚠  Open a NEW terminal window, then run: cybermind --version" -ForegroundColor Yellow
 } catch {
-  Write-Host "  ⚠  Open a new terminal window and run: cybermind --version" -ForegroundColor Yellow
+  Write-Host "  ⚠  Open a NEW terminal window, then run: cybermind --version" -ForegroundColor Yellow
 }
 Write-Host ""
