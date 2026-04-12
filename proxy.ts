@@ -1,21 +1,18 @@
 /**
- * Next.js Edge Middleware — server-side route protection
+ * Next.js 16 Proxy — server-side route protection
+ * (renamed from middleware.ts — Next.js 16 uses "proxy" convention)
  *
- * FIX: Admin routes are now protected at the edge BEFORE any page renders.
- * This replaces the client-side-only AdminAuthGuard which had a race condition
- * where admin content could flash before the redirect.
- *
- * Also protects /dashboard routes from unauthenticated access.
+ * Protects /admin/* and /dashboard/* routes at the edge before any page renders.
  */
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+// Next.js 16 requires the exported function to be named "proxy"
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect admin and dashboard routes
   const isAdminRoute     = pathname.startsWith("/admin");
   const isDashboardRoute = pathname.startsWith("/dashboard");
 
@@ -26,7 +23,6 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl     = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If Supabase is not configured, allow through (dev mode)
   if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next();
   }
@@ -37,9 +33,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
+      getAll() { return request.cookies.getAll(); },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
           request.cookies.set(name, value);
@@ -51,14 +45,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Not logged in — redirect to login
   if (!session) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Admin routes — verify admin role in profiles table
   if (isAdminRoute) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -67,7 +59,6 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.role !== "admin") {
-      // Not an admin — redirect to dashboard
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
@@ -76,8 +67,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/dashboard/:path*",
-  ],
+  matcher: ["/admin/:path*", "/dashboard/:path*"],
 };
