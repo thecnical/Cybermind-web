@@ -4,11 +4,17 @@ import { createClient } from "@supabase/supabase-js";
 // Never hardcode keys here. Set them in .env.local (dev) or Vercel dashboard (prod).
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
+// FIX: no hardcoded fallback URL — fail loudly if env var is missing
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
 const HAS_SUPABASE_ENV = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-if (typeof window !== "undefined" && !HAS_SUPABASE_ENV) {
-  console.error("[CyberMind] NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in environment variables.");
+if (typeof window !== "undefined") {
+  if (!HAS_SUPABASE_ENV) {
+    console.error("[CyberMind] NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in environment variables.");
+  }
+  if (!BACKEND_URL) {
+    console.error("[CyberMind] NEXT_PUBLIC_BACKEND_URL must be set in environment variables.");
+  }
 }
 
 const mockSupabase = {

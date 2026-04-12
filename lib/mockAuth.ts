@@ -13,9 +13,9 @@ export type MockSession = {
 
 export const defaultMockSession: MockSession = {
   authenticated: false,
-  name: "Chandan Pandey",
-  email: "chandan@cybermind.dev",
-  avatar: "CP",
+  name: "Demo User",
+  email: "demo@example.com",
+  avatar: "DU",
   plan: "free",
 };
 

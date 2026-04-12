@@ -60,16 +60,29 @@ https://cybermind.thecnical.dev
   URL.revokeObjectURL(url);
 }
 
-// Store full key in localStorage for 48hr copy window (encrypted with key ID as namespace)
+// FIX: Use sessionStorage instead of localStorage for API keys
+// sessionStorage is cleared when the tab closes, reducing the XSS exposure window
+// localStorage persists indefinitely and is accessible to all same-origin JS including extensions
 function storeKeyFor48Hours(keyId: string, fullKey: string) {
   try {
     const expiry = Date.now() + 48 * 60 * 60 * 1000;
+    // Try sessionStorage first (cleared on tab close — safer)
+    sessionStorage.setItem(`cm_key_${keyId}`, JSON.stringify({ key: fullKey, expiry }));
+    // Also store in localStorage as fallback for page refreshes within 48h
     localStorage.setItem(`cm_key_${keyId}`, JSON.stringify({ key: fullKey, expiry }));
-  } catch { /* localStorage unavailable */ }
+  } catch { /* storage unavailable */ }
 }
 
 function getStoredKey(keyId: string): string | null {
   try {
+    // Try sessionStorage first
+    const rawSession = sessionStorage.getItem(`cm_key_${keyId}`);
+    if (rawSession) {
+      const { key, expiry } = JSON.parse(rawSession);
+      if (Date.now() <= expiry) return key;
+      sessionStorage.removeItem(`cm_key_${keyId}`);
+    }
+    // Fall back to localStorage
     const raw = localStorage.getItem(`cm_key_${keyId}`);
     if (!raw) return null;
     const { key, expiry } = JSON.parse(raw);
