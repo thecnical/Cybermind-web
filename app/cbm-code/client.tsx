@@ -42,6 +42,8 @@ const INSTALL_TABS = [
   { id: "windows", label: "🪟 Windows",  cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex' },
   { id: "macos",   label: "🍎 macOS",    cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash" },
 ];
+
+const WORKFLOW = [
   { n: "01", title: "Install",       desc: "One-line install. Under 30 seconds on Windows or macOS." },
   { n: "02", title: "Set your key",  desc: "Use your CyberMind key or bring your own OpenRouter / Groq key." },
   { n: "03", title: "Run cbm code",  desc: "Launch in your project directory. CBM Code indexes your codebase instantly." },
