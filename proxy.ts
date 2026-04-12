@@ -2,21 +2,27 @@
  * Next.js 16 Proxy — server-side route protection
  * (renamed from middleware.ts — Next.js 16 uses "proxy" convention)
  *
- * Protects /admin/* and /dashboard/* routes at the edge before any page renders.
+ * IMPORTANT: Only protects /admin/* at the edge.
+ * /dashboard/* is protected client-side by DashboardLayout (AuthProvider).
+ *
+ * Why: Supabase stores sessions in localStorage by default.
+ * The edge proxy can only read cookies. If we protect /dashboard here,
+ * it redirects users to login even when they ARE logged in (session in
+ * localStorage but not in cookies → proxy sees no session → redirect loop).
+ *
+ * The dashboard layout already handles auth correctly client-side.
  */
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Next.js 16 requires the exported function to be named "proxy"
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isAdminRoute     = pathname.startsWith("/admin");
-  const isDashboardRoute = pathname.startsWith("/dashboard");
-
-  if (!isAdminRoute && !isDashboardRoute) {
+  // Only protect admin routes at the edge
+  // Dashboard is protected client-side by DashboardLayout
+  if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
@@ -51,21 +57,21 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAdminRoute) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single();
+  // Verify admin role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
 
-    if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  if (profile?.role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  // Only run on admin routes — dashboard is protected client-side
+  matcher: ["/admin/:path*"],
 };

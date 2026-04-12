@@ -42,11 +42,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/auth/login");
+      // Preserve the current path so we can redirect back after login
+      const currentPath = typeof window !== "undefined" ? window.location.pathname : "/dashboard";
+      router.replace(`/auth/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
-    // Redirect unverified users
-    if (user && !user.email_confirmed_at) {
+    // Only redirect unverified users if email_confirmed_at is explicitly false
+    // (not null/undefined — some providers don't set this field)
+    if (user.email_confirmed_at === null && user.app_metadata?.provider === "email") {
       router.replace("/auth/verify-email");
     }
   }, [loading, user, router]);
