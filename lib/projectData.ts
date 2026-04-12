@@ -128,6 +128,13 @@ export const techTeamProfiles = [
     avatarUrl: "https://api.dicebear.com/9.x/glass/svg?seed=Laxman%20Singh",
     githubUrl: "",
   },
+  {
+    name: "Khamshiq Tadikonda",
+    role: "Cybersecurity Researcher",
+    summary: "Cybersecurity researcher specializing in vulnerability research, threat analysis, and offensive security techniques for CyberMind.",
+    avatarUrl: "/team/khamshiq.jpeg",
+    githubUrl: "",
+  },
 ];
 
 // ─── Contributors tooltip (shown in Project Topics section) ───────────────────
@@ -156,5 +163,10 @@ export const contributorTooltipPeople = [
     name: "Laxman Singh",
     role: "Tech Team",
     avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Laxman%20Singh",
+  },
+  {
+    name: "Khamshiq Tadikonda",
+    role: "Cybersecurity Researcher",
+    avatar: "/team/khamshiq.jpeg",
   },
 ];
