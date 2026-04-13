@@ -4,27 +4,32 @@ import { Surface } from "@/components/DesignPrimitives";
 
 const footerColumns = [
   {
-    title: "Platform",
+    title: "Product",
     links: [
       { href: "/install", label: "Install" },
       { href: "/plans", label: "Plans" },
-      { href: "/get-tools", label: "Get tools" },
+      { href: "/cbm-code", label: "CBM Code" },
+      { href: "/ai-models", label: "AI Models" },
+      { href: "/features", label: "Features" },
+      { href: "/get-tools", label: "Get Tools" },
     ],
   },
   {
-    title: "Docs",
+    title: "Docs & Learn",
     links: [
-      { href: "/docs/get-started", label: "Get started" },
+      { href: "/docs/get-started", label: "Get Started" },
       { href: "/docs/reference/commands", label: "Commands" },
       { href: "/docs/resources/troubleshooting", label: "Troubleshooting" },
+      { href: "/course", label: "Course" },
+      { href: "/resources", label: "Resources" },
     ],
   },
   {
     title: "Company",
     links: [
       { href: "/about", label: "About" },
-      { href: "/course", label: "Course" },
       { href: "/careers", label: "Careers" },
+      { href: "/support", label: "Support" },
       { href: "/contact", label: "Contact" },
       { href: "/auth/login", label: "Login" },
     ],

@@ -28,11 +28,9 @@ const navLinks: NavItem[] = [
   { href: "/install", label: "Install" },
   { href: "/plans", label: "Plans" },
   { href: "/docs", label: "Docs" },
-  { href: "/resources", label: "Resources" },
+  { href: "/ai-models", label: "AI Models" },
+  { href: "/features", label: "Features" },
   { href: "/about", label: "About" },
-  { href: "/course", label: "Course" },
-  { href: "/support", label: "Support" },
-  { href: "/contact", label: "Contact" },
 ];
 
 function isResourceRoute(pathname: string) {
