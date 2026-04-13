@@ -28,6 +28,21 @@ try {
     exit 1
 }
 
+# ── Clean up ALL old install locations before installing fresh ────────────────
+$oldLocations = @(
+    "$env:USERPROFILE\.local\bin\cybermind.exe",
+    "$env:USERPROFILE\.local\bin\cbm.exe",
+    "$env:APPDATA\cybermind\cybermind.exe",
+    "$env:LOCALAPPDATA\cybermind\cybermind.exe",
+    "$env:SystemRoot\System32\cybermind.exe",
+    "$env:SystemRoot\System32\cbm.exe"
+)
+foreach ($old in $oldLocations) {
+    if (Test-Path $old) {
+        try { Remove-Item $old -Force -ErrorAction SilentlyContinue; Write-Host "  Removed old: $old" -ForegroundColor DarkGray } catch {}
+    }
+}
+
 # Install to user dir (no admin needed)
 $installDir = "$env:LOCALAPPDATA\Programs\cybermind"
 $homeDir = "$env:USERPROFILE\.cybermind"
