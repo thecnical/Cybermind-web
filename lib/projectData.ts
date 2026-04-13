@@ -132,7 +132,7 @@ export const techTeamProfiles = [
     name: "Khamshiq Tadikonda",
     role: "Cybersecurity Researcher",
     summary: "Cybersecurity researcher specializing in vulnerability research, threat analysis, and offensive security techniques for CyberMind.",
-    avatarUrl: "/team/khamshiq.jpeg",
+    avatarUrl: "/team/Khamshiq.jpeg",
     githubUrl: "",
   },
 ];
@@ -167,6 +167,6 @@ export const contributorTooltipPeople = [
   {
     name: "Khamshiq Tadikonda",
     role: "Cybersecurity Researcher",
-    avatar: "/team/khamshiq.jpeg",
+    avatar: "/team/Khamshiq.jpeg",
   },
 ];
