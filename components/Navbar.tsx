@@ -31,6 +31,7 @@ const navLinks: NavItem[] = [
   { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" },
   { href: "/course", label: "Course" },
+  { href: "/support", label: "Support" },
   { href: "/contact", label: "Contact" },
 ];
 

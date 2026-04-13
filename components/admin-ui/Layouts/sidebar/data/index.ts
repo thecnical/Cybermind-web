@@ -12,6 +12,12 @@ export const NAV_DATA = [
         ],
       },
       {
+        title: "Support",
+        url: "/admin/support",
+        icon: Icons.Chat,
+        items: [],
+      },
+      {
         title: "Calendar",
         url: "/admin/calendar",
         icon: Icons.Calendar,
