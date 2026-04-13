@@ -481,12 +481,12 @@ export default function CyberMindAssistant() {
                       value={input}
                       onChange={e => setInput(e.target.value)}
                       placeholder="Ask anything about CyberMind..."
-                      className="cm-input h-10 flex-1 rounded-xl text-sm"
+                      className="cm-input h-10 min-w-0 flex-1 rounded-xl text-sm"
                     />
                     <button
                       type="submit"
                       disabled={pending || !input.trim()}
-                      className="cm-button-primary h-10 w-10 flex-shrink-0 rounded-xl p-0 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--accent-cyan)] text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-90"
                       aria-label="Send"
                     >
                       <SendHorizonal size={14} />
