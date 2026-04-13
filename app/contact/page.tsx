@@ -10,13 +10,13 @@ import { cn } from "@/lib/utils";
 const officeLocations = [
   {
     title: "India HQ",
-    address: "CyberMind, Uttar Pradesh, India",
-    phone: "+91 (contact via email)",
+    address: "CyberMind CLI, Uttar Pradesh, India",
+    phone: "contact via email only",
     email: "support@cybermind.thecnical.dev",
   },
   {
     title: "Online Support",
-    address: "Available 24/7 via email and support portal",
+    address: "Available 24/7 via email",
     phone: "support@cybermind.thecnical.dev",
     email: "contact@cybermind.thecnical.dev",
   },
