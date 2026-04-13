@@ -235,24 +235,6 @@ export default function DashboardPage() {
     <div className="mx-auto grid w-full max-w-5xl gap-6">
       <EmailVerificationBanner />
 
-      {/* ── Free Month Promo Banner ──────────────────────────────────────── */}
-      <section className="rounded-2xl border border-[#FFD700]/40 bg-[#FFD700]/6 px-5 py-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xl flex-shrink-0">🎉</span>
-            <div>
-              <p className="text-sm font-bold text-white">FREE MONTH ACTIVE — All features unlimited until May 10, 2026</p>
-              <p className="text-xs text-[var(--text-soft)] mt-0.5">
-                Recon, Hunt, Abhimanyu, CVE Intel, Payload Gen, Reports — everything free. No limits.
-              </p>
-            </div>
-          </div>
-          <Link href="/plans" className="text-xs text-[#FFD700] hover:underline flex-shrink-0 whitespace-nowrap">
-            View plans →
-          </Link>
-        </div>
-      </section>
-
       {/* ── Newly created key banner ─────────────────────────────────────── */}
       {newlyCreatedKey && (
         <section className="rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 p-5">
@@ -493,10 +475,10 @@ export default function DashboardPage() {
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-2">
           {platform === "linux"
-            ? "✓ Full pipeline: recon → hunt → Abhimanyu. Key auto-saved on install."
+            ? "✓ Full pipeline: recon → hunt → Abhimanyu. Key auto-saved. Installs both cybermind and cbm commands."
             : platform === "windows"
-            ? "✓ AI chat mode. Key auto-saved. Use Kali for full pipeline."
-            : "✓ AI chat mode on macOS. Key auto-saved. Use Kali for full pipeline."}
+            ? "✓ AI chat + CBM Code. Key auto-saved. Installs both cybermind and cbm commands. Open a new terminal after install."
+            : "✓ AI chat + CBM Code on macOS. Key auto-saved. Installs both cybermind and cbm commands."}
         </p>
       </section>
 
@@ -576,14 +558,14 @@ export default function DashboardPage() {
         <p className="cm-label mb-3">Plan limits</p>
         <div className="grid gap-2 text-sm">
           {[
-            ["Daily requests",      "Unlimited (Free Month 🎉)"],
+            ["Daily requests",      limit === Infinity ? "Unlimited" : `${limit} / day`],
             ["Devices (API keys)",  deviceLimit === Infinity ? "Unlimited" : `${deviceLimit} devices`],
-            ["Recon mode",          "✅ Available (Free Month)"],
-            ["Hunt mode",           "✅ Available (Free Month)"],
-            ["Abhimanyu mode",      "✅ Available (Free Month)"],
-            ["CVE Intel",           "✅ Available (Free Month)"],
-            ["Payload Generator",   "✅ Available (Free Month)"],
-            ["Report Writer",       "✅ Available (Free Month)"],
+            ["Recon mode",          plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
+            ["Hunt mode",           plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
+            ["Abhimanyu mode",      plan === "elite" ? "✅ Available" : "❌ Elite only"],
+            ["CVE Intel",           "✅ Available"],
+            ["Payload Generator",   "✅ Available"],
+            ["Report Writer",       plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between rounded-xl border border-white/8 px-4 py-2">
               <span className="text-[var(--text-soft)]">{label}</span>
@@ -591,9 +573,11 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs text-[#FFD700]">
-          🎉 Free Month active until May 10, 2026 — all limits removed for everyone.
-        </p>
+        {plan === "free" && (
+          <p className="mt-3 text-xs text-[var(--text-muted)]">
+            Upgrade to Pro or Elite to unlock all features. <Link href="/plans" className="text-[#00d4ff] hover:underline">View plans →</Link>
+          </p>
+        )}
       </section>
     </div>
   );

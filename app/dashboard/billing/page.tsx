@@ -14,7 +14,7 @@ const plans: { id: UserPlan; name: string; features: string[]; devices: string }
   {
     id: "free",
     name: "Free",
-    features: ["20 req/day (Unlimited during promo 🎉)", "AI chat on all devices", "All features free until May 10, 2026"],
+    features: ["20 req/day", "AI chat on all devices", "Basic scan & exploit guides"],
     devices: "1 device",
   },
   {
@@ -86,14 +86,6 @@ export default function BillingPage() {
         <p className="mt-2 text-sm text-[var(--text-soft)]">Manage your plan and subscription</p>
       </section>
 
-      {/* Free Month Promo Banner */}
-      <div className="rounded-2xl border border-[#FFD700]/40 bg-[#FFD700]/6 px-5 py-4">
-        <p className="text-sm font-bold text-white">🎉 FREE MONTH — All features unlimited until May 10, 2026</p>
-        <p className="text-xs text-[var(--text-soft)] mt-1">
-          No payment needed right now. Enjoy Elite-level access for free. Plans below will activate after the promo ends.
-        </p>
-      </div>
-
       {/* Status banners */}
       {checkout.status === "success" && (
         <div className="flex items-center gap-3 rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 px-5 py-4">
@@ -119,7 +111,6 @@ export default function BillingPage() {
           <div>
             <p className="cm-label">Current plan</p>
             <p className="mt-2 text-2xl font-semibold text-white capitalize">{currentPlan}</p>
-            <p className="text-sm text-[#FFD700] mt-1">🎉 Promo active — Elite access for everyone</p>
           </div>
           <Link href="/plans" className="cm-button-secondary text-sm gap-2">
             View all plans <ExternalLink size={14} />

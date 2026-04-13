@@ -69,8 +69,9 @@ const nextConfig: NextConfig = {
         source: "/cybermind-(.*)",
         headers: [
           { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "unsafe-none" },
           { key: "Content-Disposition", value: "attachment" },
-          { key: "Cache-Control", value: "public, max-age=3600" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         ],
       },
     ];

@@ -74,7 +74,7 @@ export default function InstallationDocsPage() {
           Get your key → Dashboard
         </Link>
         <p className="mt-3 text-xs text-[var(--text-muted)]">
-          Free account — no credit card required. Free month promo active until May 10, 2026.
+          Free account — no credit card required.
         </p>
       </Surface>
 

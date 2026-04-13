@@ -15,10 +15,6 @@ import { startStripeCheckout, waitForPlanUpgrade, type StripePlan } from "@/lib/
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
-// ── Free Month Promo ──────────────────────────────────────────────────────────
-const PROMO_END    = "May 10, 2026";
-const PROMO_ACTIVE = true;
-
 // ── Currency detection ────────────────────────────────────────────────────────
 // Default INR for Indian users, USD for international
 // Users can toggle manually
@@ -83,7 +79,7 @@ const plans = [
     originalMonthlyUSD: "$19",
     description: "Unlimited recon, hunt, CBM Code with web search + image gen.",
     badge: "Most popular",
-    offer: `Limited offer — save 23% until ${PROMO_END}`,
+    offer: null,
     features: [
       "200 requests/day",
       "CBM Code + web search + image gen",
@@ -233,26 +229,6 @@ export default function PlansPage() {
     <div className="min-h-screen">
       <Navbar />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 pb-20 pt-28 md:px-8">
-
-        {/* ── Free Month Promo Banner ──────────────────────────────────────── */}
-        {PROMO_ACTIVE && (
-          <div className="flex flex-col gap-3 rounded-2xl border border-[#FFD700]/40 bg-[#FFD700]/8 px-5 py-5 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <span className="text-2xl flex-shrink-0">🎉</span>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-white">
-                  FREE MONTH — All features unlimited until {PROMO_END}
-                </p>
-                <p className="text-xs text-[var(--text-soft)] mt-0.5">
-                  Every plan gets Elite-level access: unlimited requests, all modes, Abhimanyu, reports, wordlists, CVE intel — no credit card needed.
-                </p>
-              </div>
-            </div>
-            <Link href="/auth/register" className="cm-button-primary text-xs px-4 py-2 flex-shrink-0 whitespace-nowrap">
-              Get free access
-            </Link>
-          </div>
-        )}
 
         {/* Hero */}
         <section className="linear-shell rounded-[36px] p-7 md:p-10">

@@ -12,6 +12,7 @@ $key = if ($env:CYBERMIND_KEY) { $env:CYBERMIND_KEY } else { "" }
 Write-Host ""
 Write-Host "  CyberMind CLI - Windows Installer" -ForegroundColor Cyan
 Write-Host "  No Go required. Works from ANY terminal after install." -ForegroundColor DarkGray
+Write-Host "  https://cybermindcli1.vercel.app" -ForegroundColor DarkGray
 Write-Host ""
 
 $BINARY_URL = "https://cybermindcli1.vercel.app/cybermind-windows-amd64.exe"
@@ -37,12 +38,18 @@ foreach ($d in @($installDir, $homeDir)) {
 $binaryPath = "$installDir\cybermind.exe"
 Copy-Item $TMP $binaryPath -Force
 Remove-Item $TMP -Force -ErrorAction SilentlyContinue
-Write-Host "  Installed to $binaryPath" -ForegroundColor Green
+Write-Host "  Installed cybermind.exe to $installDir" -ForegroundColor Green
 
-# Remove old System32 binary if exists
-$oldPath = "$env:SystemRoot\System32\cybermind.exe"
-if (Test-Path $oldPath) {
-    try { Remove-Item $oldPath -Force -ErrorAction SilentlyContinue; Write-Host "  Removed old binary from System32" -ForegroundColor Green } catch {}
+# Create cbm.exe alias (copy of cybermind.exe) — one binary, two names
+$cbmPath = "$installDir\cbm.exe"
+Copy-Item $binaryPath $cbmPath -Force
+Write-Host "  Created cbm.exe alias (cbm vibe = cybermind vibe)" -ForegroundColor Green
+
+# Remove old System32 binaries if they exist
+foreach ($old in @("$env:SystemRoot\System32\cybermind.exe", "$env:SystemRoot\System32\cbm.exe")) {
+    if (Test-Path $old) {
+        try { Remove-Item $old -Force -ErrorAction SilentlyContinue; Write-Host "  Removed old binary from System32" -ForegroundColor Green } catch {}
+    }
 }
 
 # Add to PATH — PREPEND for priority, update current session too
@@ -66,10 +73,13 @@ public class WinEnv {
     [WinEnv]::SendMessageTimeout([IntPtr]0xFFFF, 0x001A, [UIntPtr]::Zero, "Environment", 2, 5000, [ref]$r) | Out-Null
 } catch {}
 
-# Save API key
+# Save API key — overwrite any existing key (new key replaces old automatically)
 if ($key -ne "") {
     $configPath = "$homeDir\config.json"
-    Set-Content -Path $configPath -Value "{`"key`":`"$key`"}" -Encoding UTF8
+    # Remove old key file first to ensure clean replacement
+    if (Test-Path $configPath) { Remove-Item $configPath -Force -ErrorAction SilentlyContinue }
+    $keyJson = '{"key":"' + $key + '"}'
+    Set-Content -Path $configPath -Value $keyJson -Encoding UTF8
     try {
         $acl = Get-Acl $configPath
         $acl.SetAccessRuleProtection($true, $false)
@@ -77,18 +87,20 @@ if ($key -ne "") {
             [System.Security.Principal.WindowsIdentity]::GetCurrent().Name, "FullControl", "Allow")
         $acl.SetAccessRule($rule); Set-Acl $configPath $acl
     } catch {}
-    Write-Host "  API key saved to $configPath" -ForegroundColor Green
+    Write-Host "  API key saved (any previous key replaced)" -ForegroundColor Green
 } else {
-    Write-Host "  No API key. Run: cybermind --key cp_live_xxx" -ForegroundColor Yellow
+    Write-Host "  No API key provided. Run: cybermind --key cp_live_xxx" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "  CyberMind CLI installed!" -ForegroundColor Green
+Write-Host "  CyberMind CLI installed successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Commands (from ANY folder):" -ForegroundColor Cyan
 Write-Host "    cybermind              - AI security chat" -ForegroundColor DarkGray
 Write-Host "    cybermind vibe         - CBM Code (AI coding assistant)" -ForegroundColor DarkGray
+Write-Host "    cbm vibe               - same as above (short alias)" -ForegroundColor DarkGray
 Write-Host "    cybermind --version    - check version" -ForegroundColor DarkGray
+Write-Host "    cybermind --key <key>  - update API key" -ForegroundColor DarkGray
 Write-Host ""
 
 # Verify in current session
@@ -97,7 +109,9 @@ try {
     Write-Host "  $ver - ready in this terminal!" -ForegroundColor Green
 } catch {}
 
-Write-Host "  Open a NEW terminal window and run: cybermind --version" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  IMPORTANT: Open a NEW PowerShell/CMD window to use 'cybermind' and 'cbm' globally." -ForegroundColor Yellow
+Write-Host "  Or run directly now: $binaryPath" -ForegroundColor DarkGray
 Write-Host ""
 `.trimStart();
 

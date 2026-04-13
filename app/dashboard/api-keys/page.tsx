@@ -172,7 +172,10 @@ export default function ApiKeysPage() {
             </button>
           </div>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
-            Install command: <code className="font-mono text-[#00d4ff]">cybermind --key {newKeyValue.slice(0, 20)}...</code>
+            Install: <code className="font-mono text-[#00d4ff]">$env:CYBERMIND_KEY=&quot;{newKeyValue}&quot;; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex</code>
+          </p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Already installed? Update key: <code className="font-mono text-[#00FF88]">cybermind --key {newKeyValue}</code>
           </p>
           <button onClick={() => setNewKeyValue(null)} className="mt-3 text-xs text-[var(--text-muted)] hover:text-white">Dismiss</button>
         </section>

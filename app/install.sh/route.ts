@@ -50,25 +50,42 @@ chmod +x "\$TMP"
 # Install to /usr/local/bin
 if [ -w "\$INSTALL_DIR" ]; then
   mv "\$TMP" "\$INSTALL_DIR/cybermind"
+  cp "\$INSTALL_DIR/cybermind" "\$INSTALL_DIR/cbm"
 else
   sudo mv "\$TMP" "\$INSTALL_DIR/cybermind"
+  sudo cp "\$INSTALL_DIR/cybermind" "\$INSTALL_DIR/cbm"
 fi
 
-echo -e "\${GREEN}  Installed to \$INSTALL_DIR/cybermind\${RESET}"
+echo -e "\${GREEN}  Installed cybermind + cbm to \$INSTALL_DIR\${RESET}"
 
-# Save API key if provided
+# Save API key — overwrite any existing key (new key replaces old automatically)
 if [ -n "\$CYBERMIND_KEY" ]; then
   mkdir -p "\$HOME/.cybermind"
+  rm -f "\$HOME/.cybermind/config.json"
   printf '{"key":"%s"}' "\$CYBERMIND_KEY" > "\$HOME/.cybermind/config.json"
   chmod 600 "\$HOME/.cybermind/config.json"
-  echo -e "\${GREEN}  API key saved to ~/.cybermind/config.json\${RESET}"
+  echo -e "\${GREEN}  API key saved (any previous key replaced)\${RESET}"
 fi
 
 echo ""
 echo -e "\${GREEN}  CyberMind CLI installed successfully!\${RESET}"
 echo ""
-echo -e "\${CYAN}  Run: cybermind\${RESET}"
+echo -e "\${CYAN}  Commands:\${RESET}"
+echo -e "\${DIM}    cybermind              - AI security chat\${RESET}"
+echo -e "\${DIM}    cybermind vibe         - CBM Code (AI coding assistant)\${RESET}"
+echo -e "\${DIM}    cbm vibe               - same as above (short alias)\${RESET}"
+echo -e "\${DIM}    cybermind /recon       - Auto recon (Linux only)\${RESET}"
+echo -e "\${DIM}    cybermind /hunt        - Hunt mode (Linux only)\${RESET}"
+echo -e "\${DIM}    cybermind --version    - check version\${RESET}"
+echo ""
 echo -e "\${DIM}  Docs: https://cybermindcli1.vercel.app/docs\${RESET}"
+echo ""
+
+# Verify install
+if command -v cybermind &>/dev/null; then
+  VER=$(cybermind --version 2>/dev/null | head -1)
+  echo -e "\${GREEN}  ✓ \${VER} — ready!\${RESET}"
+fi
 echo ""
 `;
 

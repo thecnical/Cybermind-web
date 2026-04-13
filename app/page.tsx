@@ -352,34 +352,6 @@ export default function HomePage() {
               ))}
             </div>
           </Surface>
-
-          <Surface variant="clay" tone="accent" elevation="high" className="rounded-[30px] p-6 md:p-8">
-            <p className="cm-label">🎉 Free Month Active</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white">Everything free until May 10, 2026</h2>
-            <p className="mt-4 text-sm leading-7 text-[var(--text-soft)]">
-              All plans get Elite-level access for free — unlimited requests, recon, hunt, Abhimanyu, CVE intel, payload generator, and reports. No credit card needed.
-            </p>
-            <div className="mt-6 grid gap-3">
-              {[
-                ["Unlimited requests", "All plans", "✓"],
-                ["All modes (recon, hunt, Abhimanyu)", "All plans", "✓"],
-                ["CVE Intel + Payload Gen + Reports", "All plans", "✓"],
-              ].map((item) => (
-                <Surface key={item[0]} variant="skeuo" elevation="low" className="rounded-2xl p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{item[0]}</p>
-                      <p className="mt-1 text-xs text-[var(--text-soft)]">{item[1]}</p>
-                    </div>
-                    <p className="text-lg font-semibold text-[#00FF88]">{item[2]}</p>
-                  </div>
-                </Surface>
-              ))}
-            </div>
-            <Link href="/plans" className="cm-button-primary mt-6">
-              See all features
-            </Link>
-          </Surface>
         </section>
 
         {/* Vibe Coder Feature Banner */}

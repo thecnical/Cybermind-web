@@ -41,12 +41,13 @@ const FEATURES = [
 const INSTALL_TABS = [
   { id: "windows", label: "🪟 Windows",  cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex' },
   { id: "macos",   label: "🍎 macOS",    cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash" },
+  { id: "linux",   label: "🐧 Linux",    cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install.sh | bash" },
 ];
 
 const WORKFLOW = [
-  { n: "01", title: "Install",       desc: "One-line install. Under 30 seconds on Windows or macOS." },
+  { n: "01", title: "Install",       desc: "One-line install. Under 30 seconds on Windows, macOS, or Linux." },
   { n: "02", title: "Set your key",  desc: "Use your CyberMind key or bring your own OpenRouter / Groq key." },
-  { n: "03", title: "Run cbm code",  desc: "Launch in your project directory. CBM Code indexes your codebase instantly." },
+  { n: "03", title: "Run cbm vibe",  desc: "Launch in your project directory. CBM Code indexes your codebase instantly." },
   { n: "04", title: "Build faster",  desc: "Edit files, run commands, search semantically — all from one intelligent shell." },
 ];
 
@@ -66,7 +67,7 @@ const MASCOT = `
             ║
           ══╩══`;
 
-const TERMINAL_DEMO = `$ cybermind vibe
+const TERMINAL_DEMO = `$ cbm vibe
 
   ██████╗██████╗ ███╗   ███╗     ██████╗ ██████╗ ██████╗ ███████╗
  ██╔════╝██╔══██╗████╗ ████║    ██╔════╝██╔═══██╗██╔══██╗██╔════╝
@@ -152,7 +153,7 @@ export default function CBMCodeClient() {
               <div className="mt-6 flex justify-center">
                 <Surface variant="skeuo" tone="cyan" elevation="low" className="inline-flex items-center gap-3 rounded-2xl px-5 py-2.5">
                   <Terminal size={14} className="text-[#00d4ff]" />
-                  <code className="font-mono text-sm text-white">cybermind vibe</code>
+                  <code className="font-mono text-sm text-white">cbm vibe</code>
                 </Surface>
               </div>
             </div>
@@ -327,7 +328,7 @@ export default function CBMCodeClient() {
             </Surface>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               {[
-                { label: "Launch CBM Code", cmd: "cybermind vibe" },
+                { label: "Launch CBM Code", cmd: "cbm vibe" },
                 { label: "Security scan", cmd: "cybermind vibe --cyber" },
                 { label: "Check version", cmd: "cybermind --version" },
               ].map(item => (
@@ -380,13 +381,13 @@ export default function CBMCodeClient() {
               <p className="cm-label">Get started today</p>
               <h2 className="mt-3 text-4xl font-bold tracking-[-0.05em] text-white md:text-5xl">Start building with CBM Code</h2>
               <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--text-soft)] md:text-base">
-                Free tier with your own API keys. No credit card required. Full access during our free month promo.
+                Free tier with your own API keys. No credit card required to start.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link href="/auth/register" className="cm-button-primary gap-2 px-7 py-3 text-base">Start Free <ArrowRight size={16} /></Link>
                 <Link href="/plans" className="cm-button-secondary px-7 py-3 text-base">View Plans</Link>
               </div>
-              <p className="mt-4 text-xs text-[var(--text-muted)]">🎉 Free Month active — all features unlimited until May 10, 2026</p>
+              <p className="mt-4 text-xs text-[var(--text-muted)]">Free tier available — bring your own API keys. No credit card required.</p>
             </div>
           </Surface>
         </Reveal>
