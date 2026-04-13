@@ -18,7 +18,7 @@ const page = {
       body:
         "The most powerful feature: give CyberMind a target and it runs a complete 10-phase attack pipeline autonomously. No manual steps. Runs for hours if needed.",
       bullets: [
-        "Phase 1: Passive OSINT — whois, theHarvester, dig (DNS/MX/TXT/NS)",
+        "Phase 1: Passive OSINT — whois, theHarvester, dig, shodan CLI, h8mail (breach data), exiftool (metadata), metagoofil (document harvest), spiderfoot (200+ OSINT modules), recon-ng",
         "Phase 2: Subdomain Enum — reconftw -a --deep --parallel (6h exhaustive), subfinder, amass, dnsx",
         "Phase 3: Port Scan — rustscan (all 65535 ports), nmap vuln scripts, masscan, naabu",
         "Phase 4: HTTP Fingerprint — httpx (500 threads), whatweb, tlsx (JA3), wafw00f",
@@ -104,15 +104,16 @@ const page = {
     {
       title: "Doctor Command — Auto-Update + Tool Install",
       body:
-        "cybermind /doctor first updates the CLI binary to the latest version, then checks and installs all 70+ security tools.",
+        "cybermind /doctor first updates the CLI binary to the latest version, then checks and installs all 80+ security tools.",
       bullets: [
         "Step 1: Self-update — downloads latest binary from GitHub, replaces in-place",
-        "Step 2: Checks all recon tools (20+): subfinder, amass, reconftw, nmap, httpx, nuclei...",
+        "Step 2: Checks all recon tools (28+): shodan, h8mail, exiftool, metagoofil, spiderfoot, recon-ng, subfinder, amass, reconftw, nmap, httpx, nuclei...",
         "Step 3: Checks all hunt tools (30+): dalfox, gau, gospider, ssrfmap, tplmap...",
-        "Step 4: Checks all exploit tools (20+): sqlmap, metasploit, hydra, sliver, empire...",
+        "Step 4: Checks all exploit tools (25+): sqlmap, metasploit, hydra, sliver, empire, commix...",
         "Auto-installs missing tools: apt, go install, pip3, cargo, git clone",
         "New Kali 2025-2026 tools: crlfuzz, sstimap, wpprobe, adaptixc2, rubeus, ldeep",
         "AI diagnosis: if install fails, AI suggests exact fix commands",
+        "Note: shodan requires API key — run 'shodan init YOUR_KEY' after install",
       ],
     },
     {

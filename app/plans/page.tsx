@@ -116,6 +116,7 @@ const plans = [
       "OMEGA plan mode (unlimited, 10-phase)",
       "HackerOne integration + AI target selection",
       "All modes including Abhimanyu",
+      "Phase 1: shodan, h8mail, exiftool, metagoofil, spiderfoot, recon-ng",
       "reconftw -a --deep (6h exhaustive scan)",
       "Auto PoC generation for every bug",
       "Full bug bounty report with PoC",
