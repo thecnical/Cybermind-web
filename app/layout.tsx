@@ -57,11 +57,11 @@ export const metadata: Metadata = {
   publisher: "CyberMind CLI",
   icons: {
     icon: [
-      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
-      { url: "/favicon.svg?v=2", sizes: "any" },
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/favicon.svg?v=2",
-    shortcut: "/favicon.svg?v=2",
+    apple: "/favicon.ico",
+    shortcut: "/favicon.ico",
   },
   robots: {
     index: true,
@@ -199,11 +199,11 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} ${inter.variable} ${jetBrainsMono.variable}`}
     >
       <head>
-        {/* Favicon v2 — Neural Shield logo */}
-        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.svg?v=2" />
-        <link rel="apple-touch-icon" href="/favicon.svg?v=2" />
-        <link rel="shortcut icon" href="/favicon.svg?v=2" />
+        {/* Favicon — official CyberMind brand icon */}
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="alternate icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         {/* Structured data */}
         <script
           type="application/ld+json"
