@@ -57,10 +57,10 @@ export const metadata: Metadata = {
   publisher: "CyberMind CLI",
   icons: {
     icon: [
-      { url: "/favicon.ico", type: "image/x-icon" },
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: "/favicon.ico",
+    apple: "/favicon.png",
     shortcut: "/favicon.ico",
   },
   robots: {
@@ -200,9 +200,9 @@ export default function RootLayout({
     >
       <head>
         {/* Favicon — official CyberMind brand icon */}
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="alternate icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+        <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         {/* Structured data */}
         <script
