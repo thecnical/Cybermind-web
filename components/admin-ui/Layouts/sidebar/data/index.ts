@@ -2,15 +2,19 @@ import * as Icons from "../icons";
 
 export const NAV_DATA = [
   {
-    label: "MAIN MENU",
+    label: "OVERVIEW",
     items: [
       {
         title: "Dashboard",
+        url: "/admin",
         icon: Icons.HomeIcon,
-        items: [
-          { title: "Overview", url: "/admin" },
-        ],
+        items: [],
       },
+    ],
+  },
+  {
+    label: "MANAGEMENT",
+    items: [
       {
         title: "Users",
         url: "/admin/users",
