@@ -20,6 +20,20 @@ export default function DocsSidebar() {
       </Surface>
 
       <div className="mt-5 grid gap-5">
+        {/* Complete Workflow Guide — pinned at top */}
+        <Link
+          href="/docs/workflow"
+          className={cn(
+            "flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200",
+            pathname === "/docs/workflow"
+              ? "border-[rgba(0,255,255,0.3)] bg-[rgba(0,255,255,0.08)] text-white"
+              : "border-[rgba(0,255,255,0.15)] bg-[rgba(0,255,255,0.03)] text-[var(--accent-cyan)] hover:bg-[rgba(0,255,255,0.07)]"
+          )}
+        >
+          <span>⚡</span>
+          <span>Complete Workflow Guide</span>
+        </Link>
+
         {groups.map((group, groupIndex) => (
           <Surface
             key={group.group}
@@ -34,7 +48,6 @@ export default function DocsSidebar() {
             <div className="mt-3 grid gap-1">
               {group.items.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
                 return (
                   <Link
                     key={item.href}
