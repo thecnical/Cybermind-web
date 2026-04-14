@@ -54,11 +54,13 @@ export default function AUPPage() {
               <li><strong>Red team engagements:</strong> Authorized red team operations with a signed rules of engagement document.</li>
               <li><strong>Own infrastructure testing:</strong> Testing your own servers, applications, and networks.</li>
               <li><strong>Security research:</strong> Responsible disclosure research on systems you own or have authorization to test.</li>
+              <li><strong>Fraud investigation (authorized):</strong> Security teams and law enforcement agencies may use CyberMind to investigate fraud, phishing infrastructure, scam websites, and cybercrime operations — provided they have legal authority or authorization to do so. This includes identifying fake websites impersonating legitimate brands, analyzing phishing kits, and mapping scammer infrastructure for takedown purposes.</li>
+              <li><strong>Anti-fraud research:</strong> Researchers working with financial institutions, banks, or law enforcement to expose fraud networks, fake payment gateways, or identity theft operations — within the bounds of applicable law.</li>
             </ul>
           </Section>
 
           <Section title="4. Prohibited uses — zero tolerance">
-            <p>The following uses are strictly prohibited and will result in immediate account termination:</p>
+            <p>The following uses are strictly prohibited and will result in immediate account termination, reporting to law enforcement, and potential legal action:</p>
             <ul>
               <li><strong>Unauthorized access:</strong> Using CyberMind to access, probe, or attack any system, network, or account without explicit written authorization.</li>
               <li><strong>Denial of service:</strong> Using CyberMind to disrupt, degrade, or deny service to any target.</li>
@@ -66,15 +68,34 @@ export default function AUPPage() {
               <li><strong>Data theft:</strong> Exfiltrating data from unauthorized systems.</li>
               <li><strong>Malware deployment:</strong> Using CyberMind to deploy, distribute, or execute malware on unauthorized systems.</li>
               <li><strong>Infrastructure attacks:</strong> Attacking critical infrastructure (power grids, hospitals, financial systems, government systems).</li>
-              <li><strong>Harassment:</strong> Using CyberMind to target individuals, stalk, or harass.</li>
+              <li><strong>Harassment and stalking:</strong> Using CyberMind to target individuals, stalk, harass, or intimidate.</li>
               <li><strong>Illegal surveillance:</strong> Unauthorized monitoring of communications or systems.</li>
               <li><strong>Bypassing security controls:</strong> Using CyberMind to bypass security controls on systems you are not authorized to test.</li>
-              <li><strong>Resale of capabilities:</strong> Offering CyberMind as a service to third parties without authorization.</li>
+              <li><strong>Fraud and scamming:</strong> Using CyberMind to conduct fraud, run scam operations, steal financial credentials, compromise banking systems, or facilitate any form of financial crime. This includes phishing attacks, fake payment gateway creation, and identity theft.</li>
+              <li><strong>Targeting individuals:</strong> Using CyberMind to hack personal devices, phones, email accounts, or social media accounts of individuals without their explicit consent.</li>
+              <li><strong>Resale of capabilities:</strong> Offering CyberMind as a hacking-for-hire service to third parties.</li>
               <li><strong>Account sharing:</strong> Sharing API keys across organizations or individuals to circumvent plan limits.</li>
             </ul>
+            <div className="mt-4 rounded-2xl border border-[#FF4444]/30 bg-[#FF4444]/5 px-5 py-4">
+              <p className="text-sm font-semibold text-white">🚨 Zero Tolerance Policy</p>
+              <p className="mt-1 text-sm text-[var(--text-soft)]">
+                Any user found using CyberMind for fraud, unauthorized attacks, or targeting individuals will have their account permanently terminated, their information reported to relevant law enforcement agencies (including CERT-In, FBI IC3, or local cybercrime units), and may face civil and criminal prosecution. We actively cooperate with law enforcement investigations.
+              </p>
+            </div>
           </Section>
 
-          <Section title="5. Abhimanyu mode — additional restrictions">
+          <Section title="5. CyberMind against fraud — our commitment">
+            <p>CyberMind is built to <strong>fight fraud, not enable it</strong>. We actively support:</p>
+            <ul>
+              <li><strong>Fraud investigators:</strong> Security professionals investigating scam websites, phishing infrastructure, and cybercrime networks can use CyberMind to map and expose fraudulent operations — with appropriate legal authority.</li>
+              <li><strong>Financial institution security teams:</strong> Banks and payment processors can use CyberMind to test their own fraud detection systems and identify vulnerabilities before criminals do.</li>
+              <li><strong>Law enforcement cooperation:</strong> We cooperate fully with law enforcement agencies investigating cybercrime, fraud, and unauthorized computer access. We maintain logs and will provide them upon valid legal request.</li>
+              <li><strong>Scam takedown research:</strong> Researchers identifying and reporting fake websites, investment scams, and phishing kits to registrars and hosting providers for takedown.</li>
+            </ul>
+            <p>If you are a fraud investigator, law enforcement officer, or financial institution security team and need assistance, contact us at <a href="mailto:security@cybermind.thecnical.dev">security@cybermind.thecnical.dev</a>.</p>
+          </Section>
+
+          <Section title="6. Abhimanyu mode — additional restrictions">
             <p>Abhimanyu mode provides automated exploitation capabilities including SQLi, RCE, post-exploitation, lateral movement, and data exfiltration tooling. This mode carries heightened responsibility:</p>
             <ul>
               <li>Abhimanyu mode must only be used on systems where you have explicit written authorization for exploitation (not just scanning).</li>
@@ -84,7 +105,7 @@ export default function AUPPage() {
             </ul>
           </Section>
 
-          <Section title="6. Responsible disclosure">
+          <Section title="7. Responsible disclosure">
             <p>If you discover a vulnerability in a third-party system during authorized testing:</p>
             <ul>
               <li>Do not exploit the vulnerability beyond what is necessary to confirm its existence.</li>
@@ -94,7 +115,7 @@ export default function AUPPage() {
             </ul>
           </Section>
 
-          <Section title="7. Legal compliance">
+          <Section title="8. Legal compliance">
             <p>You are solely responsible for ensuring your use of CyberMind complies with all applicable laws in your jurisdiction, including but not limited to:</p>
             <ul>
               <li>Computer Fraud and Abuse Act (CFAA) — United States</li>
@@ -106,7 +127,7 @@ export default function AUPPage() {
             <p>Ignorance of the law is not a defense. If you are unsure whether a specific use is lawful, consult a legal professional before proceeding.</p>
           </Section>
 
-          <Section title="8. Enforcement">
+          <Section title="9. Enforcement">
             <p>We reserve the right to:</p>
             <ul>
               <li>Suspend or terminate accounts that violate this AUP without prior notice.</li>
@@ -117,13 +138,13 @@ export default function AUPPage() {
             <p>We monitor for abuse patterns including unusual API usage, suspicious request patterns, and reports from third parties.</p>
           </Section>
 
-          <Section title="9. Reporting violations">
+          <Section title="10. Reporting violations">
             <p>If you believe someone is using CyberMind in violation of this AUP, or if you have been targeted by a CyberMind user, please report it immediately:</p>
             <p><strong>Email:</strong> <a href="mailto:abuse@cybermind.thecnical.dev">abuse@cybermind.thecnical.dev</a></p>
             <p>Include as much detail as possible: timestamps, IP addresses, affected systems, and any evidence of the attack.</p>
           </Section>
 
-          <Section title="10. Contact">
+          <Section title="11. Contact">
             <p>For questions about this policy:</p>
             <p><strong>Email:</strong> <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
             <p><strong>Website:</strong> https://cybermind.thecnical.dev/contact</p>
