@@ -39,18 +39,19 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "CyberMind CLI — AI-Powered Offensive Security CLI",
+    default: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
     template: "%s | CyberMind CLI",
   },
   description:
-    "CyberMind CLI is an AI-powered offensive security CLI with interactive AI chat, 20-tool recon chain, 11-tool hunt engine, Abhimanyu exploit mode, and terminal-first workflows.",
+    "CyberMind CLI — AI-powered offensive security CLI with CBM Code AI coding assistant, 20-tool recon chain, OMEGA plan mode, Abhimanyu exploit mode, and MiniMax M2.7 primary coding agent.",
   keywords: [
     "cybersecurity CLI", "offensive security", "penetration testing", "bug bounty",
     "AI hacking tool", "recon automation", "ethical hacking", "kali linux",
     "cybermind", "security automation", "nuclei", "subfinder", "nmap",
     "CBM Code", "AI coding assistant", "claude code alternative",
-    "terminal AI coding", "MiniMax M2.5", "DeepSeek R1", "Qwen3 Coder",
-    "free AI coding tool", "Windows AI coding assistant",
+    "terminal AI coding", "MiniMax M2.7", "Kimi K2", "DeepSeek R1", "Qwen3 Coder",
+    "free AI coding tool", "Windows AI coding assistant", "NVIDIA NIM",
+    "OMEGA plan mode", "bug bounty automation", "recon automation",
   ],
   authors: [{ name: "Chandan Pandey", url: "https://github.com/thecnical" }],
   creator: "Chandan Pandey",
@@ -59,8 +60,9 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
       { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: "/favicon.png",
+    apple: "/logo.png",
     shortcut: "/favicon.ico",
   },
   robots: {
@@ -73,9 +75,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: BASE_URL,
     siteName: "CyberMind CLI",
-    title: "CyberMind CLI — AI-Powered Offensive Security CLI",
+    title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
     description:
-      "AI-powered offensive security CLI with recon, hunt, Abhimanyu exploit mode, and terminal-first workflows.",
+      "AI-powered offensive security CLI with CBM Code AI coding assistant, OMEGA plan mode, recon, hunt, Abhimanyu exploit mode, and MiniMax M2.7 primary coding agent.",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
@@ -87,8 +89,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CyberMind CLI — AI-Powered Offensive Security CLI",
-    description: "AI-powered offensive security CLI with recon, hunt, and Abhimanyu exploit mode.",
+    title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
+    description: "AI-powered offensive security CLI with CBM Code, OMEGA plan mode, recon, hunt, and Abhimanyu exploit mode.",
     images: [`${BASE_URL}/og-image.png`],
     creator: "@thecnical",
   },
@@ -202,8 +204,11 @@ export default function RootLayout({
         {/* Favicon — official CyberMind brand icon */}
         <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
         <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
-        <link rel="apple-touch-icon" href="/favicon.png" />
+        <link rel="icon" href="/logo.png" sizes="192x192" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
+        {/* Force cache bust on logo/favicon */}
+        <meta name="theme-color" content="#00FFFF" />
         {/* Structured data */}
         <script
           type="application/ld+json"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Brain, Code2, Cpu, Globe, Shield, Sparkles, Zap } from "lucide-react";
+import { Brain, Code2, Cpu, Download, Globe, Shield, Sparkles, Zap, BookOpen } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Surface, Reveal } from "@/components/DesignPrimitives";
