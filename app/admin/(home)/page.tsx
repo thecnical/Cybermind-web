@@ -1,62 +1,114 @@
-import { PaymentsOverview } from "@/components/admin-ui/Charts/payments-overview";
-import { UsedDevices } from "@/components/admin-ui/Charts/used-devices";
-import { WeeksProfit } from "@/components/admin-ui/Charts/weeks-profit";
-import { TopChannels } from "@/components/admin-ui/Tables/top-channels";
-import { TopChannelsSkeleton } from "@/components/admin-ui/Tables/top-channels/skeleton";
-import { createTimeFrameExtractor } from "@/lib/admin-utils/timeframe-extractor";
-import { Suspense } from "react";
-import { ChatsCard } from "./_components/chats-card";
-import { OverviewCardsGroup } from "./_components/overview-cards";
-import { OverviewCardsSkeleton } from "./_components/overview-cards/skeleton";
-import { RegionLabels } from "./_components/region-labels";
+import { getOverviewData, getRecentUsers, getPlanDistribution } from "./fetch";
 
-type PropsType = {
-  searchParams: Promise<{
-    selected_time_frame?: string;
-  }>;
-};
-
-export default async function Home({ searchParams }: PropsType) {
-  const { selected_time_frame } = await searchParams;
-  const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
+export default async function AdminDashboard() {
+  const [overview, recentUsers, planDist] = await Promise.all([
+    getOverviewData(),
+    getRecentUsers(),
+    getPlanDistribution(),
+  ]);
 
   return (
-    <>
-      <Suspense fallback={<OverviewCardsSkeleton />}>
-        <OverviewCardsGroup />
-      </Suspense>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-dark dark:text-white">CyberMind Dashboard</h1>
+        <p className="text-sm text-dark-6 mt-1">Platform overview and user management</p>
+      </div>
 
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-9 2xl:gap-7.5">
-        <PaymentsOverview
-          className="col-span-12 xl:col-span-7"
-          key={extractTimeFrame("payments_overview")}
-          timeFrame={extractTimeFrame("payments_overview")?.split(":")[1]}
-        />
+      {/* Overview Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total Users" value={overview.totalUsers.value} growth={overview.totalUsers.growthRate} icon="👥" color="blue" />
+        <StatCard label="Active API Keys" value={overview.activeKeys.value} growth={overview.activeKeys.growthRate} icon="🔑" color="green" />
+        <StatCard label="Elite Members" value={overview.eliteUsers.value} growth={overview.eliteUsers.growthRate} icon="⚡" color="purple" />
+        <StatCard label="Pro Members" value={overview.proUsers.value} growth={overview.proUsers.growthRate} icon="🚀" color="cyan" />
+      </div>
 
-        <WeeksProfit
-          key={extractTimeFrame("weeks_profit")}
-          timeFrame={extractTimeFrame("weeks_profit")?.split(":")[1]}
-          className="col-span-12 xl:col-span-5"
-        />
-
-        <UsedDevices
-          className="col-span-12 xl:col-span-5"
-          key={extractTimeFrame("used_devices")}
-          timeFrame={extractTimeFrame("used_devices")?.split(":")[1]}
-        />
-
-        <RegionLabels />
-
-        <div className="col-span-12 grid xl:col-span-8">
-          <Suspense fallback={<TopChannelsSkeleton />}>
-            <TopChannels />
-          </Suspense>
+      {/* Plan Distribution + Recent Users */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* Plan Distribution */}
+        <div className="rounded-[10px] bg-white p-6 shadow-1 dark:bg-gray-dark">
+          <h2 className="mb-4 text-lg font-bold text-dark dark:text-white">Plan Distribution</h2>
+          <div className="space-y-3">
+            {planDist.map((p) => (
+              <div key={p.plan} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-block h-3 w-3 rounded-full ${
+                      p.plan === "elite"
+                        ? "bg-purple-500"
+                        : p.plan === "pro"
+                          ? "bg-blue-500"
+                          : p.plan === "starter"
+                            ? "bg-green-500"
+                            : "bg-gray-400"
+                    }`}
+                  />
+                  <span className="capitalize text-sm font-medium text-dark dark:text-white">
+                    {p.plan}
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-dark dark:text-white">{p.count}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <Suspense fallback={null}>
-          <ChatsCard />
-        </Suspense>
+        {/* Recent Users */}
+        <div className="rounded-[10px] bg-white p-6 shadow-1 dark:bg-gray-dark">
+          <h2 className="mb-4 text-lg font-bold text-dark dark:text-white">Recent Signups</h2>
+          <div className="space-y-3">
+            {recentUsers.slice(0, 5).map((user) => (
+              <div key={user.id} className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-dark dark:text-white">
+                    {user.full_name || user.email?.split("@")[0] || "User"}
+                  </p>
+                  <p className="text-xs text-dark-6">{user.email}</p>
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    user.plan === "elite"
+                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                      : user.plan === "pro"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                  }`}
+                >
+                  {user.plan || "free"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  growth,
+  icon,
+}: {
+  label: string;
+  value: number;
+  growth: number;
+  icon: string;
+  color: string;
+}) {
+  const isPositive = growth >= 0;
+  return (
+    <div className="rounded-[10px] bg-white p-6 shadow-1 dark:bg-gray-dark">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-2xl">{icon}</span>
+        <span className={`text-xs font-medium ${isPositive ? "text-green" : "text-red"}`}>
+          {isPositive ? "+" : ""}
+          {growth}%
+        </span>
+      </div>
+      <p className="text-2xl font-bold text-dark dark:text-white">{value.toLocaleString()}</p>
+      <p className="text-sm text-dark-6 mt-1">{label}</p>
+    </div>
   );
 }

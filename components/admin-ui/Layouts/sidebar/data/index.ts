@@ -12,58 +12,27 @@ export const NAV_DATA = [
         ],
       },
       {
-        title: "Support",
-        url: "/admin/support",
-        icon: Icons.Chat,
-        items: [],
-      },
-      {
-        title: "Calendar",
-        url: "/admin/calendar",
-        icon: Icons.Calendar,
-        items: [],
-      },
-      {
-        title: "Profile",
-        url: "/admin/profile",
+        title: "Users",
+        url: "/admin/users",
         icon: Icons.User,
         items: [],
       },
       {
-        title: "Forms",
-        icon: Icons.Alphabet,
-        items: [
-          { title: "Form Elements", url: "/admin/forms/form-elements" },
-          { title: "Form Layout", url: "/admin/forms/form-layout" },
-        ],
-      },
-      {
-        title: "Tables",
-        url: "/admin/tables",
-        icon: Icons.Table,
-        items: [
-          { title: "Tables", url: "/admin/tables" },
-        ],
+        title: "Support Tickets",
+        url: "/admin/support",
+        icon: Icons.Chat,
+        items: [],
       },
     ],
   },
   {
-    label: "OTHERS",
+    label: "ANALYTICS",
     items: [
       {
-        title: "Charts",
+        title: "Revenue",
+        url: "/admin/charts/basic-chart",
         icon: Icons.PieChart,
-        items: [
-          { title: "Basic Chart", url: "/admin/charts/basic-chart" },
-        ],
-      },
-      {
-        title: "UI Elements",
-        icon: Icons.FourCircle,
-        items: [
-          { title: "Alerts", url: "/admin/ui-elements/alerts" },
-          { title: "Buttons", url: "/admin/ui-elements/buttons" },
-        ],
+        items: [],
       },
     ],
   },
