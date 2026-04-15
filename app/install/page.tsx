@@ -14,8 +14,8 @@ const HACKING_TABS = [
     id: "linux",
     label: "🐧 Linux / Kali",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install.sh | bash",
-    note: "Full pipeline: recon → hunt → Abhimanyu exploit mode. Kali Linux recommended.",
-    features: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"],
+    note: "Full agentic pipeline v4.1.0: recon → hunt → exploit → PoC → manual guide. Kali Linux recommended.",
+    features: ["Agentic brain (multi-step planning)", "Recon (20+ tools)", "Hunt (15+ tools)", "Abhimanyu exploit", "Omega plan mode", "BizLogic scanner", "Manual guide AI", "AI security chat"],
   },
   {
     id: "windows-hack",
@@ -321,12 +321,14 @@ export default function InstallPage() {
           </p>
           <div className="grid gap-2 md:grid-cols-2 text-sm">
             {[
-              { cmd: "cybermind chat",              desc: "AI security chat (all platforms)" },
-              { cmd: "cybermind recon -t TARGET",   desc: "Automated recon (Linux only)" },
-              { cmd: "cybermind hunt -t TARGET",    desc: "Hunt engine (Linux only)" },
-              { cmd: "cybermind vibe",              desc: "CBM Code AI coding (all platforms)" },
-              { cmd: "cybermind abhimanyu",         desc: "Exploit mode (Linux, Elite plan)" },
-              { cmd: "cybermind doctor",            desc: "Diagnose + fix setup issues" },
+              { cmd: "cybermind --version",              desc: "Check version (should be v4.1.0)" },
+              { cmd: "sudo cybermind /doctor",           desc: "Install all tools + auto-fix" },
+              { cmd: "sudo cybermind /plan --auto-target", desc: "Agentic bug bounty (auto-target)" },
+              { cmd: "sudo cybermind /plan target.com",  desc: "Scan specific target" },
+              { cmd: "sudo cybermind /bizlogic target.com", desc: "Business logic bugs" },
+              { cmd: "sudo cybermind /guide target.com", desc: "AI manual testing guide" },
+              { cmd: "cybermind /vibe",                  desc: "CBM Code AI coding (all platforms)" },
+              { cmd: "cybermind chat",                   desc: "AI security chat" },
             ].map(item => (
               <div key={item.cmd} className="flex items-center gap-3 rounded-xl border border-white/8 px-3 py-2">
                 <code className="font-mono text-xs text-[#00d4ff] flex-shrink-0">{item.cmd}</code>
