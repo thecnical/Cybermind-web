@@ -123,3 +123,32 @@ export async function getRecentActivity() {
     time: u.created_at,
   }));
 }
+
+export async function getChatsData() {
+  const supabase = getSupabase();
+  if (!supabase) return { total: 0, today: 0, avgPerUser: 0 };
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const [{ count: total }, { count: today }] = await Promise.all([
+    supabase.from("chat_history").select("*", { count: "exact", head: true }),
+    supabase
+      .from("chat_history")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startOfDay.toISOString()),
+  ]);
+
+  const { count: users } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true });
+
+  const avgPerUser =
+    users && users > 0 ? Math.round(((total || 0) / users) * 10) / 10 : 0;
+
+  return {
+    total: total || 0,
+    today: today || 0,
+    avgPerUser,
+  };
+}
