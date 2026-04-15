@@ -1,5 +1,5 @@
 ﻿#!/bin/bash
-# CyberMind CLI — Linux/Kali Installer v2.5.2
+# CyberMind CLI — Linux/Kali Installer v2.6.2
 # Downloads pre-built binary — NO Go required.
 # Full pipeline: recon + hunt + Abhimanyu + Omega + AI chat
 #
@@ -25,7 +25,7 @@ echo -e "${CYAN}██║      ╚████╔╝ ██████╔╝█
 echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
 echo -e "${CYAN} ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝${NC}"
 echo ""
-echo -e "${GREEN}  ⚡ CyberMind CLI v2.5.2 — Installer${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v2.6.2 — Installer${NC}"
 echo -e "${DIM}  No Go required. Full pipeline: recon + hunt + Abhimanyu + Omega + AI chat${NC}"
 echo ""
 
@@ -98,7 +98,7 @@ done
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡ CyberMind CLI v2.5.2 installed!${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v2.6.2 installed!${NC}"
 echo ""
 echo -e "  ${CYAN}Verify:${NC}      cybermind --version"
 echo -e "  ${CYAN}AI Chat:${NC}     cybermind"
