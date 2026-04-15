@@ -5,8 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { getChatsData } from "../fetch";
 
+type ChatItem = {
+  name: string;
+  profile: string;
+  isActive: boolean;
+  lastMessage: { content: string; timestamp: string };
+  unreadCount: number;
+};
+
 export async function ChatsCard() {
-  const data = await getChatsData();
+  const rawData = await getChatsData();
+  // Handle both array and legacy object return types
+  const data: ChatItem[] = Array.isArray(rawData) ? rawData : [];
 
   return (
     <div className="col-span-12 rounded-[10px] bg-white py-6 shadow-1 dark:bg-gray-dark dark:shadow-card xl:col-span-4">

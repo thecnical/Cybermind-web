@@ -124,7 +124,15 @@ export async function getRecentActivity() {
   }));
 }
 
-export async function getChatsData() {
+type ChatItem = {
+  name: string;
+  profile: string;
+  isActive: boolean;
+  lastMessage: { content: string; timestamp: string };
+  unreadCount: number;
+};
+
+export async function getChatsData(): Promise<ChatItem[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
 
