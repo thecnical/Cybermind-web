@@ -1,6 +1,25 @@
 import * as Icons from "../icons";
 
-export const NAV_DATA = [
+type NavSubItem = {
+  title: string;
+  url: string;
+};
+
+type NavItem = {
+  title: string;
+  url?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavSubItem[];
+};
+
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
+
+import type React from "react";
+
+export const NAV_DATA: NavSection[] = [
   {
     label: "OVERVIEW",
     items: [
