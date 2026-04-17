@@ -8,7 +8,6 @@ import { Sidebar } from "@/components/admin-ui/Layouts/sidebar";
 import { Header } from "@/components/admin-ui/Layouts/header";
 import { Providers } from "@/app/admin/providers";
 
-// All 5 team members who can access admin panel
 const ADMIN_EMAILS = new Set([
   "chandanabhay4456@gmail.com",
   "chandanabhay458@gmail.com",
@@ -17,24 +16,44 @@ const ADMIN_EMAILS = new Set([
   "d53973292@gmail.com",
 ]);
 
+function isAdmin(email?: string | null) {
+  return !!email && ADMIN_EMAILS.has(email.toLowerCase().trim());
+}
+
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<"loading" | "ok" | "denied">("loading");
 
   useEffect(() => {
-    // Use getUser() for fresh auth check (not cached getSession)
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      const email = user?.email?.toLowerCase() ?? "";
-      if (ADMIN_EMAILS.has(email)) {
+    // Check session immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (isAdmin(session?.user?.email)) {
         setState("ok");
+      } else if (session?.user) {
+        // Logged in but not admin
+        setState("denied");
+        router.replace("/dashboard");
+      } else {
+        // Not logged in
+        setState("denied");
+        router.replace("/auth/login?redirect=/admin");
+      }
+    });
+
+    // Also listen for auth state changes (handles post-login redirect)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isAdmin(session?.user?.email)) {
+        setState("ok");
+      } else if (session?.user) {
+        setState("denied");
+        router.replace("/dashboard");
       } else {
         setState("denied");
         router.replace("/auth/login?redirect=/admin");
       }
-    }).catch(() => {
-      setState("denied");
-      router.replace("/auth/login?redirect=/admin");
     });
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   if (state === "loading") {

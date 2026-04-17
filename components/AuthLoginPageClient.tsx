@@ -54,6 +54,8 @@ export default function AuthLoginPageClient({
       return;
     }
 
+    // Small delay so Supabase session is fully set before redirect
+    await new Promise(r => setTimeout(r, 300));
     // FIX: redirect to original destination (not always /dashboard)
     router.replace(redirectTo);
   }
