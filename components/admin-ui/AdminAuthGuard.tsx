@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import NextTopLoader from "nextjs-toploader";
 import { Sidebar } from "@/components/admin-ui/Layouts/sidebar";
@@ -11,8 +11,14 @@ import { Providers } from "@/app/admin/providers";
 type AuthState = "loading" | "authorized" | "unauthorized" | "not-admin";
 
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const router   = useRouter();
+  const pathname = usePathname();
   const [authState, setAuthState] = useState<AuthState>("loading");
+
+  // ── If we're on the login page, just render it — no auth check ──────────
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     async function checkAuth() {
@@ -30,7 +36,6 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
           .single();
 
         if (profile?.role !== "admin") {
-          // Not admin — redirect to admin login with funny message
           router.replace("/admin/login");
           setAuthState("not-admin");
           return;

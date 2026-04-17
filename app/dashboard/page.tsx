@@ -301,6 +301,30 @@ export default function DashboardPage() {
             <Download size={14} /> Receipt
           </button>
         </div>
+        {/* Admin panel button — only for boss admins */}
+        {(user?.email === "chandanabhay4456@gmail.com" || user?.email === "chandanabhay458@gmail.com") && (
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-400 transition hover:bg-cyan-500/20"
+            >
+              ⚡ Open Admin Panel
+            </Link>
+            <span className="ml-3 text-xs text-gray-600">Boss Admin access</span>
+          </div>
+        )}
+        {/* Tech team — admin panel link (read access) */}
+        {(user?.email === "omkargavali2006@gmail.com" || user?.email === "tadikondakhamshiq18.23@gmail.com" || user?.email === "d53973292@gmail.com") && (
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-xl border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm font-semibold text-purple-400 transition hover:bg-purple-500/20"
+            >
+              🛠️ Tech Team Panel
+            </Link>
+            <span className="ml-3 text-xs text-gray-600">Team access</span>
+          </div>
+        )}
       </section>
 
       {/* Stats */}
