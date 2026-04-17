@@ -8,46 +8,63 @@ import { Sidebar } from "@/components/admin-ui/Layouts/sidebar";
 import { Header } from "@/components/admin-ui/Layouts/header";
 import { Providers } from "@/app/admin/providers";
 
-type AuthState = "loading" | "authorized" | "unauthorized" | "not-admin";
+// ── Admin email whitelist — no SQL dependency ─────────────────────────────────
+// Boss admins + tech team all get admin panel access
+const ADMIN_EMAILS = new Set([
+  "chandanabhay4456@gmail.com",
+  "chandanabhay458@gmail.com",
+  "omkargavali2006@gmail.com",
+  "tadikondakhamshiq18.23@gmail.com",
+  "d53973292@gmail.com",
+]);
+
+type AuthState = "loading" | "authorized" | "unauthorized";
 
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
   const [authState, setAuthState] = useState<AuthState>("loading");
 
-  // ── If we're on the login page, just render it — no auth check ──────────
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
-  }
+  const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
+    // Login page — skip auth check entirely
+    if (isLoginPage) {
+      setAuthState("authorized");
+      return;
+    }
+
     async function checkAuth() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+
+        if (!session?.user?.email) {
           router.replace("/admin/login");
           setAuthState("unauthorized");
           return;
         }
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
 
-        if (profile?.role !== "admin") {
+        // Check email whitelist — no DB query needed
+        if (!ADMIN_EMAILS.has(session.user.email.toLowerCase())) {
           router.replace("/admin/login");
-          setAuthState("not-admin");
+          setAuthState("unauthorized");
           return;
         }
+
         setAuthState("authorized");
       } catch {
         router.replace("/admin/login");
         setAuthState("unauthorized");
       }
     }
+
     checkAuth();
-  }, [router]);
+  }, [router, isLoginPage]);
+
+  // Login page — render immediately, no loading state
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (authState === "loading") {
     return (
@@ -60,7 +77,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (authState !== "authorized") return null;
+  if (authState === "unauthorized") return null;
 
   return (
     <Providers>

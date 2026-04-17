@@ -4,8 +4,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-// ── Admin emails — only these can access admin panel ─────────────────────────
+// ── All admin/tech team emails ────────────────────────────────────────────────
 const ADMIN_EMAILS = new Set([
+  "chandanabhay4456@gmail.com",
+  "chandanabhay458@gmail.com",
+  "omkargavali2006@gmail.com",
+  "tadikondakhamshiq18.23@gmail.com",
+  "d53973292@gmail.com",
+]);
+
+// Boss admins only (for funny message — others get normal rejection)
+const BOSS_EMAILS = new Set([
   "chandanabhay4456@gmail.com",
   "chandanabhay458@gmail.com",
 ]);
@@ -39,13 +48,11 @@ export default function AdminLoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [glitch, setGlitch]     = useState(false);
 
-  // Check if already logged in as admin
+  // Check if already logged in as admin — use email whitelist, no DB query
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
-      const { data: profile } = await supabase
-        .from("profiles").select("role").eq("id", session.user.id).single();
-      if (profile?.role === "admin") {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user?.email) return;
+      if (ADMIN_EMAILS.has(session.user.email.toLowerCase())) {
         router.replace("/admin");
       }
     });
@@ -56,8 +63,9 @@ export default function AdminLoginPage() {
     setError("");
     setFunnyMsg("");
 
-    // Client-side email check — show funny message immediately
     const cleanEmail = email.trim().toLowerCase();
+
+    // Client-side email check — show funny message immediately for unknown emails
     if (!ADMIN_EMAILS.has(cleanEmail)) {
       setAttempts(a => a + 1);
       setFunnyMsg(getRandomFunnyMessage());
@@ -74,26 +82,23 @@ export default function AdminLoginPage() {
       });
 
       if (authErr) {
-        setError("Wrong password. Try again.");
+        // Wrong password
+        setError(`Wrong password. Try again. (${authErr.message})`);
         setAttempts(a => a + 1);
         setLoading(false);
         return;
       }
 
-      // Verify admin role in DB
-      const { data: profile } = await supabase
-        .from("profiles").select("role").eq("id", data.user.id).single();
-
-      if (profile?.role !== "admin") {
-        await supabase.auth.signOut();
-        setFunnyMsg(getRandomFunnyMessage());
-        setAttempts(a => a + 1);
+      if (!data.user) {
+        setError("Login failed. Try again.");
         setLoading(false);
         return;
       }
 
+      // Email is in whitelist + password correct = admin access granted
+      // No DB role check needed — email whitelist is the source of truth
       router.replace("/admin");
-    } catch {
+    } catch (err) {
       setError("Something went wrong. Try again.");
       setLoading(false);
     }
