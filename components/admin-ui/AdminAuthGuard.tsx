@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import NextTopLoader from "nextjs-toploader";
 import { Sidebar } from "@/components/admin-ui/Layouts/sidebar";
 import { Header } from "@/components/admin-ui/Layouts/header";
 import { Providers } from "@/app/admin/providers";
 
-// ── Admin email whitelist — no SQL dependency ─────────────────────────────────
-// Boss admins + tech team all get admin panel access
+// All 5 team members who can access admin panel
 const ADMIN_EMAILS = new Set([
   "chandanabhay4456@gmail.com",
   "chandanabhay458@gmail.com",
@@ -18,66 +17,35 @@ const ADMIN_EMAILS = new Set([
   "d53973292@gmail.com",
 ]);
 
-type AuthState = "loading" | "authorized" | "unauthorized";
-
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
-  const router   = useRouter();
-  const pathname = usePathname();
-  const [authState, setAuthState] = useState<AuthState>("loading");
-
-  const isLoginPage = pathname === "/admin/login";
+  const router = useRouter();
+  const [state, setState] = useState<"loading" | "ok" | "denied">("loading");
 
   useEffect(() => {
-    // Login page — skip auth check entirely
-    if (isLoginPage) {
-      setAuthState("authorized");
-      return;
-    }
-
-    async function checkAuth() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session?.user?.email) {
-          router.replace("/admin/login");
-          setAuthState("unauthorized");
-          return;
-        }
-
-        // Check email whitelist — no DB query needed
-        if (!ADMIN_EMAILS.has(session.user.email.toLowerCase())) {
-          router.replace("/admin/login");
-          setAuthState("unauthorized");
-          return;
-        }
-
-        setAuthState("authorized");
-      } catch {
-        router.replace("/admin/login");
-        setAuthState("unauthorized");
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const email = session?.user?.email?.toLowerCase() ?? "";
+      if (ADMIN_EMAILS.has(email)) {
+        setState("ok");
+      } else {
+        // Not logged in or not in whitelist — send to regular login
+        setState("denied");
+        router.replace("/auth/login?redirect=/admin");
       }
-    }
+    });
+  }, [router]);
 
-    checkAuth();
-  }, [router, isLoginPage]);
-
-  // Login page — render immediately, no loading state
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
-  if (authState === "loading") {
+  if (state === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#020d1a]">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
-          <p className="font-mono text-sm text-cyan-500">$ verifying admin access...</p>
+          <p className="font-mono text-sm text-cyan-500">$ verifying access...</p>
         </div>
       </div>
     );
   }
 
-  if (authState === "unauthorized") return null;
+  if (state === "denied") return null;
 
   return (
     <Providers>

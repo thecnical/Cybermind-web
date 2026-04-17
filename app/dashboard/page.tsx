@@ -313,7 +313,7 @@ export default function DashboardPage() {
             <span className="ml-3 text-xs text-gray-600">Boss Admin access</span>
           </div>
         )}
-        {/* Tech team — admin panel link (read access) */}
+        {/* Tech team — admin panel link */}
         {(user?.email === "omkargavali2006@gmail.com" || user?.email === "tadikondakhamshiq18.23@gmail.com" || user?.email === "d53973292@gmail.com") && (
           <div className="mt-4 border-t border-white/5 pt-4">
             <Link
