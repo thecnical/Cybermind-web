@@ -25,32 +25,28 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<"loading" | "ok" | "denied">("loading");
 
   useEffect(() => {
-    // Check session immediately
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isAdmin(session?.user?.email)) {
+    let resolved = false;
+
+    function resolve(email?: string | null) {
+      if (resolved) return;
+      resolved = true;
+      if (isAdmin(email)) {
         setState("ok");
-      } else if (session?.user) {
-        // Logged in but not admin
-        setState("denied");
-        router.replace("/dashboard");
       } else {
-        // Not logged in
         setState("denied");
-        router.replace("/auth/login?redirect=/admin");
+        // Send to dashboard login — they're already logged in as regular user
+        router.replace("/dashboard");
       }
+    }
+
+    // Check existing session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      resolve(session?.user?.email);
     });
 
-    // Also listen for auth state changes (handles post-login redirect)
+    // Also listen for auth changes (handles magic link / post-login)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (isAdmin(session?.user?.email)) {
-        setState("ok");
-      } else if (session?.user) {
-        setState("denied");
-        router.replace("/dashboard");
-      } else {
-        setState("denied");
-        router.replace("/auth/login?redirect=/admin");
-      }
+      resolve(session?.user?.email);
     });
 
     return () => subscription.unsubscribe();

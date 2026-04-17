@@ -5,35 +5,42 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CyberMindLogo from "@/components/CyberMindLogo";
 
-// This page handles Supabase auth redirects:
-// - Email verification
-// - Password reset
-// - Magic link login
-// Supabase redirects to /auth/callback with tokens in URL hash
+// Handles Supabase auth redirects:
+// - Email verification → /dashboard
+// - Password reset → /auth/reset-password  ← MUST go here, not dashboard
+// - Magic link login → /dashboard
 export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Supabase automatically handles the hash tokens
-    // Just wait for session to be established then redirect
+    // ONLY listen to auth state changes — do NOT call getSession() here
+    // getSession() would redirect to /dashboard before PASSWORD_RECOVERY fires
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        router.replace("/dashboard");
-      } else if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY") {
+        // Password reset link clicked — go to reset page
         router.replace("/auth/reset-password");
+      } else if (event === "SIGNED_IN" && session) {
+        // Email verification or magic link — go to dashboard
+        router.replace("/dashboard");
       } else if (event === "USER_UPDATED") {
         router.replace("/dashboard");
       }
     });
 
-    // Also check immediately in case session already exists
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Fallback: if no event fires in 3s, check session and redirect
+    const fallback = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.replace("/dashboard");
+      } else {
+        router.replace("/auth/login");
       }
-    });
+    }, 3000);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(fallback);
+    };
   }, [router]);
 
   return (
