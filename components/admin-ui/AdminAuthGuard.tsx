@@ -16,41 +16,41 @@ const ADMIN_EMAILS = new Set([
   "d53973292@gmail.com",
 ]);
 
-function isAdmin(email?: string | null) {
-  return !!email && ADMIN_EMAILS.has(email.toLowerCase().trim());
-}
-
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  // Start as "loading" — never redirect until we know for sure
   const [state, setState] = useState<"loading" | "ok" | "denied">("loading");
 
   useEffect(() => {
-    let resolved = false;
+    async function check() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const email = session?.user?.email?.toLowerCase().trim() ?? "";
 
-    function resolve(email?: string | null) {
-      if (resolved) return;
-      resolved = true;
-      if (isAdmin(email)) {
-        setState("ok");
-      } else {
+        if (!session) {
+          // Not logged in at all — go to login
+          router.replace("/auth/login?redirect=/admin");
+          setState("denied");
+          return;
+        }
+
+        if (ADMIN_EMAILS.has(email)) {
+          // Logged in + admin email → show admin panel
+          setState("ok");
+        } else {
+          // Logged in but not admin → go back to their dashboard
+          router.replace("/dashboard");
+          setState("denied");
+        }
+      } catch {
+        router.replace("/auth/login?redirect=/admin");
         setState("denied");
-        // Send to dashboard login — they're already logged in as regular user
-        router.replace("/dashboard");
       }
     }
 
-    // Check existing session first
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      resolve(session?.user?.email);
-    });
-
-    // Also listen for auth changes (handles magic link / post-login)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      resolve(session?.user?.email);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router]);
+    check();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (state === "loading") {
     return (
