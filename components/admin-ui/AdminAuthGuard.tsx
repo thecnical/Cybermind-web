@@ -22,15 +22,18 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<"loading" | "ok" | "denied">("loading");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const email = session?.user?.email?.toLowerCase() ?? "";
+    // Use getUser() for fresh auth check (not cached getSession)
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const email = user?.email?.toLowerCase() ?? "";
       if (ADMIN_EMAILS.has(email)) {
         setState("ok");
       } else {
-        // Not logged in or not in whitelist — send to regular login
         setState("denied");
         router.replace("/auth/login?redirect=/admin");
       }
+    }).catch(() => {
+      setState("denied");
+      router.replace("/auth/login?redirect=/admin");
     });
   }, [router]);
 
