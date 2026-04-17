@@ -19,7 +19,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          router.replace("/auth/login?redirect=/admin");
+          router.replace("/admin/login");
           setAuthState("unauthorized");
           return;
         }
@@ -30,13 +30,14 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
           .single();
 
         if (profile?.role !== "admin") {
-          router.replace("/dashboard");
+          // Not admin — redirect to admin login with funny message
+          router.replace("/admin/login");
           setAuthState("not-admin");
           return;
         }
         setAuthState("authorized");
       } catch {
-        router.replace("/auth/login?redirect=/admin");
+        router.replace("/admin/login");
         setAuthState("unauthorized");
       }
     }
@@ -47,8 +48,8 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#020d1a]">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#5750F1] border-t-transparent" />
-          <p className="text-sm text-gray-400">Verifying admin access...</p>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+          <p className="font-mono text-sm text-cyan-500">$ verifying admin access...</p>
         </div>
       </div>
     );
@@ -58,7 +59,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   return (
     <Providers>
-      <NextTopLoader color="#5750F1" showSpinner={false} />
+      <NextTopLoader color="#00ffff" showSpinner={false} />
       <div className="flex min-h-screen">
         <Sidebar />
         <div className="w-full bg-gray-2 dark:bg-[#020d1a]">
