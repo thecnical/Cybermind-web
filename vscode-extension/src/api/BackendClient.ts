@@ -258,33 +258,63 @@ export class BackendClient {
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
+    // POST /auth/login — backend wraps Supabase auth and returns JWT + plan
     const url = `${this.baseUrl}/auth/login`;
     logger.info('POST /auth/login');
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => '');
-      throw new Error(`Login failed: ${errorBody || response.statusText}`);
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: request.email, password: request.password }),
+        signal: AbortSignal.timeout(20000),
+      });
+    } catch {
+      throw new Error('Unable to reach authentication server. Check your connection.');
     }
 
-    return response.json() as Promise<LoginResponse>;
+    const data = await response.json().catch(() => ({})) as { success?: boolean; token?: string; plan?: string; email?: string; error?: string };
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Login failed. Check your email and password.');
+    }
+
+    return {
+      token: data.token || '',
+      plan: data.plan || 'free',
+      email: data.email || request.email,
+    };
   }
 
-  async validateApiKey(apiKey: string): Promise<{ valid: boolean; plan?: string; email?: string }> {
+  async validateApiKey(apiKey: string): Promise<{ valid: boolean; plan?: string; email?: string; userName?: string }> {
     try {
-      const url = `${this.baseUrl}/auth/validate`;
+      // POST /auth/validate-key with X-API-Key header
+      const url = `${this.baseUrl}/auth/validate-key`;
       const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'X-API-Key': apiKey },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify({}),
+        signal: AbortSignal.timeout(15000),
       });
       if (!response.ok) return { valid: false };
-      const data = await response.json().catch(() => ({})) as { plan?: string; email?: string };
-      return { valid: true, plan: data.plan, email: data.email };
+      const data = await response.json().catch(() => ({})) as {
+        success?: boolean;
+        plan?: string;
+        email?: string;
+        user_name?: string;
+        key_name?: string;
+      };
+      if (!data.success) return { valid: false };
+      return {
+        valid: true,
+        plan: data.plan || 'free',
+        email: data.email,
+        userName: data.user_name,
+      };
     } catch {
       return { valid: false };
     }

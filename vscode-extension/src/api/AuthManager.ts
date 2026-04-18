@@ -4,7 +4,8 @@ const KEY_AUTH_TOKEN = 'cybermind.authToken';
 const KEY_API_KEY = 'cybermind.apiKey';
 const KEY_USER_EMAIL = 'cybermind.userEmail';
 const KEY_USER_PLAN = 'cybermind.userPlan';
-const API_KEY_REGEX = /^cp_live_[a-zA-Z0-9]+$/;
+// cp_live_ followed by base64url chars (A-Z, a-z, 0-9, -, _)
+const API_KEY_REGEX = /^cp_live_[A-Za-z0-9\-_]{20,}$/;
 
 export class AuthManager {
   constructor(private readonly secrets: vscode.SecretStorage) {}

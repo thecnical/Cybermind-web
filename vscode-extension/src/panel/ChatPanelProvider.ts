@@ -475,15 +475,16 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     const result = await this.backendClient.validateApiKey(apiKey);
     if (!result.valid) {
-      this.postToWebview({ type: 'error', message: 'API key validation failed. Please check your key.' });
+      this.postToWebview({ type: 'error', message: 'API key validation failed. Please check your key or create a new one from your dashboard.' });
       return;
     }
 
     await this.authManager.setApiKey(apiKey);
+    const displayName = result.userName || result.email || 'API Key User';
     if (result.email) await this.authManager.setUserEmail(result.email);
     if (result.plan) await this.authManager.setUserPlan(result.plan);
     const plan = result.plan || 'free';
-    this.postToWebview({ type: 'authState', isAuthenticated: true, email: result.email, plan });
+    this.postToWebview({ type: 'authState', isAuthenticated: true, email: displayName, plan });
     this.postToWebview({ type: 'showScreen', screen: 'chat' });
     this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
   }
