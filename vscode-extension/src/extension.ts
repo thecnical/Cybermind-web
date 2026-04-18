@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { AuthManager } from './api/AuthManager';
 import { BackendClient } from './api/BackendClient';
+import { OAuthFlow } from './api/OAuthFlow';
 import { SessionManager } from './session/SessionManager';
 import { RepoIndexer } from './indexer/RepoIndexer';
 import { SecurityScanner } from './security/SecurityScanner';
@@ -22,6 +23,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // --- Instantiate all singletons ---
     const authManager = new AuthManager(context.secrets);
     const backendClient = new BackendClient();
+    const oauthFlow = new OAuthFlow(authManager, backendClient);
     const sessionManager = new SessionManager(context.globalState);
     const agentRegistry = new AgentRegistry(context.globalState);
 
@@ -85,7 +87,48 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // --- Start repo indexer watching ---
     repoIndexer.startWatching(context);
 
-    // --- Register all 11 commands ---
+    // --- Register URI handler for OAuth callback ---
+    // Handles: vscode://cybermind/auth?token=...&plan=...&email=...&state=...
+    context.subscriptions.push(
+      vscode.window.registerUriHandler({
+        handleUri: async (uri: vscode.Uri) => {
+          if (uri.path === '/auth') {
+            const params = new URLSearchParams(uri.query);
+            const token = params.get('token');
+            const plan = params.get('plan') || 'free';
+            const email = params.get('email') || '';
+
+            if (token) {
+              await authManager.setToken(token);
+              if (email) await authManager.setUserEmail(email);
+              await authManager.setUserPlan(plan);
+
+              chatPanelProvider.postToWebview({
+                type: 'authState',
+                isAuthenticated: true,
+                email,
+                plan,
+              });
+              chatPanelProvider.postToWebview({ type: 'showScreen', screen: 'chat' });
+              chatPanelProvider.postToWebview({ type: 'agentList', agents: agentRegistry.getAllAgents() });
+
+              vscode.window.showInformationMessage(`CyberMind: Signed in as ${email} (${plan} plan)`);
+            }
+          }
+        }
+      })
+    );
+
+    // --- signIn command (opens browser OAuth flow) ---
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.signIn', async () => {
+        vscode.window.showInformationMessage('CyberMind: Opening sign-in page in your browser...');
+        const crypto = await import('crypto');
+        const state = crypto.randomBytes(16).toString('hex');
+        const loginUrl = `https://cybermindcli1.vercel.app/auth/vscode?state=${state}`;
+        await vscode.env.openExternal(vscode.Uri.parse(loginUrl));
+      })
+    );
 
     // 1. openChat
     context.subscriptions.push(

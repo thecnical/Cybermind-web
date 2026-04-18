@@ -23,7 +23,8 @@
     "cybermind"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onUri"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -50,6 +51,11 @@
       {
         "command": "cybermind.openChat",
         "title": "Open Chat",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.signIn",
+        "title": "Sign In",
         "category": "CyberMind"
       },
       {

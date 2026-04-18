@@ -184,42 +184,39 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     <li>Real File Editing</li>
     <li>Inline Completions</li>
   </ul>
-  <div class="welcome-buttons">
-    <button class="btn-primary" id="btn-signup">Sign Up</button>
-    <button class="btn-secondary" id="btn-goto-signin">Sign In</button>
-  </div>
-  <div class="welcome-free-note">Free tier available · no account required</div>
-  <button class="btn-secondary" id="btn-continue-free" style="max-width:280px;width:100%;margin-top:4px;">Continue Free</button>
+  <!-- Primary: web OAuth login -->
+  <button class="btn-primary" id="btn-web-signin" style="max-width:280px;width:100%;margin-top:4px;">
+    &#9889; Sign in with CyberMind
+  </button>
+  <!-- Secondary: API key -->
+  <button class="btn-secondary" id="btn-goto-apikey" style="max-width:280px;width:100%;margin-top:8px;">
+    Use API Key
+  </button>
+  <div class="welcome-free-note" style="margin-top:8px">Free tier available · no account required</div>
+  <button class="btn-secondary" id="btn-continue-free" style="max-width:280px;width:100%;margin-top:4px;font-size:11px;padding:7px;">Continue Free (OpenRouter)</button>
 </div>
 
-<!-- ===== SIGN IN SCREEN ===== -->
+<!-- ===== API KEY SCREEN ===== -->
 <div id="screen-signin" class="screen hidden">
   <div class="signin-header">
     <button class="btn-back" id="btn-back-from-signin">&#8592;</button>
-    <span class="signin-title">Sign In</span>
+    <span class="signin-title">Connect with API Key</span>
   </div>
   <div class="signin-form">
-    <div id="email-password-fields">
+    <div id="api-key-fields">
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-input" id="signin-email" placeholder="user@example.com" autocomplete="email">
-      </div>
-      <div class="form-group" style="margin-top:10px">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-input" id="signin-password" placeholder="········" autocomplete="current-password">
-      </div>
-      <button class="btn-signin" id="btn-signin-submit" style="margin-top:14px">Sign In</button>
-      <div class="signin-divider" style="margin-top:14px">or</div>
-      <button class="btn-api-key-toggle" id="btn-use-api-key" style="margin-top:10px">Use API Key instead</button>
-    </div>
-    <div id="api-key-fields" style="display:none">
-      <div class="form-group">
-        <label class="form-label">API Key (cp_live_...)</label>
+        <label class="form-label">API Key</label>
         <input type="password" class="form-input" id="signin-apikey" placeholder="cp_live_xxxxxxxxxxxxxxxx" autocomplete="off">
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
+          Get your key at <span style="color:var(--accent);cursor:pointer" id="link-get-key">cybermindcli1.vercel.app/dashboard/api-keys</span>
+        </div>
       </div>
       <button class="btn-signin" id="btn-apikey-submit" style="margin-top:14px">Connect with API Key</button>
       <div class="signin-divider" style="margin-top:14px">or</div>
-      <button class="btn-api-key-toggle" id="btn-use-email" style="margin-top:10px">Use Email &amp; Password instead</button>
+      <button class="btn-api-key-toggle" id="btn-web-signin-from-apikey" style="margin-top:10px">&#9889; Sign in with CyberMind (browser)</button>
+    </div>
+      <div class="signin-divider" style="margin-top:14px">or</div>
+      <button class="btn-api-key-toggle" id="btn-web-signin-from-apikey2" style="margin-top:10px;display:none">placeholder</button>
     </div>
     <div class="error-message" id="signin-error"></div>
   </div>
@@ -855,13 +852,13 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
   });
 
   // Welcome screen buttons
-  document.getElementById('btn-signup').addEventListener('click', function() {
-    // Open signup in browser
-    vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/auth/register' });
-    showScreen('signin');
+  document.getElementById('btn-web-signin').addEventListener('click', function() {
+    // Open browser OAuth flow — extension handles the vscode:// URI callback
+    vscode.postMessage({ type: 'webSignIn' });
+    showToast('Opening browser for sign-in...', '');
   });
 
-  document.getElementById('btn-goto-signin').addEventListener('click', function() {
+  document.getElementById('btn-goto-apikey').addEventListener('click', function() {
     showScreen('signin');
   });
 
@@ -870,24 +867,9 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     vscode.postMessage({ type: 'continueAsFree' });
   });
 
-  // Sign in screen
+  // API key screen
   document.getElementById('btn-back-from-signin').addEventListener('click', function() {
     showScreen('welcome');
-  });
-
-  document.getElementById('btn-signin-submit').addEventListener('click', function() {
-    const email = document.getElementById('signin-email').value.trim();
-    const password = document.getElementById('signin-password').value;
-    const errEl = document.getElementById('signin-error');
-    if (!email || !password) {
-      errEl.textContent = 'Please enter email and password.';
-      errEl.classList.add('visible');
-      return;
-    }
-    errEl.classList.remove('visible');
-    this.disabled = true;
-    this.textContent = 'Signing in...';
-    vscode.postMessage({ type: 'signIn', email, password });
   });
 
   document.getElementById('btn-apikey-submit').addEventListener('click', function() {
@@ -904,17 +886,18 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     vscode.postMessage({ type: 'signInWithApiKey', apiKey });
   });
 
-  document.getElementById('btn-use-api-key').addEventListener('click', function() {
-    document.getElementById('email-password-fields').style.display = 'none';
-    document.getElementById('api-key-fields').style.display = '';
-    document.getElementById('signin-error').classList.remove('visible');
+  document.getElementById('btn-web-signin-from-apikey').addEventListener('click', function() {
+    vscode.postMessage({ type: 'webSignIn' });
+    showToast('Opening browser for sign-in...', '');
   });
 
-  document.getElementById('btn-use-email').addEventListener('click', function() {
-    document.getElementById('api-key-fields').style.display = 'none';
-    document.getElementById('email-password-fields').style.display = '';
-    document.getElementById('signin-error').classList.remove('visible');
+  document.getElementById('link-get-key').addEventListener('click', function() {
+    vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
   });
+    vscode.postMessage({ type: 'signInWithApiKey', apiKey });
+  });
+
+  // (old toggle handlers removed — now using web OAuth flow)
 
   // Close dropdowns on outside click
   document.addEventListener('click', function(e) {

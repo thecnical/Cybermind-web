@@ -182,6 +182,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         this.postToWebview({ type: 'showScreen', screen: 'chat' });
         this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
         break;
+      case 'webSignIn':
+        // Open browser OAuth flow
+        vscode.commands.executeCommand('cybermind.signIn');
+        break;
       case 'openExternal':
         vscode.env.openExternal(vscode.Uri.parse(message.url as string));
         break;
