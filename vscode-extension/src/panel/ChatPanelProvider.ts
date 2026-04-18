@@ -3,12 +3,15 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { AuthManager } from '../api/AuthManager';
 import { BackendClient } from '../api/BackendClient';
+import { McpManager } from '../api/McpManager';
 import { SessionManager, Message, FileOpRecord } from '../session/SessionManager';
 import { RepoIndexer } from '../indexer/RepoIndexer';
 import { FileOperations } from '../operations/FileOperations';
 import { TerminalManager } from '../operations/TerminalManager';
 import { SecurityScanner } from '../security/SecurityScanner';
 import { AgentRegistry } from '../agents/AgentRegistry';
+import { PlanMode, Plan } from '../agents/PlanMode';
+import { AgenticLoop } from '../agents/AgenticLoop';
 import { generateNonce } from '../utils/nonce';
 import { logger } from '../utils/logger';
 import * as crypto from 'crypto';
@@ -20,6 +23,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   private currentAgentId = 'code';
   private currentModelId = 'cybermindcli';
   private currentMessageId: string | null = null;
+  private pendingPlan: Plan | null = null;
+  private planMode: PlanMode;
+  private agenticLoop: AgenticLoop;
+  private mcpManager: McpManager;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -30,8 +37,13 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     private readonly fileOps: FileOperations,
     private readonly terminalManager: TerminalManager,
     private readonly securityScanner: SecurityScanner,
-    private readonly agentRegistry: AgentRegistry
-  ) {}
+    private readonly agentRegistry: AgentRegistry,
+    mcpManager?: McpManager
+  ) {
+    this.planMode = new PlanMode(backendClient, authManager, agentRegistry);
+    this.agenticLoop = new AgenticLoop(backendClient, authManager, fileOps, terminalManager, repoIndexer);
+    this.mcpManager = mcpManager || new McpManager({ get: () => undefined, update: async () => {} } as unknown as vscode.Memento);
+  }
 
   resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -249,16 +261,16 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     };
     this.sessionManager.addMessage(userMsg);
 
-    // Build context from active file + attachments
+    // Build context from active file + attachments + rich repo context
     let context = '';
 
-    // Active file context
+    // Active file context (highest priority)
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
       const doc = activeEditor.document;
       const selection = activeEditor.selection;
       const selectedText = doc.getText(selection);
-      const fileContent = selectedText || doc.getText().slice(0, 50000);
+      const fileContent = selectedText || doc.getText().slice(0, 30000);
       const relativePath = vscode.workspace.asRelativePath(doc.uri);
       context += `Active file: ${relativePath}\n\`\`\`${doc.languageId}\n${fileContent}\n\`\`\`\n\n`;
     }
@@ -269,17 +281,46 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       for (let i = 0; i < maxFiles; i++) {
         try {
           const content = await this.repoIndexer.getFileContent(attachments[i]);
-          const truncated = content.slice(0, 50000);
-          context += `File: ${attachments[i]}\n\`\`\`\n${truncated}\n\`\`\`\n\n`;
-        } catch {
-          // Skip unreadable files
-        }
+          context += `File: ${attachments[i]}\n\`\`\`\n${content.slice(0, 20000)}\n\`\`\`\n\n`;
+        } catch { /* skip */ }
       }
     }
 
+    // Rich repo context — relevant files based on query
+    if (context.length < 60000) {
+      const richContext = await this.repoIndexer.buildRichContext(text, 60000 - context.length);
+      if (richContext) context += richContext;
+    }
+
+    // MCP context
+    const mcpContext = this.mcpManager.buildMcpContext();
+    if (mcpContext) context += `\n\n${mcpContext}`;
+
     // Get agent info
     const agentDef = this.agentRegistry.getAgent(this.currentAgentId);
-    const agentName = agentDef?.name ?? this.currentAgentId;
+
+    // Check if user wants Plan Mode (starts with /plan or contains complex multi-step task)
+    const isPlanRequest = text.startsWith('/plan ') || text.startsWith('plan: ');
+    const planGoal = isPlanRequest ? text.replace(/^\/plan\s+|^plan:\s+/i, '') : '';
+
+    if (isPlanRequest && planGoal) {
+      await this.handlePlanMode(planGoal, context, messageId);
+      return;
+    }
+
+    // Check if user is approving a pending plan
+    if (this.pendingPlan && (text.toLowerCase() === 'yes' || text.toLowerCase() === 'approve' || text.toLowerCase() === 'execute' || text.toLowerCase() === 'run')) {
+      await this.executePendingPlan(messageId);
+      return;
+    }
+
+    // Check if user is rejecting a pending plan
+    if (this.pendingPlan && (text.toLowerCase() === 'no' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'reject')) {
+      this.pendingPlan = null;
+      this.postToWebview({ type: 'token', text: 'Plan cancelled. What would you like to do instead?' });
+      this.postToWebview({ type: 'done', messageId, fileOps: [] });
+      return;
+    }
 
     // Show typing indicator
     this.postToWebview({ type: 'token', text: '' });
@@ -370,6 +411,57 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       this.postToWebview({ type: 'error', message: errMsg });
       logger.error('Send message failed', error);
     }
+  }
+
+  private async handlePlanMode(goal: string, context: string, messageId: string): Promise<void> {
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: '🔍 **Generating plan...**\n\n' });
+
+    const plan = await this.planMode.generatePlan(goal, context, this.currentAgentId, this.currentModelId);
+
+    if (!plan) {
+      this.postToWebview({ type: 'token', text: 'Failed to generate plan. Please try again.' });
+      this.postToWebview({ type: 'done', messageId, fileOps: [] });
+      return;
+    }
+
+    this.pendingPlan = plan;
+    const planText = this.planMode.formatPlanForDisplay(plan);
+    this.postToWebview({ type: 'token', text: planText });
+    this.postToWebview({ type: 'planReady', planId: plan.id });
+    this.postToWebview({ type: 'done', messageId, fileOps: [] });
+  }
+
+  private async executePendingPlan(messageId: string): Promise<void> {
+    if (!this.pendingPlan) return;
+    const plan = this.pendingPlan;
+    this.pendingPlan = null;
+
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: `⚡ **Executing plan: ${plan.goal}**\n\n` });
+
+    const results = await this.agenticLoop.executePlan(
+      plan,
+      this.currentModelId,
+      (stepId, status, output) => {
+        const icon = status === 'running' ? '⏳' : status === 'done' ? '✅' : '❌';
+        this.postToWebview({ type: 'token', text: `${icon} ${output}\n` });
+        this.postToWebview({ type: 'planStepUpdate', stepId, status });
+      },
+      (msg) => this.postToWebview(msg as Record<string, unknown>)
+    );
+
+    const succeeded = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const allFiles = results.flatMap(r => r.filesChanged);
+
+    this.postToWebview({ type: 'token', text: `\n---\n✅ ${succeeded} steps completed${failed > 0 ? `, ❌ ${failed} failed` : ''}` });
+    if (allFiles.length > 0) {
+      this.postToWebview({ type: 'token', text: `\nFiles changed: ${allFiles.map(f => `\`${f}\``).join(', ')}` });
+    }
+
+    const fileOps: FileOpRecord[] = allFiles.map(f => ({ type: 'edit' as const, path: f, timestamp: Date.now() }));
+    this.postToWebview({ type: 'done', messageId, fileOps });
   }
 
   private async parseAndExecuteFileOps(response: string, messageId: string): Promise<FileOpRecord[]> {

@@ -107,6 +107,16 @@
         "command": "cybermind.undoLastChange",
         "title": "Undo Last AI Change",
         "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.planMode",
+        "title": "Plan Mode — Describe a task to plan and execute",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.openMcpConfig",
+        "title": "Configure MCP Servers",
+        "category": "CyberMind"
       }
     ],
     "menus": {

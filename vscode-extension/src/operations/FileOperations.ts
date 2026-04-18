@@ -136,8 +136,10 @@ export class FileOperations {
       editsWithOriginals.push({ ...edit, originalContent });
     }
 
-    // Show diff for the first file (or a summary)
+    if (editsWithOriginals.length === 0) return false;
+
     if (editsWithOriginals.length === 1) {
+      // Single file — show diff view
       const edit = editsWithOriginals[0];
       const accepted = await this.openDiffView(
         edit.originalContent ?? '',
@@ -147,14 +149,49 @@ export class FileOperations {
       );
       if (!accepted) return false;
     } else {
-      // For multi-file, show a quick pick confirmation
-      const fileNames = editsWithOriginals.map(e => path.basename(e.uri.fsPath)).join(', ');
-      const choice = await vscode.window.showInformationMessage(
-        `CyberMind wants to edit ${editsWithOriginals.length} files: ${fileNames}`,
-        'Apply All',
-        'Cancel'
+      // Multi-file — show summary with file list and quick pick
+      const fileItems = editsWithOriginals.map(e => ({
+        label: `$(file) ${path.basename(e.uri.fsPath)}`,
+        description: path.relative(
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+          e.uri.fsPath
+        ),
+        detail: e.originalContent === '' ? '(new file)' : `${e.newContent.split('\n').length} lines`,
+      }));
+
+      // Show each diff in sequence
+      const choice = await vscode.window.showQuickPick(
+        [
+          { label: '$(check) Apply All Changes', description: `${editsWithOriginals.length} files` },
+          { label: '$(eye) Review Each File', description: 'Open diff for each file' },
+          { label: '$(x) Cancel', description: 'Discard all changes' },
+        ],
+        {
+          title: `CyberMind: ${editsWithOriginals.length} files to change`,
+          placeHolder: 'Choose how to apply changes',
+        }
       );
-      if (choice !== 'Apply All') return false;
+
+      if (!choice || choice.label.includes('Cancel')) return false;
+
+      if (choice.label.includes('Review')) {
+        // Show diff for each file
+        for (const edit of editsWithOriginals) {
+          const accepted = await this.openDiffView(
+            edit.originalContent ?? '',
+            edit.newContent,
+            `CyberMind: ${path.basename(edit.uri.fsPath)}`,
+            edit.uri
+          );
+          if (!accepted) {
+            const skip = await vscode.window.showWarningMessage(
+              `Skip ${path.basename(edit.uri.fsPath)} and continue?`,
+              'Skip', 'Cancel All'
+            );
+            if (skip !== 'Skip') return false;
+          }
+        }
+      }
     }
 
     // Build a single WorkspaceEdit for atomic apply

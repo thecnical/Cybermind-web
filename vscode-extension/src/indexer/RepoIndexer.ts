@@ -141,6 +141,55 @@ export class RepoIndexer {
     return Buffer.from(content).toString('utf8');
   }
 
+  // Build rich context for AI — up to ~100K chars across relevant files
+  async buildRichContext(query: string, maxChars = 100000): Promise<string> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders?.length) return '';
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    const parts: string[] = [];
+    let totalChars = 0;
+
+    // 1. Active editor file (highest priority)
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      const doc = activeEditor.document;
+      const content = doc.getText();
+      const relativePath = path.relative(workspaceRoot, doc.uri.fsPath);
+      const chunk = `=== Active file: ${relativePath} ===\n${content.slice(0, 20000)}\n`;
+      parts.push(chunk);
+      totalChars += chunk.length;
+    }
+
+    // 2. Files matching the query
+    if (query && totalChars < maxChars) {
+      const relevant = this.searchFiles(query).slice(0, 10);
+      for (const file of relevant) {
+        if (totalChars >= maxChars) break;
+        try {
+          const content = await this.getFileContent(file.relativePath);
+          const chunk = `=== ${file.relativePath} ===\n${content.slice(0, 8000)}\n`;
+          parts.push(chunk);
+          totalChars += chunk.length;
+        } catch { /* skip */ }
+      }
+    }
+
+    // 3. Key project files (package.json, tsconfig, README)
+    const keyFiles = ['package.json', 'tsconfig.json', 'README.md', '.env.example', 'pyproject.toml', 'go.mod'];
+    for (const keyFile of keyFiles) {
+      if (totalChars >= maxChars) break;
+      try {
+        const content = await this.getFileContent(keyFile);
+        const chunk = `=== ${keyFile} ===\n${content.slice(0, 3000)}\n`;
+        parts.push(chunk);
+        totalChars += chunk.length;
+      } catch { /* file doesn't exist */ }
+    }
+
+    return parts.join('\n');
+  }
+
   searchFiles(query: string): IndexedFile[] {
     if (!query) {
       return Array.from(this.index.values()).slice(0, 20);

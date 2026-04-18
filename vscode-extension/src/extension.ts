@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { AuthManager } from './api/AuthManager';
 import { BackendClient } from './api/BackendClient';
+import { McpManager } from './api/McpManager';
 import { OAuthFlow } from './api/OAuthFlow';
 import { SessionManager } from './session/SessionManager';
 import { RepoIndexer } from './indexer/RepoIndexer';
@@ -26,6 +27,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const oauthFlow = new OAuthFlow(authManager, backendClient);
     const sessionManager = new SessionManager(context.globalState);
     const agentRegistry = new AgentRegistry(context.globalState);
+    const mcpManager = new McpManager(context.globalState);
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
     const pathSanitizer = new PathSanitizer(workspaceRoot);
@@ -48,7 +50,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       fileOps,
       terminalManager,
       securityScanner,
-      agentRegistry
+      agentRegistry,
+      mcpManager
     );
 
     context.subscriptions.push(
@@ -332,6 +335,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           vscode.window.showInformationMessage('CyberMind: Last AI change undone.');
         } else {
           vscode.window.showInformationMessage('CyberMind: Nothing to undo.');
+        }
+      })
+    );
+
+    // 12. openMcpConfig — open/create MCP config file
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.openMcpConfig', async () => {
+        await mcpManager.createDefaultConfig();
+      })
+    );
+
+    // 13. planMode — trigger plan mode from command palette
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.planMode', async () => {
+        const goal = await vscode.window.showInputBox({
+          prompt: 'Describe what you want to build or change',
+          placeHolder: 'e.g. Add JWT authentication with refresh tokens',
+        });
+        if (goal) {
+          await chatPanelProvider.sendToChat(`/plan ${goal}`, 'code');
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
         }
       })
     );

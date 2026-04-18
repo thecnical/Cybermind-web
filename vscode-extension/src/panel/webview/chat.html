@@ -335,7 +335,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       <button class="selector-btn" id="btn-model-selector">&#9889; cybermindcli &#9660;</button>
     </div>
     <div class="input-row">
-      <textarea id="chat-input" placeholder="Ask CyberMind..." rows="1"></textarea>
+      <textarea id="chat-input" placeholder="Ask CyberMind... (use /plan for Plan Mode, @file to attach)" rows="1"></textarea>
       <div class="input-actions">
         <button class="btn-input-action" id="btn-at-mention" title="Attach file">@</button>
         <button class="btn-input-action" id="btn-slash-cmd" title="Select agent">/</button>
@@ -994,6 +994,23 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
   });
 
+  // Plan mode actions
+  window.approvePlan = function() {
+    const bar = document.getElementById('plan-action-bar');
+    if (bar) bar.remove();
+    const input = document.getElementById('chat-input');
+    input.value = 'execute';
+    sendMessage();
+  };
+
+  window.rejectPlan = function() {
+    const bar = document.getElementById('plan-action-bar');
+    if (bar) bar.remove();
+    const input = document.getElementById('chat-input');
+    input.value = 'cancel';
+    sendMessage();
+  };
+
   // Close dropdowns on outside click
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.dropdown') && !e.target.closest('[id^="btn-"]')) {
@@ -1140,7 +1157,25 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
         break;
       }
 
-      case 'prefillMessage': {
+      case 'planReady': {
+        // Show approve/reject buttons for the plan
+        const planBar = document.createElement('div');
+        planBar.id = 'plan-action-bar';
+        planBar.style.cssText = 'display:flex;gap:8px;padding:10px 0;margin-top:4px';
+        planBar.innerHTML =
+          '<button onclick="approvePlan()" style="flex:1;padding:9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">' +
+          '\u26A1 Execute Plan</button>' +
+          '<button onclick="rejectPlan()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;font-size:12px;cursor:pointer">' +
+          '\u2715 Cancel</button>';
+        document.getElementById('messages').appendChild(planBar);
+        scrollToBottom();
+        break;
+      }
+
+      case 'planStepUpdate': {
+        // Update step status in the plan display (future enhancement)
+        break;
+      }
         const input = document.getElementById('chat-input');
         input.value = msg.text || '';
         if (msg.agentId) selectAgent(msg.agentId);
