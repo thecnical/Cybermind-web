@@ -1233,6 +1233,8 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
         // Update step status in the plan display (future enhancement)
         break;
       }
+
+      case 'prefillMessage': {
         const input = document.getElementById('chat-input');
         input.value = msg.text || '';
         if (msg.agentId) selectAgent(msg.agentId);

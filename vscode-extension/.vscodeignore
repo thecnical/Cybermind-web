@@ -9,6 +9,8 @@ esbuild.config.js
 fix-html.js
 fix-html2.js
 gen-icon.js
+find-error.js
+check-js.js
 tsconfig.json
 jest.config.js
 **/*.test.ts
