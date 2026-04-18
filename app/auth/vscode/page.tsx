@@ -51,7 +51,7 @@ function VscodeAuthInner() {
       } catch { /* use free */ }
 
       const params = new URLSearchParams({ token, plan: userPlan, email: emailAddr, state });
-      vscodeUriRef.current = `vscode://cybermind/auth?${params.toString()}`;
+      vscodeUriRef.current = `vscode://cybermind.cybermind-vscode/auth?${params.toString()}`;
 
       setPlan(userPlan);
       setUserEmail(emailAddr);

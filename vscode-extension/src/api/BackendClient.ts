@@ -185,57 +185,76 @@ export class BackendClient {
     }
 
     try {
-      const systemPrompt = `You are CyberMind AI, an expert security and coding assistant. ${request.context ? 'Context: ' + request.context : ''}`;
+      // Build proper messages — system prompt is already embedded in request.message
+      // Split it back out for proper OpenRouter format
+      const parts = request.message.split('\n\n---\n\n');
+      const systemContent = parts.length > 1 ? parts[0] : `You are CyberMind AI, an expert security and coding assistant.`;
+      const userContent = parts.length > 1 ? parts.slice(1).join('\n\n---\n\n') : request.message;
 
-      const response = await fetch(this.openRouterUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://cybermindcli1.vercel.app',
-          'X-Title': 'CyberMind VSCode Extension',
-          ...(openRouterKey ? { 'Authorization': `Bearer ${openRouterKey}` } : {}),
-        },
-        body: JSON.stringify({
-          model: OPENROUTER_FREE_MODELS[0],
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: request.message },
-          ],
-          stream: true,
-          max_tokens: 2048,
-        }),
-        signal,
-      });
+      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context}` : '';
 
-      if (!response.ok) {
-        throw new Error(`OpenRouter HTTP ${response.status}`);
-      }
+      const messages = [
+        { role: 'system', content: systemContent },
+        { role: 'user', content: userContent + contextNote },
+      ];
 
-      const reader = response.body?.getReader();
-      let fullResponse = '';
+      // Try each free model in order until one works
+      for (const model of OPENROUTER_FREE_MODELS) {
+        try {
+          const response = await fetch(this.openRouterUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://cybermindcli1.vercel.app',
+              'X-Title': 'CyberMind VSCode Extension',
+              ...(openRouterKey ? { 'Authorization': `Bearer ${openRouterKey}` } : {}),
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              stream: true,
+              max_tokens: 4096,
+            }),
+            signal,
+          });
 
-      if (reader) {
-        const decoder = new TextDecoder();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim();
-              if (data === '[DONE]') continue;
-              try {
-                const parsed = JSON.parse(data);
-                const token = parsed.choices?.[0]?.delta?.content || '';
-                if (token) { onToken(token); fullResponse += token; }
-              } catch { /* skip */ }
+          if (!response.ok) {
+            logger.warn(`OpenRouter model ${model} returned ${response.status}, trying next`);
+            continue;
+          }
+
+          const reader = response.body?.getReader();
+          let fullResponse = '';
+
+          if (reader) {
+            const decoder = new TextDecoder();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6).trim();
+                  if (data === '[DONE]') continue;
+                  try {
+                    const parsed = JSON.parse(data);
+                    const token = parsed.choices?.[0]?.delta?.content || '';
+                    if (token) { onToken(token); fullResponse += token; }
+                  } catch { /* skip malformed */ }
+                }
+              }
             }
           }
+
+          if (fullResponse) return fullResponse;
+        } catch (modelErr) {
+          if ((modelErr as Error).name === 'AbortError') throw modelErr;
+          logger.warn(`OpenRouter model ${model} failed: ${String(modelErr)}, trying next`);
         }
       }
 
-      return fullResponse;
+      throw new Error('All free models failed. Please sign in or add an OpenRouter API key in Settings.');
     } finally {
       cancelDisposable?.dispose();
       this.abortController = null;

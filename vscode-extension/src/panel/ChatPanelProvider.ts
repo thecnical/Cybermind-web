@@ -78,13 +78,16 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       const apiKey = await this.authManager.getApiKey();
       const email = await this.authManager.getUserEmail();
       const plan = await this.authManager.getUserPlan();
+      const displayName = email?.split('@')[0] || (apiKey ? 'Developer' : 'User');
       this.postToWebview({
         type: 'authState',
         isAuthenticated: true,
         email: email || (apiKey ? 'API Key User' : 'Authenticated'),
         plan: plan || (apiKey ? 'api-key' : 'free'),
+        displayName,
       });
       this.postToWebview({ type: 'showScreen', screen: 'chat' });
+      this.postToWebview({ type: 'welcome', name: displayName, plan: plan || 'free' });
 
       // Send agent list
       this.postToWebview({
@@ -277,8 +280,12 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
       let fullResponse = '';
 
+      // Build agent system prompt into the request
+      const agentDef2 = this.agentRegistry.getAgent(this.currentAgentId);
+      const systemPrompt = agentDef2?.systemPrompt || '';
+
       const chatRequest = {
-        message: text,
+        message: systemPrompt ? `${systemPrompt}\n\n---\n\n${text}` : text,
         agent: this.currentAgentId,
         context,
       };
@@ -329,22 +336,28 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
 
-      // Handle 401 - session expired
-      if (errMsg.includes('401')) {
-        await this.authManager.clearAll();
-        this.postToWebview({ type: 'showScreen', screen: 'signin' });
-        this.postToWebview({ type: 'error', message: 'Session expired. Please sign in again.' });
+      // Handle 401 - only clear auth if user actually has a token/key stored
+      if (errMsg.includes('401') || errMsg.includes('HTTP 401')) {
+        const hasAuth = await this.authManager.isAuthenticated();
+        if (hasAuth) {
+          await this.authManager.clearAll();
+          this.postToWebview({ type: 'showScreen', screen: 'welcome' });
+          this.postToWebview({ type: 'error', message: 'Session expired. Please sign in again.' });
+        } else {
+          // Free user — just show the error, don't redirect
+          this.postToWebview({ type: 'error', message: 'Request failed. Try again or sign in for better access.' });
+        }
         return;
       }
 
       // Handle 429 - rate limit
-      if (errMsg.includes('429')) {
+      if (errMsg.includes('429') || errMsg.includes('HTTP 429')) {
         this.postToWebview({ type: 'error', message: 'Rate limit reached. Please wait a moment and try again.' });
         return;
       }
 
       // Network error
-      if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('ECONNREFUSED')) {
+      if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('ECONNREFUSED') || errMsg.includes('Unable to reach')) {
         this.postToWebview({ type: 'error', message: 'Unable to reach CyberMind backend. Check your connection.' });
         return;
       }

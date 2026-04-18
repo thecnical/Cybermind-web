@@ -103,16 +103,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
               if (email) await authManager.setUserEmail(email);
               await authManager.setUserPlan(plan);
 
+              const displayName = email?.split('@')[0] || 'User';
               chatPanelProvider.postToWebview({
                 type: 'authState',
                 isAuthenticated: true,
                 email,
                 plan,
+                displayName,
               });
               chatPanelProvider.postToWebview({ type: 'showScreen', screen: 'chat' });
+              chatPanelProvider.postToWebview({ type: 'welcome', name: displayName, plan });
               chatPanelProvider.postToWebview({ type: 'agentList', agents: agentRegistry.getAllAgents() });
 
-              vscode.window.showInformationMessage(`CyberMind: Signed in as ${email} (${plan} plan)`);
+              vscode.window.showInformationMessage(`CyberMind: Welcome, ${displayName}! (${plan} plan)`);
             }
           }
         }
