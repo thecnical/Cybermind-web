@@ -141,8 +141,8 @@ export class RepoIndexer {
     return Buffer.from(content).toString('utf8');
   }
 
-  // Build rich context for AI — up to ~100K chars across relevant files
-  async buildRichContext(query: string, maxChars = 100000): Promise<string> {
+  // Build rich context for AI — smart truncation based on model context limits
+  async buildRichContext(query: string, maxChars = 60000): Promise<string> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders?.length) return '';
 
@@ -150,41 +150,46 @@ export class RepoIndexer {
     const parts: string[] = [];
     let totalChars = 0;
 
-    // 1. Active editor file (highest priority)
+    // 1. Active editor file (highest priority — always include)
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
       const doc = activeEditor.document;
       const content = doc.getText();
       const relativePath = path.relative(workspaceRoot, doc.uri.fsPath);
+      // Active file gets up to 20K chars
       const chunk = `=== Active file: ${relativePath} ===\n${content.slice(0, 20000)}\n`;
       parts.push(chunk);
       totalChars += chunk.length;
     }
 
-    // 2. Files matching the query
-    if (query && totalChars < maxChars) {
-      const relevant = this.searchFiles(query).slice(0, 10);
-      for (const file of relevant) {
-        if (totalChars >= maxChars) break;
-        try {
-          const content = await this.getFileContent(file.relativePath);
-          const chunk = `=== ${file.relativePath} ===\n${content.slice(0, 8000)}\n`;
-          parts.push(chunk);
-          totalChars += chunk.length;
-        } catch { /* skip */ }
-      }
-    }
-
-    // 3. Key project files (package.json, tsconfig, README)
-    const keyFiles = ['package.json', 'tsconfig.json', 'README.md', '.env.example', 'pyproject.toml', 'go.mod'];
+    // 2. Key project files (always useful for context)
+    const keyFiles = ['package.json', 'tsconfig.json', 'pyproject.toml', 'go.mod', 'Cargo.toml', 'pom.xml'];
     for (const keyFile of keyFiles) {
       if (totalChars >= maxChars) break;
       try {
         const content = await this.getFileContent(keyFile);
-        const chunk = `=== ${keyFile} ===\n${content.slice(0, 3000)}\n`;
+        const chunk = `=== ${keyFile} ===\n${content.slice(0, 2000)}\n`;
         parts.push(chunk);
         totalChars += chunk.length;
       } catch { /* file doesn't exist */ }
+    }
+
+    // 3. Files matching the query (relevant files)
+    if (query && totalChars < maxChars) {
+      const relevant = this.searchFiles(query).slice(0, 8);
+      for (const file of relevant) {
+        if (totalChars >= maxChars) break;
+        // Skip if already included as active file
+        if (activeEditor && path.relative(workspaceRoot, activeEditor.document.uri.fsPath) === file.relativePath) continue;
+        try {
+          const content = await this.getFileContent(file.relativePath);
+          const remaining = maxChars - totalChars;
+          const maxFileChars = Math.min(8000, remaining);
+          const chunk = `=== ${file.relativePath} ===\n${content.slice(0, maxFileChars)}\n`;
+          parts.push(chunk);
+          totalChars += chunk.length;
+        } catch { /* skip */ }
+      }
     }
 
     return parts.join('\n');

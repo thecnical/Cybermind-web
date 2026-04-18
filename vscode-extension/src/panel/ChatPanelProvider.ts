@@ -41,7 +41,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     mcpManager?: McpManager
   ) {
     this.planMode = new PlanMode(backendClient, authManager, agentRegistry);
-    this.agenticLoop = new AgenticLoop(backendClient, authManager, fileOps, terminalManager, repoIndexer);
+    this.agenticLoop = new AgenticLoop(backendClient, authManager, fileOps, terminalManager, repoIndexer, mcpManager);
     this.mcpManager = mcpManager || new McpManager({ get: () => undefined, update: async () => {} } as unknown as vscode.Memento);
   }
 
@@ -356,6 +356,14 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         jwtToken,
         openRouterKey
       );
+
+      // Execute any MCP tool calls in the response
+      const mcpResults = await this.mcpManager.executeMcpCalls(fullResponse);
+      if (mcpResults) {
+        // Append MCP results to the response display
+        this.postToWebview({ type: 'token', text: `\n\n${mcpResults}` });
+        fullResponse += `\n\n${mcpResults}`;
+      }
 
       // Parse file operations from response
       const fileOps = await this.parseAndExecuteFileOps(fullResponse, messageId);

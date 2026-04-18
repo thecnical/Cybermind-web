@@ -5,6 +5,7 @@ import { AuthManager } from '../api/AuthManager';
 import { FileOperations } from '../operations/FileOperations';
 import { TerminalManager } from '../operations/TerminalManager';
 import { RepoIndexer } from '../indexer/RepoIndexer';
+import { McpManager } from '../api/McpManager';
 import { Plan, PlanStep } from './PlanMode';
 import { logger } from '../utils/logger';
 
@@ -13,29 +14,52 @@ export interface AgenticResult {
   success: boolean;
   output: string;
   filesChanged: string[];
+  iterations: number;
 }
 
-const EXECUTE_SYSTEM_PROMPT = `You are CyberMind AI executing a specific task step.
+const EXECUTE_SYSTEM_PROMPT = `You are CyberMind AI executing a specific coding task.
 
-For file operations, output the complete file content wrapped in:
+For file operations, output the COMPLETE file content wrapped in:
 \`\`\`filepath:path/to/file.ts
 // complete file content here
 \`\`\`
 
-For analysis, provide a clear explanation.
-For commands, just confirm what was done.
+Rules:
+- Output ONLY the file content block for file tasks
+- Output ONLY the analysis text for analysis tasks
+- Write complete, working code — no TODOs, no placeholders
+- Follow existing code style from the context provided`;
 
-Be precise and complete. Output working code only.`;
+const FIX_SYSTEM_PROMPT = `You are CyberMind AI fixing a failed step.
 
+The previous attempt failed. Analyze the error output and produce a corrected version.
+
+For file operations, output the COMPLETE corrected file content:
+\`\`\`filepath:path/to/file.ts
+// corrected content
+\`\`\`
+
+Be precise. Fix only what caused the failure.`;
+
+/**
+ * AgenticLoop — executes a Plan step by step with real self-correction.
+ *
+ * For each step:
+ * 1. Execute the step (file edit, command, analysis)
+ * 2. If it's a command step, READ the actual output (via pseudoterminal)
+ * 3. If the command failed (non-zero exit), ask AI to fix and retry
+ * 4. Repeat up to maxIterations times
+ */
 export class AgenticLoop {
-  private maxIterations = 3;
+  private readonly maxIterations = 3;
 
   constructor(
     private readonly backendClient: BackendClient,
     private readonly authManager: AuthManager,
     private readonly fileOps: FileOperations,
     private readonly terminalManager: TerminalManager,
-    private readonly repoIndexer: RepoIndexer
+    private readonly repoIndexer: RepoIndexer,
+    private readonly mcpManager?: McpManager
   ) {}
 
   async executePlan(
@@ -49,30 +73,69 @@ export class AgenticLoop {
     for (const step of plan.steps) {
       onProgress(step.id, 'running', `Executing: ${step.title}...`);
 
-      try {
-        const result = await this.executeStep(step, plan.goal, modelId, postToWebview);
-        results.push(result);
-        onProgress(step.id, result.success ? 'done' : 'failed', result.output);
+      const result = await this.executeStepWithRetry(
+        step, plan.goal, modelId, postToWebview, onProgress
+      );
 
-        if (!result.success) {
-          logger.warn(`Step ${step.id} failed: ${result.output}`);
-          // Continue with remaining steps unless it's critical
-        }
-      } catch (err) {
-        const errMsg = String(err);
-        results.push({ stepId: step.id, success: false, output: errMsg, filesChanged: [] });
-        onProgress(step.id, 'failed', errMsg);
-      }
+      results.push(result);
+      onProgress(step.id, result.success ? 'done' : 'failed', result.output);
     }
 
     return results;
+  }
+
+  private async executeStepWithRetry(
+    step: PlanStep,
+    goal: string,
+    modelId: string,
+    postToWebview: (msg: object) => void,
+    onProgress: (stepId: string, status: 'running' | 'done' | 'failed', output: string) => void
+  ): Promise<AgenticResult> {
+    let lastOutput = '';
+    let lastError = '';
+
+    for (let iteration = 1; iteration <= this.maxIterations; iteration++) {
+      try {
+        const result = await this.executeStep(
+          step, goal, modelId, postToWebview, lastError, iteration
+        );
+
+        if (result.success) {
+          return { ...result, iterations: iteration };
+        }
+
+        lastError = result.output;
+        lastOutput = result.output;
+
+        if (iteration < this.maxIterations) {
+          onProgress(step.id, 'running',
+            `⚠️ Attempt ${iteration} failed: ${result.output.slice(0, 100)}\n🔄 Retrying (${iteration + 1}/${this.maxIterations})...`
+          );
+          // Small delay before retry
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      } catch (err) {
+        lastError = String(err);
+        lastOutput = lastError;
+      }
+    }
+
+    return {
+      stepId: step.id,
+      success: false,
+      output: `Failed after ${this.maxIterations} attempts. Last error: ${lastOutput}`,
+      filesChanged: [],
+      iterations: this.maxIterations,
+    };
   }
 
   private async executeStep(
     step: PlanStep,
     goal: string,
     modelId: string,
-    postToWebview: (msg: object) => void
+    postToWebview: (msg: object) => void,
+    previousError: string,
+    iteration: number
   ): Promise<AgenticResult> {
     const apiKey = await this.authManager.getApiKey();
     const openRouterKey = await this.authManager.getOpenRouterKey();
@@ -80,16 +143,16 @@ export class AgenticLoop {
     switch (step.type) {
       case 'file_create':
       case 'file_edit':
-        return this.executeFileStep(step, goal, modelId, apiKey, openRouterKey);
+        return this.executeFileStep(step, goal, modelId, apiKey, openRouterKey, previousError, iteration);
 
       case 'command':
-        return this.executeCommandStep(step, postToWebview);
+        return this.executeCommandStep(step, goal, modelId, apiKey, openRouterKey, postToWebview, previousError, iteration);
 
       case 'analysis':
         return this.executeAnalysisStep(step, goal, modelId, apiKey, openRouterKey);
 
       default:
-        return { stepId: step.id, success: false, output: `Unknown step type: ${step.type}`, filesChanged: [] };
+        return { stepId: step.id, success: false, output: `Unknown step type: ${step.type}`, filesChanged: [], iterations: iteration };
     }
   }
 
@@ -98,27 +161,37 @@ export class AgenticLoop {
     goal: string,
     modelId: string,
     apiKey: string | null,
-    openRouterKey: string | null
+    openRouterKey: string | null,
+    previousError: string,
+    iteration: number
   ): Promise<AgenticResult> {
     if (!step.filePath) {
-      return { stepId: step.id, success: false, output: 'No file path specified', filesChanged: [] };
+      return { stepId: step.id, success: false, output: 'No file path specified', filesChanged: [], iterations: iteration };
     }
 
-    // Get existing file content for context
+    // Get existing file content
     let existingContent = '';
     try {
       existingContent = await this.repoIndexer.getFileContent(step.filePath);
     } catch { /* new file */ }
 
-    const prompt = step.type === 'file_create'
-      ? `Create the file \`${step.filePath}\` for this goal: ${goal}\n\nTask: ${step.description}`
-      : `Edit the file \`${step.filePath}\` for this goal: ${goal}\n\nTask: ${step.description}\n\nCurrent content:\n\`\`\`\n${existingContent.slice(0, 8000)}\n\`\`\``;
+    const isRetry = iteration > 1 && previousError;
+    const systemPrompt = isRetry ? FIX_SYSTEM_PROMPT : EXECUTE_SYSTEM_PROMPT;
+
+    let prompt: string;
+    if (isRetry) {
+      prompt = `Fix this failed step.\n\nGoal: ${goal}\nTask: ${step.description}\nFile: ${step.filePath}\n\nPrevious error:\n${previousError}\n\nCurrent file content:\n\`\`\`\n${existingContent.slice(0, 6000)}\n\`\`\``;
+    } else if (step.type === 'file_create') {
+      prompt = `Create file \`${step.filePath}\`\n\nGoal: ${goal}\nTask: ${step.description}`;
+    } else {
+      prompt = `Edit file \`${step.filePath}\`\n\nGoal: ${goal}\nTask: ${step.description}\n\nCurrent content:\n\`\`\`\n${existingContent.slice(0, 6000)}\n\`\`\``;
+    }
 
     const request: ChatRequest = {
       message: prompt,
       agent: 'code',
       context: '',
-      system: EXECUTE_SYSTEM_PROMPT,
+      system: systemPrompt,
     };
 
     let fullResponse = '';
@@ -128,57 +201,141 @@ export class AgenticLoop {
       undefined, null, openRouterKey
     );
 
-    // Parse file content from response
-    const fileMatch = fullResponse.match(/```(?:filepath:([^\n]+))?\n([\s\S]*?)```/);
-    if (!fileMatch) {
-      return { stepId: step.id, success: false, output: 'AI did not generate file content', filesChanged: [] };
+    // Parse file content — try multiple patterns
+    const fileContent = this.extractFileContent(fullResponse, step.filePath);
+    if (!fileContent) {
+      return {
+        stepId: step.id,
+        success: false,
+        output: `AI did not generate file content (response: ${fullResponse.slice(0, 200)})`,
+        filesChanged: [],
+        iterations: iteration,
+      };
     }
 
-    const filePath = fileMatch[1]?.trim() || step.filePath;
-    const fileContent = fileMatch[2];
-
-    // Apply the file edit
+    // Apply the edit
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders?.length) {
-      return { stepId: step.id, success: false, output: 'No workspace open', filesChanged: [] };
+      return { stepId: step.id, success: false, output: 'No workspace open', filesChanged: [], iterations: iteration };
     }
 
-    const absolutePath = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(workspaceFolders[0].uri.fsPath, filePath);
+    const absolutePath = path.isAbsolute(step.filePath)
+      ? step.filePath
+      : path.join(workspaceFolders[0].uri.fsPath, step.filePath);
 
     const uri = vscode.Uri.file(absolutePath);
 
     try {
-      const accepted = await this.fileOps.editFile({ uri, newContent: fileContent, originalContent: existingContent });
+      const accepted = await this.fileOps.editFile({
+        uri,
+        newContent: fileContent,
+        originalContent: existingContent,
+      });
+
       if (accepted) {
-        return { stepId: step.id, success: true, output: `✓ ${step.type === 'file_create' ? 'Created' : 'Edited'} ${filePath}`, filesChanged: [filePath] };
+        return {
+          stepId: step.id,
+          success: true,
+          output: `✓ ${step.type === 'file_create' ? 'Created' : 'Edited'} \`${step.filePath}\``,
+          filesChanged: [step.filePath],
+          iterations: iteration,
+        };
       } else {
-        return { stepId: step.id, success: false, output: `User rejected changes to ${filePath}`, filesChanged: [] };
+        return {
+          stepId: step.id,
+          success: false,
+          output: `User rejected changes to \`${step.filePath}\``,
+          filesChanged: [],
+          iterations: iteration,
+        };
       }
     } catch (err) {
-      return { stepId: step.id, success: false, output: `Failed to write ${filePath}: ${String(err)}`, filesChanged: [] };
+      return {
+        stepId: step.id,
+        success: false,
+        output: `Write failed: ${String(err)}`,
+        filesChanged: [],
+        iterations: iteration,
+      };
     }
   }
 
   private async executeCommandStep(
     step: PlanStep,
-    postToWebview: (msg: object) => void
+    goal: string,
+    modelId: string,
+    apiKey: string | null,
+    openRouterKey: string | null,
+    postToWebview: (msg: object) => void,
+    previousError: string,
+    iteration: number
   ): Promise<AgenticResult> {
     if (!step.command) {
-      return { stepId: step.id, success: false, output: 'No command specified', filesChanged: [] };
+      return { stepId: step.id, success: false, output: 'No command specified', filesChanged: [], iterations: iteration };
     }
 
-    try {
-      const result = await this.terminalManager.executeCommand(step.command, postToWebview);
+    let commandToRun = step.command;
+
+    // If this is a retry, ask AI to suggest a fixed command
+    if (iteration > 1 && previousError) {
+      const fixedCommand = await this.getFixedCommand(
+        step.command, previousError, goal, modelId, apiKey, openRouterKey
+      );
+      if (fixedCommand && fixedCommand !== step.command) {
+        commandToRun = fixedCommand;
+        logger.info(`[AgenticLoop] Retry with fixed command: ${commandToRun}`);
+      }
+    }
+
+    // Execute and capture real output
+    const result = await this.terminalManager.executeCommand(commandToRun, postToWebview);
+
+    if (result.success) {
       return {
         stepId: step.id,
         success: true,
-        output: `✓ Ran: \`${step.command}\`\n${result.output}`,
+        output: `✓ \`${commandToRun}\`\n${result.output.slice(0, 1000)}`,
         filesChanged: [],
+        iterations: iteration,
       };
-    } catch (err) {
-      return { stepId: step.id, success: false, output: `Command failed: ${String(err)}`, filesChanged: [] };
+    } else {
+      // Command failed — return the actual error output for self-correction
+      return {
+        stepId: step.id,
+        success: false,
+        output: `Command failed (exit ${result.exitCode}):\n${result.output.slice(0, 2000)}`,
+        filesChanged: [],
+        iterations: iteration,
+      };
+    }
+  }
+
+  private async getFixedCommand(
+    originalCommand: string,
+    errorOutput: string,
+    goal: string,
+    modelId: string,
+    apiKey: string | null,
+    openRouterKey: string | null
+  ): Promise<string | null> {
+    const request: ChatRequest = {
+      message: `A command failed. Suggest a fixed command.\n\nOriginal: ${originalCommand}\nGoal: ${goal}\nError:\n${errorOutput.slice(0, 1000)}\n\nRespond with ONLY the fixed command, nothing else. No explanation.`,
+      agent: 'bug-fix',
+      context: '',
+      system: 'Output only the fixed shell command. No explanation, no markdown, no code fences.',
+    };
+
+    let response = '';
+    try {
+      await this.backendClient.chat(
+        request, modelId, apiKey,
+        (token) => { response += token; },
+        undefined, null, openRouterKey
+      );
+      // Clean up the response
+      return response.trim().replace(/^```\w*\n?/, '').replace(/\n?```$/, '').trim();
+    } catch {
+      return null;
     }
   }
 
@@ -190,7 +347,7 @@ export class AgenticLoop {
     openRouterKey: string | null
   ): Promise<AgenticResult> {
     const request: ChatRequest = {
-      message: `Analyze for this goal: ${goal}\n\nTask: ${step.description}`,
+      message: `Analyze for goal: ${goal}\n\nTask: ${step.description}`,
       agent: 'explain',
       context: '',
       system: EXECUTE_SYSTEM_PROMPT,
@@ -203,6 +360,38 @@ export class AgenticLoop {
       undefined, null, openRouterKey
     );
 
-    return { stepId: step.id, success: true, output: fullResponse, filesChanged: [] };
+    return {
+      stepId: step.id,
+      success: true,
+      output: fullResponse,
+      filesChanged: [],
+      iterations: 1,
+    };
+  }
+
+  /**
+   * Extract file content from AI response.
+   * Tries multiple patterns to handle different model output formats.
+   */
+  private extractFileContent(response: string, expectedPath: string): string | null {
+    // Pattern 1: ```filepath:path/to/file.ts\n...\n```
+    const fpMatch = response.match(/```(?:filepath:([^\n]+))?\n([\s\S]*?)```/);
+    if (fpMatch) return fpMatch[2];
+
+    // Pattern 2: ```typescript\n...\n``` or ```js\n...\n```
+    const langMatch = response.match(/```(?:typescript|javascript|ts|js|python|py|go|rust|java|css|html|json|yaml|sh|bash)\n([\s\S]*?)```/);
+    if (langMatch) return langMatch[1];
+
+    // Pattern 3: Any code fence
+    const anyFence = response.match(/```[^\n]*\n([\s\S]*?)```/);
+    if (anyFence) return anyFence[1];
+
+    // Pattern 4: If response looks like raw code (starts with import/const/function/class/etc.)
+    const codeStart = /^(import|export|const|let|var|function|class|interface|type|package|from|#!)/m;
+    if (codeStart.test(response.trim())) {
+      return response.trim();
+    }
+
+    return null;
   }
 }

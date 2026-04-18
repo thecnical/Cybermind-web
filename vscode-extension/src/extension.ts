@@ -37,6 +37,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const repoIndexer = new RepoIndexer();
     const securityScanner = new SecurityScanner(backendClient);
 
+    // Load MCP config from file and start enabled servers
+    await mcpManager.loadFromConfigFile();
+    await mcpManager.startEnabledServers();
+
     // --- Register DiagnosticCollection ---
     context.subscriptions.push(securityScanner);
 
@@ -365,7 +369,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       { dispose: () => terminalManager.dispose() },
       { dispose: () => repoIndexer.dispose() },
       { dispose: () => settingsPanelProvider.dispose() },
-      { dispose: () => inlineProvider.dispose() }
+      { dispose: () => inlineProvider.dispose() },
+      { dispose: () => mcpManager.stopAll() }
     );
 
     logger.info('CyberMind extension activated successfully.');
