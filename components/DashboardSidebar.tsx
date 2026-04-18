@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, KeyRound, CreditCard, Settings, LogOut, Menu, X } from "lucide-react";
+import { LayoutGrid, KeyRound, CreditCard, Settings, LogOut, Menu, X, Puzzle } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import CyberMindLogo from "@/components/CyberMindLogo";
 import {
@@ -18,6 +18,7 @@ const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/dashboard/api-keys", label: "API Keys", icon: KeyRound },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+  { href: "/dashboard/extension", label: "VSCode Extension", icon: Puzzle },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
