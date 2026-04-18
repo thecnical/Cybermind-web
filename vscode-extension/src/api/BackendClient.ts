@@ -7,6 +7,7 @@ export interface ChatRequest {
   message: string;
   agent: string;
   context: string;
+  system?: string;  // agent system prompt — used by OpenRouter free tier
 }
 
 export interface ChatResponse {
@@ -185,17 +186,14 @@ export class BackendClient {
     }
 
     try {
-      // Build proper messages — system prompt is already embedded in request.message
-      // Split it back out for proper OpenRouter format
-      const parts = request.message.split('\n\n---\n\n');
-      const systemContent = parts.length > 1 ? parts[0] : `You are CyberMind AI, an expert security and coding assistant.`;
-      const userContent = parts.length > 1 ? parts.slice(1).join('\n\n---\n\n') : request.message;
-
+      // Use the agent's system prompt if provided, otherwise use a default
+      const systemContent = request.system ||
+        `You are CyberMind AI, an expert security and coding assistant. Agent: ${request.agent}.`;
       const contextNote = request.context ? `\n\nWorkspace context:\n${request.context}` : '';
 
       const messages = [
         { role: 'system', content: systemContent },
-        { role: 'user', content: userContent + contextNote },
+        { role: 'user', content: request.message + contextNote },
       ];
 
       // Try each free model in order until one works

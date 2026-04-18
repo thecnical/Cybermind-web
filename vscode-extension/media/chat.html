@@ -962,6 +962,23 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
         renderAgentDropdown(msg.agents);
         break;
 
+      case 'currentModel': {
+        if (msg.modelId) {
+          currentModel = msg.modelId;
+          // Find a friendly name for the model
+          const modelNames = {
+            'cybermindcli': 'CyberMind Free',
+            'elite-claude-3-7': 'Claude 3.7',
+            'groq-llama-3.3-70b': 'Llama 3.3 70B',
+            'or-minimax-m2.5': 'MiniMax M2.5',
+            'or-deepseek-chat': 'DeepSeek Chat',
+          };
+          const name = modelNames[msg.modelId] || msg.modelId;
+          document.getElementById('btn-model-selector').textContent = name + ' \u25BE';
+        }
+        break;
+      }
+
       case 'atMentionResults':
         renderAtMentionResults(msg.files);
         break;
@@ -984,19 +1001,12 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
         div.innerHTML = '<div class="message-agent-label">CyberMind</div>' +
           '<div class="message-content">' +
           '<strong>Welcome, ' + escHtml(name) + '! ' + planEmoji + '</strong><br><br>' +
-          'You\'re on the <strong>' + escHtml(plan.toUpperCase()) + '</strong> plan. Here\'s what you can do:<br><br>' +
-          '\uD83D\uDD12 <strong>Security Agent</strong> — OWASP scanning, secrets detection<br>' +
-          '&lt;/&gt; <strong>Code Agent</strong> — Multi-file generation &amp; editing<br>' +
-          '\uD83E\uDDEA <strong>Unit Test</strong> — Generate test suites<br>' +
-          '\uD83D\uDC1B <strong>Bug Fix</strong> — Root cause analysis<br>' +
-          '\uD83D\uDCA1 <strong>Explain</strong> — Plain language walkthroughs<br>' +
-          '\u267B\uFE0F <strong>Refactor</strong> — Improve code quality<br>' +
-          '\uD83D\uDCDD <strong>Docs</strong> — Generate JSDoc/TSDoc<br><br>' +
-          'Select an agent below or just start typing. Use <code>@filename</code> to attach files.' +
+          'You\'re on the <strong>' + escHtml(plan.toUpperCase()) + '</strong> plan.<br><br>' +
+          'Select an agent below and start typing. Use <code>@filename</code> to attach files as context.' +
           '</div>' +
           '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
         document.getElementById('messages').appendChild(div);
-        hideAgentCards();
+        // DON'T hide agent cards — user needs to select one
         scrollToBottom();
         break;
       }

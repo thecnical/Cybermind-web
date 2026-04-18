@@ -79,6 +79,14 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       const email = await this.authManager.getUserEmail();
       const plan = await this.authManager.getUserPlan();
       const displayName = email?.split('@')[0] || (apiKey ? 'Developer' : 'User');
+
+      // Auto-select model based on plan
+      if (!this.currentModelId || this.currentModelId === 'cybermindcli') {
+        if (plan === 'elite') this.currentModelId = 'elite-claude-3-7';
+        else if (plan === 'pro') this.currentModelId = 'groq-llama-3.3-70b';
+        else this.currentModelId = 'cybermindcli';
+      }
+
       this.postToWebview({
         type: 'authState',
         isAuthenticated: true,
@@ -88,6 +96,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       });
       this.postToWebview({ type: 'showScreen', screen: 'chat' });
       this.postToWebview({ type: 'welcome', name: displayName, plan: plan || 'free' });
+      this.postToWebview({ type: 'currentModel', modelId: this.currentModelId });
 
       // Send agent list
       this.postToWebview({
@@ -181,9 +190,12 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         break;
       case 'continueAsFree':
         // User chose to use free tier without signing in
+        this.currentModelId = 'cybermindcli';
         this.postToWebview({ type: 'authState', isAuthenticated: false, plan: 'free' });
         this.postToWebview({ type: 'showScreen', screen: 'chat' });
         this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
+        this.postToWebview({ type: 'currentModel', modelId: 'cybermindcli' });
+        this.postToWebview({ type: 'welcome', name: 'Guest', plan: 'free' });
         break;
       case 'webSignIn': {
         // Open browser OAuth flow directly — no command needed
@@ -280,14 +292,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
       let fullResponse = '';
 
-      // Build agent system prompt into the request
+      // Get agent system prompt — pass separately, NOT prepended to user message
       const agentDef2 = this.agentRegistry.getAgent(this.currentAgentId);
       const systemPrompt = agentDef2?.systemPrompt || '';
 
       const chatRequest = {
-        message: systemPrompt ? `${systemPrompt}\n\n---\n\n${text}` : text,
+        message: text,           // user message only — clean
         agent: this.currentAgentId,
         context,
+        system: systemPrompt,   // separate field for system prompt
       };
 
       await this.backendClient.chat(
@@ -336,15 +349,27 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
 
-      // Handle 401 - only clear auth if user actually has a token/key stored
+      // Handle 401 - only redirect if user has stored auth
       if (errMsg.includes('401') || errMsg.includes('HTTP 401')) {
-        const hasAuth = await this.authManager.isAuthenticated();
-        if (hasAuth) {
-          await this.authManager.clearAll();
-          this.postToWebview({ type: 'showScreen', screen: 'welcome' });
-          this.postToWebview({ type: 'error', message: 'Session expired. Please sign in again.' });
+        const apiKey = await this.authManager.getApiKey();
+        const jwtToken = await this.authManager.getToken();
+
+        if (jwtToken && !apiKey) {
+          // JWT expired — clear it but keep user in chat on free tier
+          await this.authManager.setToken('');
+          await this.authManager.setUserPlan('free');
+          this.postToWebview({
+            type: 'authState',
+            isAuthenticated: false,
+            plan: 'free',
+          });
+          // Retry with free tier instead of redirecting
+          this.postToWebview({ type: 'error', message: 'Session refreshed. Using free tier — sign in again for full access.' });
+        } else if (apiKey) {
+          // API key rejected — show error but don't redirect
+          this.postToWebview({ type: 'error', message: 'API key rejected. Please check your key in Settings.' });
         } else {
-          // Free user — just show the error, don't redirect
+          // No auth at all — just show error
           this.postToWebview({ type: 'error', message: 'Request failed. Try again or sign in for better access.' });
         }
         return;
