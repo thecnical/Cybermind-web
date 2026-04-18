@@ -138,6 +138,21 @@
         "category": "CyberMind"
       },
       {
+        "command": "cybermind.autoDebug",
+        "title": "Auto-Debug — Fix errors automatically",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.viewMemory",
+        "title": "View Project Memory",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.analyzeWorkspace",
+        "title": "Analyze Workspace",
+        "category": "CyberMind"
+      },
+      {
         "command": "cybermind.openMcpConfig",
         "title": "Configure MCP Servers",
         "category": "CyberMind"
@@ -199,6 +214,21 @@
           "type": "string",
           "default": "code",
           "description": "Active agent for chat"
+        },
+        "cybermind.autoDebug.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically fix TypeScript/lint errors when they appear"
+        },
+        "cybermind.security.autoScanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run quick security scan on every file save"
+        },
+        "cybermind.promptEnhancement.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically enhance prompts for better AI responses"
         }
       }
     },

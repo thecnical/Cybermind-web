@@ -335,7 +335,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       <button class="selector-btn" id="btn-model-selector">&#9889; cybermindcli &#9660;</button>
     </div>
     <div class="input-row">
-      <textarea id="chat-input" placeholder="Ask CyberMind... | /plan task | /build app | /image prompt | @file" rows="1"></textarea>
+      <textarea id="chat-input" placeholder="Ask anything... /build app | /plan task | /image prompt | /debug error | @file" rows="1"></textarea>
       <div class="input-actions">
         <button class="btn-input-action" id="btn-at-mention" title="Attach file">@</button>
         <button class="btn-input-action" id="btn-slash-cmd" title="Select agent">/</button>
@@ -1104,6 +1104,21 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       case 'agentList':
         renderAgentDropdown(msg.agents);
         break;
+
+      case 'promptEnhanced': {
+        // Show a subtle indicator that prompt was enhanced
+        showToast('\u2728 Prompt enhanced for better results', 'success');
+        break;
+      }
+
+      case 'insight': {
+        // Show workspace insight as a notification bubble
+        const ins = msg.insight;
+        if (ins && ins.severity === 'error') {
+          showToast('\u26A0\uFE0F ' + ins.message, 'error');
+        }
+        break;
+      }
 
       case 'currentModel': {
         if (msg.modelId) {

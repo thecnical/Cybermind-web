@@ -5,6 +5,8 @@ import { AuthManager } from '../api/AuthManager';
 import { BackendClient } from '../api/BackendClient';
 import { McpManager } from '../api/McpManager';
 import { ImageGenerator } from '../api/ImageGenerator';
+import { ProjectMemoryManager } from '../api/ProjectMemory';
+import { PromptEnhancer } from '../api/PromptEnhancer';
 import { SessionManager, Message, FileOpRecord } from '../session/SessionManager';
 import { RepoIndexer } from '../indexer/RepoIndexer';
 import { FileOperations } from '../operations/FileOperations';
@@ -15,6 +17,8 @@ import { PlanMode, Plan } from '../agents/PlanMode';
 import { AgenticLoop } from '../agents/AgenticLoop';
 import { ArchitectAgent, Architecture } from '../agents/ArchitectAgent';
 import { FullStackBuilder } from '../agents/FullStackBuilder';
+import { AutoDebugAgent } from '../agents/AutoDebugAgent';
+import { WorkspaceIntelligence } from '../agents/WorkspaceIntelligence';
 import { generateNonce } from '../utils/nonce';
 import { logger } from '../utils/logger';
 import * as crypto from 'crypto';
@@ -34,6 +38,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   private architectAgent: ArchitectAgent;
   private fullStackBuilder: FullStackBuilder;
   private imageGenerator: ImageGenerator;
+  private memory: ProjectMemoryManager;
+  private promptEnhancer: PromptEnhancer;
+  private autoDebugAgent: AutoDebugAgent;
+  private workspaceIntelligence: WorkspaceIntelligence;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -53,6 +61,23 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     this.architectAgent = new ArchitectAgent(backendClient, authManager);
     this.fullStackBuilder = new FullStackBuilder(backendClient, authManager);
     this.imageGenerator = new ImageGenerator();
+    this.memory = new ProjectMemoryManager();
+    this.promptEnhancer = new PromptEnhancer(backendClient, authManager);
+    this.autoDebugAgent = new AutoDebugAgent(backendClient, authManager, fileOps, terminalManager, repoIndexer);
+    this.workspaceIntelligence = new WorkspaceIntelligence(backendClient, authManager, this.memory);
+
+    // Wire up auto-debug and workspace intelligence callbacks
+    this.autoDebugAgent.setOnFix((msg) => this.postToWebview({ type: 'token', text: `\n\n${msg}` }));
+    this.workspaceIntelligence.setOnInsight((insights) => {
+      for (const insight of insights) {
+        if (insight.severity === 'error') {
+          this.postToWebview({ type: 'insight', insight });
+        }
+      }
+    });
+
+    // Load project memory
+    this.memory.load().catch(() => {});
   }
 
   resolveWebviewView(
@@ -271,6 +296,26 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     };
     this.sessionManager.addMessage(userMsg);
 
+    // Enhance prompt if it's a substantial request (not a command or short reply)
+    let processedText = text;
+    const isSubstantialRequest = text.length > 30 && !text.startsWith('/') &&
+      text.toLowerCase() !== 'yes' && text.toLowerCase() !== 'no' &&
+      text.toLowerCase() !== 'build' && text.toLowerCase() !== 'execute';
+
+    if (isSubstantialRequest) {
+      const enhanced = await this.promptEnhancer.enhance(text, this.currentModelId);
+      if (enhanced.wasEnhanced && enhanced.enhanced !== text) {
+        processedText = enhanced.enhanced;
+        // Show user that prompt was enhanced
+        this.postToWebview({ type: 'promptEnhanced', original: text, enhanced: processedText.slice(0, 200) + '...' });
+      }
+      // If saved to file, read the file content
+      if (enhanced.savedToFile) {
+        const fileContent = await this.promptEnhancer.readPromptFile(enhanced.savedToFile);
+        if (fileContent) processedText = fileContent;
+      }
+    }
+
     // Build context from active file + attachments + rich repo context
     let context = '';
 
@@ -306,23 +351,36 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     const mcpContext = this.mcpManager.buildMcpContext();
     if (mcpContext) context += `\n\n${mcpContext}`;
 
+    // Project memory context
+    const memoryContext = this.memory.buildContextString();
+    if (memoryContext) context += `\n\n${memoryContext}`;
+
     // Get agent info
     const agentDef = this.agentRegistry.getAgent(this.currentAgentId);
 
     // Check if user wants Plan Mode
-    const isPlanRequest = text.startsWith('/plan ') || text.startsWith('plan: ');
-    const planGoal = isPlanRequest ? text.replace(/^\/plan\s+|^plan:\s+/i, '') : '';
+    const isPlanRequest = processedText.startsWith('/plan ') || processedText.startsWith('plan: ');
+    const planGoal = isPlanRequest ? processedText.replace(/^\/plan\s+|^plan:\s+/i, '') : '';
 
     // Check if user wants full-stack build (architect mode)
-    const isBuildRequest = text.startsWith('/build ') || text.startsWith('build: ');
-    const buildGoal = isBuildRequest ? text.replace(/^\/build\s+|^build:\s+/i, '') : '';
+    const isBuildRequest = processedText.startsWith('/build ') || processedText.startsWith('build: ');
+    const buildGoal = isBuildRequest ? processedText.replace(/^\/build\s+|^build:\s+/i, '') : '';
 
     // Check if user wants image generation
-    const isImageRequest = text.startsWith('/image ') || text.startsWith('/img ');
-    const imagePrompt = isImageRequest ? text.replace(/^\/image\s+|^\/img\s+/i, '') : '';
+    const isImageRequest = processedText.startsWith('/image ') || processedText.startsWith('/img ');
+    const imagePrompt = isImageRequest ? processedText.replace(/^\/image\s+|^\/img\s+/i, '') : '';
+
+    // Check if user wants auto-debug
+    const isDebugRequest = processedText.startsWith('/debug ') || processedText.startsWith('/fix ');
+    const debugError = isDebugRequest ? processedText.replace(/^\/debug\s+|^\/fix\s+/i, '') : '';
 
     if (isImageRequest && imagePrompt) {
       await this.handleImageGeneration(imagePrompt, messageId);
+      return;
+    }
+
+    if (isDebugRequest && debugError) {
+      await this.handleAutoDebug(debugError, messageId);
       return;
     }
 
@@ -396,6 +454,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         openRouterKey
       );
 
+      // Extract memory from AI response
+      this.memory.extractFromResponse(fullResponse);
+
       // Execute any MCP tool calls in the response
       const mcpResults = await this.mcpManager.executeMcpCalls(fullResponse);
       if (mcpResults) {
@@ -468,6 +529,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       this.postToWebview({ type: 'error', message: errMsg });
       logger.error('Send message failed', error);
     }
+  }
+
+  private async handleAutoDebug(errorOrCommand: string, messageId: string): Promise<void> {
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: `🐛 **Auto-debugging...**\n\n` });
+
+    const result = await this.autoDebugAgent.fixTerminalError(errorOrCommand, this.currentModelId);
+    this.postToWebview({ type: 'token', text: result.message });
+    this.postToWebview({ type: 'done', messageId, fileOps: [] });
   }
 
   private async handleImageGeneration(prompt: string, messageId: string): Promise<void> {

@@ -11,6 +11,9 @@ import { UndoStack } from './operations/UndoStack';
 import { FileOperations } from './operations/FileOperations';
 import { PathSanitizer } from './security/PathSanitizer';
 import { AgentRegistry } from './agents/AgentRegistry';
+import { AutoDebugAgent } from './agents/AutoDebugAgent';
+import { WorkspaceIntelligence } from './agents/WorkspaceIntelligence';
+import { ProjectMemoryManager } from './api/ProjectMemory';
 import { InlineCompletionProvider } from './completions/InlineCompletionProvider';
 import { CyberMindCodeActionProvider } from './codeactions/CyberMindCodeActionProvider';
 import { ChatPanelProvider } from './panel/ChatPanelProvider';
@@ -40,6 +43,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Load MCP config from file and start enabled servers
     await mcpManager.loadFromConfigFile();
     await mcpManager.startEnabledServers();
+
+    // Start workspace intelligence
+    const projectMemory = new ProjectMemoryManager();
+    await projectMemory.load();
+    const workspaceIntelligence = new WorkspaceIntelligence(backendClient, authManager, projectMemory);
+    workspaceIntelligence.startAutoScanOnSave(context);
+
+    // Run workspace analysis in background
+    workspaceIntelligence.analyzeWorkspace().then(insights => {
+      if (insights.length > 0) {
+        const errors = insights.filter(i => i.severity === 'error');
+        if (errors.length > 0) {
+          vscode.window.showWarningMessage(
+            `CyberMind: ${errors.length} issue(s) found in workspace`,
+            'View Details'
+          ).then(action => {
+            if (action === 'View Details') {
+              vscode.commands.executeCommand('workbench.view.extension.cybermind');
+            }
+          });
+        }
+      }
+    }).catch(() => {});
 
     // --- Register DiagnosticCollection ---
     context.subscriptions.push(securityScanner);
@@ -392,13 +418,78 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       })
     );
 
+    // 15. generateImage — free image generation
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.generateImage', async () => {
+        const prompt = await vscode.window.showInputBox({
+          prompt: 'Describe the image to generate',
+          placeHolder: 'e.g. modern SaaS dashboard hero image, dark theme, cyan accents',
+        });
+        if (prompt) {
+          await chatPanelProvider.sendToChat(`/image ${prompt}`, 'code');
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        }
+      })
+    );
+
+    // 16. autoDebug — fix errors automatically
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.autoDebug', async () => {
+        const editor = vscode.window.activeTextEditor;
+        const diagnostics = editor
+          ? vscode.languages.getDiagnostics(editor.document.uri)
+              .filter(d => d.severity === vscode.DiagnosticSeverity.Error)
+          : [];
+
+        if (diagnostics.length > 0) {
+          const errorList = diagnostics.map(d => `Line ${d.range.start.line + 1}: ${d.message}`).join('\n');
+          await chatPanelProvider.sendToChat(`/debug ${errorList}`, 'bug-fix');
+        } else {
+          const error = await vscode.window.showInputBox({
+            prompt: 'Paste the error message to fix',
+            placeHolder: 'TypeError: Cannot read property...',
+          });
+          if (error) {
+            await chatPanelProvider.sendToChat(`/debug ${error}`, 'bug-fix');
+          }
+        }
+        vscode.commands.executeCommand('workbench.view.extension.cybermind');
+      })
+    );
+
+    // 17. viewMemory — open project memory file
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.viewMemory', async () => {
+        await projectMemory.openMemoryFile();
+      })
+    );
+
+    // 18. analyzeWorkspace — run workspace intelligence
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.analyzeWorkspace', async () => {
+        const insights = await workspaceIntelligence.analyzeWorkspace();
+        if (insights.length === 0) {
+          vscode.window.showInformationMessage('CyberMind: Workspace looks good! No issues found.');
+        } else {
+          const messages = insights.map(i => `${i.severity === 'error' ? '❌' : '⚠️'} ${i.message}`).join('\n');
+          vscode.window.showInformationMessage(`CyberMind found ${insights.length} insight(s)`, 'View in Chat').then(action => {
+            if (action === 'View in Chat') {
+              chatPanelProvider.postToWebview({ type: 'token', text: `\n\n**Workspace Analysis:**\n${messages}` });
+              vscode.commands.executeCommand('workbench.view.extension.cybermind');
+            }
+          });
+        }
+      })
+    );
+
     // --- Push disposables ---
     context.subscriptions.push(
       { dispose: () => terminalManager.dispose() },
       { dispose: () => repoIndexer.dispose() },
       { dispose: () => settingsPanelProvider.dispose() },
       { dispose: () => inlineProvider.dispose() },
-      { dispose: () => mcpManager.stopAll() }
+      { dispose: () => mcpManager.stopAll() },
+      { dispose: () => workspaceIntelligence.dispose() }
     );
 
     logger.info('CyberMind extension activated successfully.');
