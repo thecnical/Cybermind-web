@@ -418,20 +418,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       })
     );
 
-    // 15. generateImage — free image generation
-    context.subscriptions.push(
-      vscode.commands.registerCommand('cybermind.generateImage', async () => {
-        const prompt = await vscode.window.showInputBox({
-          prompt: 'Describe the image to generate',
-          placeHolder: 'e.g. modern SaaS dashboard hero image, dark theme, cyan accents',
-        });
-        if (prompt) {
-          await chatPanelProvider.sendToChat(`/image ${prompt}`, 'code');
-          vscode.commands.executeCommand('workbench.view.extension.cybermind');
-        }
-      })
-    );
-
     // 16. autoDebug — fix errors automatically
     context.subscriptions.push(
       vscode.commands.registerCommand('cybermind.autoDebug', async () => {
