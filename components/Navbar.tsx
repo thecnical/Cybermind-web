@@ -24,7 +24,6 @@ type NavItem = {
 
 const navLinks: NavItem[] = [
   { href: "/", label: "Home" },
-  { href: "/cbm-code", label: "CBM Code" },
   { href: "/install", label: "Install" },
   { href: "/plans", label: "Plans" },
   { href: "/docs", label: "Docs" },

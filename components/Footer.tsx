@@ -8,7 +8,6 @@ const footerColumns = [
     links: [
       { href: "/install", label: "Install" },
       { href: "/plans", label: "Plans" },
-      { href: "/cbm-code", label: "CBM Code" },
       { href: "/ai-models", label: "AI Models" },
       { href: "/features", label: "Features" },
       { href: "/get-tools", label: "Get Tools" },

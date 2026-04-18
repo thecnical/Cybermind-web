@@ -50,7 +50,6 @@ function routeHint(pathname: string) {
   if (pathname.startsWith("/plans"))     return "You're on pricing. I can compare plans and recommend the right tier.";
   if (pathname.startsWith("/docs"))      return "You're in docs. Ask me anything — I'll route you to the right section.";
   if (pathname.startsWith("/dashboard")) return "You're in dashboard. I can help with API keys, usage, and billing.";
-  if (pathname.startsWith("/cbm-code"))  return "You're on CBM Code page. Ask about AI models, commands, or how to start.";
   if (pathname.startsWith("/features"))  return "You're on features. Ask me to explain any capability in detail.";
   return "Ask about install, plans, commands, or any CyberMind feature.";
 }
@@ -89,7 +88,7 @@ function buildReply(query: string) {
     return {
       text: "CBM Code is a terminal AI coding assistant — free Claude Code alternative. Supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, GPT-5. Works on Windows & macOS.",
       code: "cybermind vibe",
-      links: [{ href: "/cbm-code", label: "CBM Code page" }, { href: "/docs/cbm-code", label: "Docs" }],
+      links: [{ href: "/docs/cbm-code", label: "Docs" }],
     };
   }
 

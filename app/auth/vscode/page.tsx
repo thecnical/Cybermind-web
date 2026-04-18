@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CyberMindLogo from "@/components/CyberMindLogo";
@@ -21,6 +21,8 @@ function VscodeAuthInner() {
   const [submitting, setSubmitting] = useState(false);
   const [plan, setPlan] = useState("free");
   const [userEmail, setUserEmail] = useState("");
+  // Store the full vscode:// URI so the button can open it
+  const vscodeUriRef = useRef("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -48,17 +50,21 @@ function VscodeAuthInner() {
         }
       } catch { /* use free */ }
 
+      const params = new URLSearchParams({ token, plan: userPlan, email: emailAddr, state });
+      vscodeUriRef.current = `vscode://cybermind/auth?${params.toString()}`;
+
       setPlan(userPlan);
       setUserEmail(emailAddr);
       setStep("success");
-
-      const params = new URLSearchParams({ token, plan: userPlan, email: emailAddr, state });
-      setTimeout(() => {
-        window.location.href = `vscode://cybermind/auth?${params.toString()}`;
-      }, 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authorization failed");
       setStep("error");
+    }
+  }
+
+  function handleOpenVSCode() {
+    if (vscodeUriRef.current) {
+      window.location.href = vscodeUriRef.current;
     }
   }
 
@@ -98,12 +104,14 @@ function VscodeAuthInner() {
   return (
     <div className="min-h-screen bg-[#06070B] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
+        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <CyberMindLogo size={48} />
           <h1 className="mt-4 text-xl font-semibold text-white">CyberMind for VSCode</h1>
           <p className="mt-1 text-sm text-[#666]">Sign in to connect your account</p>
         </div>
 
+        {/* Loading */}
         {step === "loading" && (
           <div className="flex items-center justify-center gap-3 text-[#666]">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
@@ -111,8 +119,10 @@ function VscodeAuthInner() {
           </div>
         )}
 
+        {/* Login form */}
         {step === "login" && (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            {/* Google */}
             <button
               onClick={handleGoogleLogin}
               disabled={submitting}
@@ -172,41 +182,61 @@ function VscodeAuthInner() {
           </div>
         )}
 
+        {/* Authorizing */}
         {step === "authorizing" && (
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
-            <p className="text-sm text-[#888]">Authorizing VSCode extension...</p>
+            <p className="text-sm text-[#888]">Authorizing...</p>
           </div>
         )}
 
+        {/* Success — user must click to open VSCode */}
         {step === "success" && (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10 text-2xl">✓</div>
-            <div>
-              <p className="text-base font-semibold text-white">Signed in!</p>
-              <p className="mt-1 text-sm text-[#888]">{userEmail}</p>
-              <span className="mt-2 inline-block rounded-full border border-[#00ffff]/30 bg-[#00ffff]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-[#00ffff]">{plan}</span>
+          <div className="flex flex-col items-center gap-5 text-center">
+            {/* Check mark */}
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="#00FF88" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-            <p className="text-xs text-[#555]">Redirecting back to VSCode...</p>
+
+            <div>
+              <p className="text-lg font-semibold text-white">Signed in successfully!</p>
+              <p className="mt-1 text-sm text-[#888]">{userEmail}</p>
+              <span className="mt-2 inline-block rounded-full border border-[#00ffff]/30 bg-[#00ffff]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-[#00ffff]">
+                {plan}
+              </span>
+            </div>
+
+            {/* THE MAIN BUTTON — user must click this */}
+            <button
+              onClick={handleOpenVSCode}
+              className="w-full rounded-xl bg-[#00ffff] py-4 text-base font-bold text-black transition-all hover:bg-[#00cccc] active:scale-95"
+            >
+              ⚡ Open VSCode
+            </button>
+
+            <p className="text-xs text-[#555] leading-5">
+              Click the button above to return to VSCode.<br />
+              If a browser dialog appears, click <strong className="text-white">Open</strong>.
+            </p>
+
             <p className="text-xs text-[#444]">
-              Not redirecting?{" "}
-              <button
-                onClick={() => {
-                  const params = new URLSearchParams({ plan, email: userEmail, state });
-                  window.location.href = `vscode://cybermind/auth?${params.toString()}`;
-                }}
-                className="text-[#00ffff] hover:underline"
-              >
-                Click here
-              </button>
+              VSCode not installed?{" "}
+              <a href="https://code.visualstudio.com" target="_blank" rel="noreferrer" className="text-[#00ffff] hover:underline">
+                Download it here
+              </a>
             </p>
           </div>
         )}
 
+        {/* Error */}
         {step === "error" && (
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-sm text-red-400">{error}</p>
-            <button onClick={() => setStep("login")} className="text-sm text-[#00ffff] hover:underline">Try again</button>
+            <button onClick={() => setStep("login")} className="text-sm text-[#00ffff] hover:underline">
+              Try again
+            </button>
           </div>
         )}
       </div>
