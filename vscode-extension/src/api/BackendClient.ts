@@ -33,10 +33,72 @@ export interface UserInfo {
 
 // OpenRouter free models — no API key needed
 const OPENROUTER_FREE_MODELS = [
+  'minimax/minimax-m2.5:free',
   'deepseek/deepseek-r1:free',
   'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-3-27b-it:free',
+  'google/gemma-4-31b-it:free',
+  'qwen/qwen3-coder:free',
+  'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
 ];
+
+// Map extension model IDs to backend provider/model strings
+function resolveModel(modelId: string): { provider: string; model: string } {
+  if (modelId.startsWith('or-')) {
+    const map: Record<string, string> = {
+      'or-minimax-m2.5':    'minimax/minimax-m2.5:free',
+      'or-qwen3-coder':     'qwen/qwen3-coder:free',
+      'or-gemma-4-31b':     'google/gemma-4-31b-it:free',
+      'or-dolphin':         'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+      'or-hermes-405b':     'nousresearch/hermes-3-llama-3.1-405b:free',
+      'or-gpt-oss-120b':    'openai/gpt-oss-120b:free',
+      'or-llama-3.3-70b':   'meta-llama/llama-3.3-70b-instruct:free',
+      'or-nemotron-super':  'nvidia/nemotron-3-super-120b-a12b:free',
+      'or-deepseek-chat':   'deepseek/deepseek-chat',
+      'or-qwen3-235b':      'qwen/qwen3-235b-a22b-instruct',
+      'or-claude-3.7':      'anthropic/claude-3-7-sonnet',
+    };
+    return { provider: 'openrouter', model: map[modelId] || 'openrouter/free' };
+  }
+  if (modelId.startsWith('nv-')) {
+    const map: Record<string, string> = {
+      'nv-minimax-m2.7':       'minimaxai/minimax-m2.7',
+      'nv-kimi-k2-thinking':   'moonshotai/kimi-k2-thinking',
+      'nv-kimi-k2-instruct':   'moonshotai/kimi-k2-instruct',
+      'nv-glm-4.7':            'z-ai/glm4_7',
+      'nv-gemma-2-27b':        'google/gemma-2-27b-it',
+      'nv-phi-3.5-mini':       'microsoft/phi-3_5-mini-instruct',
+      'nv-mamba-codestral':    'mistralai/mamba-codestral-7b-v0.1',
+      'nv-llama3-70b':         'meta/llama-3.3-70b-instruct',
+    };
+    return { provider: 'nvidia', model: map[modelId] || 'meta/llama-3.3-70b-instruct' };
+  }
+  if (modelId.startsWith('groq-')) {
+    const map: Record<string, string> = {
+      'groq-llama-3.3-70b': 'llama-3.3-70b-versatile',
+      'groq-kimi-k2':       'moonshotai/kimi-k2-instruct',
+      'groq-qwen3-32b':     'qwen/qwen3-32b',
+      'groq-llama-4-scout': 'meta-llama/llama-4-scout-17b-16e-instruct',
+      'groq-gpt-oss-120b':  'openai/gpt-oss-120b',
+    };
+    return { provider: 'groq', model: map[modelId] || 'llama-3.3-70b-versatile' };
+  }
+  if (modelId.startsWith('mistral-') || modelId.startsWith('magistral-') || modelId.startsWith('ministral-')) {
+    return { provider: 'mistral', model: modelId + '-latest' };
+  }
+  if (modelId.startsWith('elite-')) {
+    const map: Record<string, string> = {
+      'elite-claude-3-7':        'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+      'elite-claude-3-5-sonnet': 'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
+      'elite-claude-3-5-haiku':  'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+      'elite-nova-pro':          'us.amazon.nova-pro-v1:0',
+      'elite-nova-lite':         'us.amazon.nova-lite-v1:0',
+      'elite-llama-3-3-70b':     'us.meta.llama3-3-70b-instruct-v1:0',
+    };
+    return { provider: 'bedrock', model: map[modelId] || 'us.anthropic.claude-3-7-sonnet-20250219-v1:0' };
+  }
+  // Free/default
+  return { provider: 'free', model: modelId };
+}
 
 export class BackendClient {
   public readonly baseUrl = 'https://cybermind-backend-8yrt.onrender.com';
@@ -49,12 +111,14 @@ export class BackendClient {
     apiKey: string | null,
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken,
-    jwtToken?: string | null
+    jwtToken?: string | null,
+    openRouterKey?: string | null
   ): Promise<string> {
-    const isFree = (model === 'cybermindcli' || model === 'free') && !apiKey && !jwtToken;
+    const { provider } = resolveModel(model);
+    const isFree = (provider === 'free' || model === 'cybermindcli') && !apiKey && !jwtToken;
 
     if (isFree) {
-      return this.openRouterFreeChat(request, onToken, cancellationToken);
+      return this.openRouterFreeChat(request, onToken, cancellationToken, openRouterKey);
     }
 
     const headers: Record<string, string> = {
@@ -64,13 +128,16 @@ export class BackendClient {
     if (apiKey) {
       headers['X-API-Key'] = apiKey;
     } else if (jwtToken) {
-      // JWT token from web OAuth login — use as Bearer
       headers['Authorization'] = `Bearer ${jwtToken}`;
     }
 
-    if (model.startsWith('elite')) {
+    // Tell backend which provider/model to use
+    headers['X-Model-Id'] = model;
+    headers['X-Provider'] = provider;
+
+    if (provider === 'bedrock' || model.startsWith('elite')) {
       headers['X-User-Plan'] = 'elite';
-    } else if (model.startsWith('pro')) {
+    } else if (provider !== 'free') {
       headers['X-User-Plan'] = 'pro';
     }
 
@@ -79,17 +146,17 @@ export class BackendClient {
     });
   }
 
-  // Free tier: try CyberMind backend first, fallback to OpenRouter free models
   async openRouterFreeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
-    cancellationToken?: vscode.CancellationToken
+    cancellationToken?: vscode.CancellationToken,
+    openRouterKey?: string | null
   ): Promise<string> {
     try {
       return await this._doRequest('/free/chat', { 'Content-Type': 'application/json' }, request, onToken, cancellationToken);
     } catch {
       logger.warn('CyberMind free endpoint failed, falling back to OpenRouter');
-      return this._openRouterChat(request, onToken, cancellationToken);
+      return this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
     }
   }
 
@@ -104,7 +171,8 @@ export class BackendClient {
   private async _openRouterChat(
     request: ChatRequest,
     onToken: (token: string) => void,
-    cancellationToken?: vscode.CancellationToken
+    cancellationToken?: vscode.CancellationToken,
+    openRouterKey?: string | null
   ): Promise<string> {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
@@ -125,6 +193,7 @@ export class BackendClient {
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://cybermindcli1.vercel.app',
           'X-Title': 'CyberMind VSCode Extension',
+          ...(openRouterKey ? { 'Authorization': `Bearer ${openRouterKey}` } : {}),
         },
         body: JSON.stringify({
           model: OPENROUTER_FREE_MODELS[0],

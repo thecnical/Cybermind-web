@@ -894,10 +894,6 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
   document.getElementById('link-get-key').addEventListener('click', function() {
     vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
   });
-    vscode.postMessage({ type: 'signInWithApiKey', apiKey });
-  });
-
-  // (old toggle handlers removed — now using web OAuth flow)
 
   // Close dropdowns on outside click
   document.addEventListener('click', function(e) {

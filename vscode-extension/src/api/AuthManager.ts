@@ -4,6 +4,7 @@ const KEY_AUTH_TOKEN = 'cybermind.authToken';
 const KEY_API_KEY = 'cybermind.apiKey';
 const KEY_USER_EMAIL = 'cybermind.userEmail';
 const KEY_USER_PLAN = 'cybermind.userPlan';
+const KEY_OPENROUTER_KEY = 'cybermind.openRouterKey';
 // cp_live_ followed by base64url chars (A-Z, a-z, 0-9, -, _)
 const API_KEY_REGEX = /^cp_live_[A-Za-z0-9\-_]{20,}$/;
 
@@ -51,6 +52,15 @@ export class AuthManager {
     await this.secrets.delete(KEY_API_KEY);
     await this.secrets.delete(KEY_USER_EMAIL);
     await this.secrets.delete(KEY_USER_PLAN);
+  }
+
+  async getOpenRouterKey(): Promise<string | null> {
+    const key = await this.secrets.get(KEY_OPENROUTER_KEY);
+    return key ?? null;
+  }
+
+  async setOpenRouterKey(key: string): Promise<void> {
+    await this.secrets.store(KEY_OPENROUTER_KEY, key);
   }
 
   async isAuthenticated(): Promise<boolean> {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,233 +6,332 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
   <title>CyberMind Settings</title>
   <style>
-:root{--bg-primary:#1a1a1a;--bg-secondary:#252525;--bg-input:#2d2d2d;--bg-hover:#333333;--accent:#00ffff;--accent-dim:#00cccc;--accent-glow:rgba(0,255,255,0.15);--text-primary:#e0e0e0;--text-secondary:#999999;--text-muted:#666666;--border:#3a3a3a;--error:#ff4444;--warning:#ffaa00;--success:#00ff88}
+:root{--bg:#1a1a1a;--bg2:#252525;--bg3:#2d2d2d;--hover:#333;--accent:#00ffff;--accent2:#00cccc;--glow:rgba(0,255,255,.15);--text:#e0e0e0;--text2:#999;--muted:#666;--border:#3a3a3a;--err:#ff4444;--warn:#ffaa00;--ok:#00ff88}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg-primary);color:var(--text-primary);line-height:1.5;padding:0;min-height:100vh}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
-.settings-container{max-width:640px;margin:0 auto;padding:24px 20px}
-.settings-title{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:10px}
-.settings-title svg{flex-shrink:0}
-.settings-section{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px}
-.section-title{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
-.setting-row:last-child{border-bottom:none;padding-bottom:0}
-.setting-row:first-of-type{padding-top:0}
-.setting-label{font-size:13px;color:var(--text-primary);font-weight:500}
-.setting-value{font-size:12px;color:var(--text-secondary)}
-.setting-control{display:flex;align-items:center;gap:8px}
-select{padding:6px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text-primary);font-size:12px;outline:none;cursor:pointer;min-width:160px}
-select:focus{border-color:var(--accent)}
-select option{background:var(--bg-secondary)}
-.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg);color:var(--text);line-height:1.5;padding:0;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+.page-title{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none;padding-bottom:0}
+.row:first-of-type{padding-top:0}
+.label{font-size:13px;color:var(--text);font-weight:500}
+.sublabel{font-size:11px;color:var(--text2);margin-top:2px}
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bg-input);border:1px solid var(--border);border-radius:11px;transition:.2s}
-.toggle-slider:before{position:absolute;content:'';height:16px;width:16px;left:2px;bottom:2px;background:var(--text-muted);border-radius:50%;transition:.2s}
-input:checked+.toggle-slider{background:var(--accent-glow);border-color:var(--accent)}
-input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--accent)}
-.btn-reindex{padding:8px 16px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn-reindex:hover{background:var(--accent-dim)}
-.btn-reindex:disabled{opacity:.5;cursor:not-allowed}
-.index-status{font-size:12px;color:var(--text-secondary);margin-top:4px}
-.index-status.indexing{color:var(--warning)}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border:1px solid var(--border);border-radius:10px;transition:.2s}
+.slider:before{position:absolute;content:'';height:14px;width:14px;left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:.2s}
+input:checked+.slider{background:var(--glow);border-color:var(--accent)}
+input:checked+.slider:before{transform:translateX(18px);background:var(--accent)}
+.btn{padding:7px 14px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--accent2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.status{font-size:11px;color:var(--text2)}
+.status.loading{color:var(--warn)}
+.status.ok{color:var(--ok)}
+.account-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
+.account-label{color:var(--text2);min-width:56px;font-size:12px}
+.account-val{color:var(--text);font-weight:500}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
+.badge-free{background:rgba(0,255,136,.15);color:var(--ok)}
+.badge-pro{background:rgba(0,255,255,.15);color:var(--accent)}
+.badge-elite{background:rgba(255,170,0,.15);color:var(--warn)}
+.not-signed{color:var(--muted);font-size:12px;font-style:italic}
+/* Model picker */
+.provider-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.tab{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s}
+.tab.active{border-color:var(--accent);color:var(--accent);background:var(--glow)}
+.model-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto}
+.model-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg3)}
+.model-item:hover{border-color:var(--accent);background:var(--hover)}
+.model-item.selected{border-color:var(--accent);background:var(--glow)}
+.model-name{font-size:12px;font-weight:500;color:var(--text)}
+.model-tag{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
+.tag-free{background:rgba(0,255,136,.15);color:var(--ok)}
+.tag-pro{background:rgba(0,255,255,.15);color:var(--accent)}
+.tag-elite{background:rgba(255,170,0,.15);color:var(--warn)}
+.tag-exp{background:rgba(138,43,226,.2);color:#b06aff}
+.custom-key-row{display:flex;gap:6px;margin-top:8px}
+.custom-key-input{flex:1;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;font-family:monospace}
+.custom-key-input:focus{border-color:var(--accent)}
+.custom-key-input::placeholder{color:var(--muted)}
 .shortcuts-table{width:100%;border-collapse:collapse}
 .shortcuts-table tr{border-bottom:1px solid var(--border)}
 .shortcuts-table tr:last-child{border-bottom:none}
-.shortcuts-table td{padding:8px 4px;font-size:12px}
-.shortcuts-table td:first-child{color:var(--text-secondary);width:50%}
-.kbd{display:inline-block;padding:2px 6px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:11px;color:var(--accent)}
-.account-info{display:flex;flex-direction:column;gap:6px}
-.account-row{display:flex;align-items:center;gap:8px;font-size:13px}
-.account-label{color:var(--text-secondary);min-width:60px}
-.account-val{color:var(--text-primary);font-weight:500}
-.plan-badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.plan-free{background:rgba(0,255,136,.15);color:var(--success)}
-.plan-pro{background:rgba(0,255,255,.15);color:var(--accent)}
-.plan-elite{background:rgba(255,170,0,.15);color:var(--warning)}
-.plan-api{background:rgba(0,255,255,.1);color:var(--accent)}
-.not-signed-in{color:var(--text-muted);font-size:12px;font-style:italic}
+.shortcuts-table td{padding:7px 4px;font-size:12px}
+.shortcuts-table td:first-child{color:var(--text2);width:55%}
+.kbd{display:inline-block;padding:2px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:11px;color:var(--accent)}
   </style>
 </head>
 <body>
-<div class="settings-container">
-  <div class="settings-title">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M10 2L12.5 7H17.5L13.5 10.5L15 15.5L10 12.5L5 15.5L6.5 10.5L2.5 7H7.5L10 2Z" stroke="#00ffff" stroke-width="1.5" fill="none"/>
-    </svg>
+<div class="wrap">
+  <div class="page-title">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polygon points="9,1 17,5 17,13 9,17 1,13 1,5" stroke="#00ffff" stroke-width="1.5" fill="none"/><path d="M10 3L7 9H10L9 15L12 9H9L10 3Z" fill="#00ffff"/></svg>
     CyberMind Settings
   </div>
 
-  <!-- Account Section -->
-  <div class="settings-section">
+  <!-- Account -->
+  <div class="section">
     <div class="section-title">Account</div>
-    <div class="account-info" id="account-info">
-      <div class="not-signed-in">Not signed in</div>
-    </div>
+    <div id="account-info"><div class="not-signed">Not signed in — using free tier</div></div>
   </div>
 
-  <!-- AI Settings Section -->
-  <div class="settings-section">
-    <div class="section-title">AI Settings</div>
-    <div class="setting-row">
-      <div>
-        <div class="setting-label">Active Model</div>
-        <div class="setting-value">Model used for chat and completions</div>
-      </div>
-      <div class="setting-control">
-        <select id="model-select" onchange="changeModel(this.value)">
-          <option value="cybermindcli">CyberMind Free</option>
-          <option value="pro-standard">Pro Standard</option>
-          <option value="pro-fast">Pro Fast</option>
-          <option value="elite-claude">Elite (Claude 3.7)</option>
-        </select>
-      </div>
+  <!-- AI Model -->
+  <div class="section">
+    <div class="section-title">AI Model</div>
+    <div class="provider-tabs" id="provider-tabs">
+      <button class="tab active" data-provider="free">Free</button>
+      <button class="tab" data-provider="openrouter">OpenRouter</button>
+      <button class="tab" data-provider="nvidia">NVIDIA</button>
+      <button class="tab" data-provider="groq">Groq</button>
+      <button class="tab" data-provider="mistral">Mistral</button>
+      <button class="tab" data-provider="bedrock">Elite (Bedrock)</button>
     </div>
-    <div class="setting-row">
-      <div>
-        <div class="setting-label">Inline Completions</div>
-        <div class="setting-value">Ghost text suggestions while typing</div>
-      </div>
-      <div class="setting-control">
-        <label class="toggle">
-          <input type="checkbox" id="inline-completions-toggle" checked onchange="toggleInlineCompletions(this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+    <div class="model-list" id="model-list"></div>
+    <!-- Custom OpenRouter key -->
+    <div id="custom-key-section" style="display:none;margin-top:10px">
+      <div class="sublabel" style="margin-bottom:6px">Your OpenRouter API key (optional — uses free models without key)</div>
+      <div class="custom-key-row">
+        <input type="password" class="custom-key-input" id="openrouter-key-input" placeholder="sk-or-v1-..." autocomplete="off">
+        <button class="btn" id="btn-save-or-key">Save</button>
       </div>
     </div>
   </div>
 
-  <!-- Workspace Index Section -->
-  <div class="settings-section">
+  <!-- Inline Completions -->
+  <div class="section">
+    <div class="section-title">Editor</div>
+    <div class="row">
+      <div>
+        <div class="label">Inline Completions</div>
+        <div class="sublabel">Ghost text as you type (Tab to accept)</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="inline-toggle" checked onchange="toggleInline(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Workspace Index -->
+  <div class="section">
     <div class="section-title">Workspace Index</div>
-    <div class="setting-row">
+    <div class="row">
       <div>
-        <div class="setting-label">Files Indexed</div>
-        <div class="index-status" id="index-status">Loading...</div>
+        <div class="label">Files Indexed</div>
+        <div class="status" id="index-status">Loading...</div>
       </div>
-      <div class="setting-control">
-        <button class="btn-reindex" id="btn-reindex" onclick="reindexWorkspace()">Re-index Workspace</button>
-      </div>
+      <button class="btn" id="btn-reindex" onclick="reindex()">Re-index</button>
     </div>
   </div>
 
-  <!-- Keyboard Shortcuts Section -->
-  <div class="settings-section">
+  <!-- Shortcuts -->
+  <div class="section">
     <div class="section-title">Keyboard Shortcuts</div>
     <table class="shortcuts-table">
-      <tr>
-        <td>Open Chat Panel</td>
-        <td><span class="kbd">Ctrl+Shift+C</span> / <span class="kbd">Cmd+Shift+C</span></td>
-      </tr>
-      <tr>
-        <td>Scan File for Vulnerabilities</td>
-        <td><span class="kbd">Ctrl+Shift+S</span> / <span class="kbd">Cmd+Shift+S</span></td>
-      </tr>
-      <tr>
-        <td>Undo Last AI Change</td>
-        <td><span class="kbd">Ctrl+Shift+Z</span> / <span class="kbd">Cmd+Shift+Z</span></td>
-      </tr>
-      <tr>
-        <td>Accept Inline Completion</td>
-        <td><span class="kbd">Tab</span></td>
-      </tr>
-      <tr>
-        <td>Send Chat Message</td>
-        <td><span class="kbd">Enter</span></td>
-      </tr>
-      <tr>
-        <td>New Line in Chat</td>
-        <td><span class="kbd">Shift+Enter</span></td>
-      </tr>
-      <tr>
-        <td>Close Dropdowns</td>
-        <td><span class="kbd">Escape</span></td>
-      </tr>
+      <tr><td>Open Chat</td><td><span class="kbd">Ctrl+Shift+C</span></td></tr>
+      <tr><td>Scan File</td><td><span class="kbd">Ctrl+Shift+S</span></td></tr>
+      <tr><td>Undo AI Change</td><td><span class="kbd">Ctrl+Shift+Z</span></td></tr>
+      <tr><td>Accept Completion</td><td><span class="kbd">Tab</span></td></tr>
+      <tr><td>Send Message</td><td><span class="kbd">Enter</span></td></tr>
+      <tr><td>New Line</td><td><span class="kbd">Shift+Enter</span></td></tr>
+      <tr><td>Attach File</td><td><span class="kbd">@filename</span></td></tr>
+      <tr><td>Switch Agent</td><td><span class="kbd">/agent</span></td></tr>
     </table>
   </div>
 </div>
 
 <script nonce="{{NONCE}}">
-  const vscode = acquireVsCodeApi();
+const vscode = acquireVsCodeApi();
 
-  function changeModel(modelId) {
-    vscode.postMessage({ type: 'changeModel', modelId });
+const MODELS = {
+  free: [
+    { id: 'cybermindcli',           name: 'CyberMind Free',         tag: 'free',  desc: 'HuggingFace — no key needed' },
+    { id: 'openrouter-auto-free',   name: 'OpenRouter Auto (Free)', tag: 'free',  desc: 'Best free model auto-selected' },
+    { id: 'deepseek-r1-free',       name: 'DeepSeek R1',            tag: 'free',  desc: 'Strong reasoning, free' },
+    { id: 'llama-3.3-70b-free',     name: 'Llama 3.3 70B',          tag: 'free',  desc: 'Meta, reliable free model' },
+    { id: 'gemma-4-31b-free',       name: 'Gemma 4 31B',            tag: 'free',  desc: 'Google, strong general' },
+    { id: 'qwen3-coder-free',       name: 'Qwen3 Coder',            tag: 'free',  desc: 'Alibaba, code specialist' },
+    { id: 'minimax-m2.5-free',      name: 'MiniMax M2.5',           tag: 'free',  desc: 'Excellent for code' },
+    { id: 'dolphin-uncensored',     name: 'Dolphin Uncensored',     tag: 'free',  desc: 'No safety filters' },
+  ],
+  openrouter: [
+    { id: 'or-minimax-m2.5',        name: 'MiniMax M2.5',           tag: 'free',  desc: 'Excellent coding, free' },
+    { id: 'or-qwen3-coder',         name: 'Qwen3 Coder',            tag: 'free',  desc: 'Code specialist, free' },
+    { id: 'or-gemma-4-31b',         name: 'Gemma 4 31B',            tag: 'free',  desc: 'Google, free' },
+    { id: 'or-dolphin',             name: 'Dolphin Uncensored',     tag: 'free',  desc: 'No filters, free' },
+    { id: 'or-hermes-405b',         name: 'Hermes 405B',            tag: 'free',  desc: 'Large uncensored, free' },
+    { id: 'or-gpt-oss-120b',        name: 'GPT OSS 120B',           tag: 'free',  desc: 'OpenAI OSS, free' },
+    { id: 'or-llama-3.3-70b',       name: 'Llama 3.3 70B',          tag: 'free',  desc: 'Meta, free' },
+    { id: 'or-nemotron-super',      name: 'Nemotron Super 120B',    tag: 'free',  desc: 'NVIDIA, free' },
+    { id: 'or-deepseek-chat',       name: 'DeepSeek Chat',          tag: 'pro',   desc: 'Paid — needs OR key' },
+    { id: 'or-qwen3-235b',          name: 'Qwen3 235B',             tag: 'pro',   desc: 'Paid — needs OR key' },
+    { id: 'or-claude-3.7',          name: 'Claude 3.7 Sonnet',      tag: 'elite', desc: 'Paid — needs OR key' },
+  ],
+  nvidia: [
+    { id: 'nv-minimax-m2.7',        name: 'MiniMax M2.7 (230B)',    tag: 'pro',   desc: 'Primary coding agent, agentic' },
+    { id: 'nv-kimi-k2-thinking',    name: 'Kimi K2 Thinking',       tag: 'pro',   desc: '256K context, reasoning' },
+    { id: 'nv-kimi-k2-instruct',    name: 'Kimi K2 Instruct (1T)',  tag: 'pro',   desc: '1T params MoE' },
+    { id: 'nv-glm-4.7',             name: 'GLM-4.7',                tag: 'pro',   desc: 'Agentic coding, UI gen' },
+    { id: 'nv-gemma-2-27b',         name: 'Gemma 2 27B',            tag: 'pro',   desc: 'Security analysis' },
+    { id: 'nv-phi-3.5-mini',        name: 'Phi 3.5 Mini',           tag: 'pro',   desc: 'Fast code' },
+    { id: 'nv-mamba-codestral',     name: 'Mamba Codestral 7B',     tag: 'pro',   desc: 'Code specialist' },
+    { id: 'nv-llama3-70b',          name: 'Llama 3.3 70B',          tag: 'pro',   desc: 'General purpose' },
+  ],
+  groq: [
+    { id: 'groq-llama-3.3-70b',     name: 'Llama 3.3 70B',          tag: 'pro',   desc: 'Fast, versatile' },
+    { id: 'groq-kimi-k2',           name: 'Kimi K2',                tag: 'pro',   desc: 'Moonshot AI' },
+    { id: 'groq-qwen3-32b',         name: 'Qwen3 32B',              tag: 'pro',   desc: 'Alibaba' },
+    { id: 'groq-llama-4-scout',     name: 'Llama 4 Scout',          tag: 'pro',   desc: 'Meta latest' },
+    { id: 'groq-gpt-oss-120b',      name: 'GPT OSS 120B',           tag: 'pro',   desc: 'OpenAI OSS' },
+  ],
+  mistral: [
+    { id: 'mistral-large',          name: 'Mistral Large',          tag: 'pro',   desc: 'Most capable' },
+    { id: 'mistral-small',          name: 'Mistral Small',          tag: 'pro',   desc: 'Fast + efficient' },
+    { id: 'magistral-medium',       name: 'Magistral Medium',       tag: 'pro',   desc: 'Reasoning model' },
+    { id: 'ministral-8b',           name: 'Ministral 8B',           tag: 'pro',   desc: 'Lightweight' },
+  ],
+  bedrock: [
+    { id: 'elite-claude-3-7',       name: 'Claude 3.7 Sonnet',      tag: 'elite', desc: 'Best reasoning + security' },
+    { id: 'elite-claude-3-5-sonnet',name: 'Claude 3.5 Sonnet v2',   tag: 'elite', desc: 'Fast + powerful' },
+    { id: 'elite-claude-3-5-haiku', name: 'Claude 3.5 Haiku',       tag: 'elite', desc: 'Ultra-fast' },
+    { id: 'elite-nova-pro',         name: 'Amazon Nova Pro',        tag: 'elite', desc: 'AWS flagship, multimodal' },
+    { id: 'elite-nova-lite',        name: 'Amazon Nova Lite',       tag: 'elite', desc: 'Fast + cheap' },
+    { id: 'elite-llama-3-3-70b',    name: 'Llama 3.3 70B (Bedrock)',tag: 'elite', desc: 'Open source via AWS' },
+  ],
+};
+
+let currentProvider = 'free';
+let selectedModel = 'cybermindcli';
+let orKey = '';
+
+function renderModels() {
+  const list = document.getElementById('model-list');
+  const models = MODELS[currentProvider] || [];
+  list.innerHTML = models.map(m => {
+    const tagClass = 'tag-' + m.tag;
+    const sel = m.id === selectedModel ? ' selected' : '';
+    return '<div class="model-item' + sel + '" onclick="selectModel(\'' + m.id + '\')">' +
+      '<div><div class="model-name">' + m.name + '</div><div class="sublabel">' + m.desc + '</div></div>' +
+      '<span class="model-tag ' + tagClass + '">' + m.tag.toUpperCase() + '</span>' +
+      '</div>';
+  }).join('');
+
+  // Show custom key section for openrouter
+  document.getElementById('custom-key-section').style.display =
+    currentProvider === 'openrouter' ? 'block' : 'none';
+}
+
+function selectModel(id) {
+  selectedModel = id;
+  renderModels();
+  vscode.postMessage({ type: 'changeModel', modelId: id });
+}
+
+// Provider tabs
+document.getElementById('provider-tabs').addEventListener('click', function(e) {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  currentProvider = tab.dataset.provider;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderModels();
+});
+
+// Save OpenRouter key
+document.getElementById('btn-save-or-key').addEventListener('click', function() {
+  const key = document.getElementById('openrouter-key-input').value.trim();
+  if (key) {
+    vscode.postMessage({ type: 'saveOpenRouterKey', key });
+    this.textContent = 'Saved!';
+    setTimeout(() => { this.textContent = 'Save'; }, 2000);
   }
+});
 
-  function toggleInlineCompletions(enabled) {
-    vscode.postMessage({ type: 'toggleInlineCompletions', enabled });
-  }
+function toggleInline(enabled) {
+  vscode.postMessage({ type: 'toggleInlineCompletions', enabled });
+}
 
-  function reindexWorkspace() {
-    const btn = document.getElementById('btn-reindex');
-    btn.disabled = true;
-    btn.textContent = 'Indexing...';
-    document.getElementById('index-status').textContent = 'Indexing workspace...';
-    document.getElementById('index-status').className = 'index-status indexing';
-    vscode.postMessage({ type: 'reindexWorkspace' });
-  }
+function reindex() {
+  const btn = document.getElementById('btn-reindex');
+  btn.disabled = true;
+  btn.textContent = 'Indexing...';
+  document.getElementById('index-status').textContent = 'Indexing...';
+  document.getElementById('index-status').className = 'status loading';
+  vscode.postMessage({ type: 'reindexWorkspace' });
+}
 
-  function formatRelativeTime(isoString) {
-    if (!isoString) return 'Never';
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHr = Math.floor(diffMin / 60);
-    if (diffSec < 60) return 'Just now';
-    if (diffMin < 60) return `${diffMin} min ago`;
-    if (diffHr < 24) return `${diffHr} hr ago`;
-    return date.toLocaleDateString();
-  }
+function formatRelTime(iso) {
+  if (!iso) return 'Never';
+  const d = new Date(iso), now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return d.toLocaleDateString();
+}
 
-  window.addEventListener('message', (event) => {
-    const msg = event.data;
-    switch (msg.type) {
-      case 'authState': {
-        const info = document.getElementById('account-info');
-        if (msg.isAuthenticated) {
-          const planClass = msg.plan === 'elite' ? 'plan-elite' : msg.plan === 'pro' ? 'plan-pro' : msg.plan === 'api-key' ? 'plan-api' : 'plan-free';
-          const planLabel = msg.plan === 'api-key' ? 'API Key' : msg.plan === 'token' ? 'Token' : msg.plan || 'Free';
-          info.innerHTML = `
-            <div class="account-row">
-              <span class="account-label">Status</span>
-              <span class="account-val">Signed In</span>
-            </div>
-            ${msg.email ? `<div class="account-row"><span class="account-label">Email</span><span class="account-val">${msg.email}</span></div>` : ''}
-            <div class="account-row">
-              <span class="account-label">Plan</span>
-              <span class="plan-badge ${planClass}">${planLabel}</span>
-            </div>`;
-        } else {
-          info.innerHTML = '<div class="not-signed-in">Not signed in — using free tier</div>';
-        }
-        break;
+window.addEventListener('message', function(e) {
+  const msg = e.data;
+  switch (msg.type) {
+    case 'authState': {
+      const el = document.getElementById('account-info');
+      if (msg.isAuthenticated) {
+        const planClass = msg.plan === 'elite' ? 'badge-elite' : msg.plan === 'pro' ? 'badge-pro' : 'badge-free';
+        el.innerHTML =
+          '<div class="account-row"><span class="account-label">Status</span><span class="account-val">Signed In</span></div>' +
+          (msg.email ? '<div class="account-row"><span class="account-label">Email</span><span class="account-val">' + msg.email + '</span></div>' : '') +
+          '<div class="account-row"><span class="account-label">Plan</span><span class="badge ' + planClass + '">' + (msg.plan || 'free') + '</span></div>';
+      } else {
+        el.innerHTML = '<div class="not-signed">Not signed in — using free tier</div>';
       }
-      case 'indexStatus': {
-        const statusEl = document.getElementById('index-status');
-        const btn = document.getElementById('btn-reindex');
-        if (msg.isIndexing) {
-          statusEl.textContent = 'Indexing workspace...';
-          statusEl.className = 'index-status indexing';
-          btn.disabled = true;
-          btn.textContent = 'Indexing...';
-        } else {
-          statusEl.textContent = `${msg.fileCount} files indexed · Last indexed: ${formatRelativeTime(msg.lastIndexed)}`;
-          statusEl.className = 'index-status';
-          btn.disabled = false;
-          btn.textContent = 'Re-index Workspace';
-        }
-        break;
-      }
-      case 'settings': {
-        const modelSelect = document.getElementById('model-select');
-        if (modelSelect) modelSelect.value = msg.activeModel || 'cybermindcli';
-        const toggle = document.getElementById('inline-completions-toggle');
-        if (toggle) toggle.checked = msg.inlineCompletionsEnabled !== false;
-        break;
-      }
+      break;
     }
-  });
+    case 'indexStatus': {
+      const s = document.getElementById('index-status');
+      const btn = document.getElementById('btn-reindex');
+      if (msg.isIndexing) {
+        s.textContent = 'Indexing...'; s.className = 'status loading';
+        btn.disabled = true; btn.textContent = 'Indexing...';
+      } else {
+        s.textContent = msg.fileCount + ' files · Last: ' + formatRelTime(msg.lastIndexed);
+        s.className = 'status ok';
+        btn.disabled = false; btn.textContent = 'Re-index';
+      }
+      break;
+    }
+    case 'settings': {
+      if (msg.activeModel) {
+        selectedModel = msg.activeModel;
+        // Find which provider this model belongs to
+        for (const [prov, models] of Object.entries(MODELS)) {
+          if (models.find(m => m.id === selectedModel)) {
+            currentProvider = prov;
+            document.querySelectorAll('.tab').forEach(t => {
+              t.classList.toggle('active', t.dataset.provider === prov);
+            });
+            break;
+          }
+        }
+        renderModels();
+      }
+      if (msg.inlineCompletionsEnabled !== undefined) {
+        document.getElementById('inline-toggle').checked = msg.inlineCompletionsEnabled !== false;
+      }
+      if (msg.openRouterKey) {
+        document.getElementById('openrouter-key-input').value = msg.openRouterKey;
+      }
+      break;
+    }
+  }
+});
+
+// Init
+renderModels();
 </script>
 </body>
 </html>

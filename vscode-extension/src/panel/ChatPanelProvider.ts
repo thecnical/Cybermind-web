@@ -172,9 +172,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       case 'deleteCustomAgent':
         this.handleDeleteCustomAgent(message.agentId as string);
         break;
-      case 'saveInstructions':
-        // Store custom instructions (future use)
-        logger.info('Custom instructions saved');
+      case 'saveOpenRouterKey':
+        await this.authManager.setOpenRouterKey(message.key as string);
+        this.postToWebview({ type: 'showToast', message: 'OpenRouter key saved' });
         break;
       case 'continueAsFree':
         // User chose to use free tier without signing in
@@ -272,6 +272,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     try {
       const apiKey = await this.authManager.getApiKey();
       const jwtToken = await this.authManager.getToken();
+      const openRouterKey = await this.authManager.getOpenRouterKey();
       const cancellationSource = new vscode.CancellationTokenSource();
 
       let fullResponse = '';
@@ -291,7 +292,8 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
           this.postToWebview({ type: 'token', text: token });
         },
         cancellationSource.token,
-        jwtToken
+        jwtToken,
+        openRouterKey
       );
 
       // Parse file operations from response

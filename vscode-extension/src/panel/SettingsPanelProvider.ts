@@ -78,6 +78,7 @@ export class SettingsPanelProvider {
       type: 'settings',
       activeModel: config.get<string>('activeModel', 'cybermindcli'),
       inlineCompletionsEnabled: config.get<boolean>('inlineCompletions.enabled', true),
+      openRouterKey: await this.repoIndexer.getStatus ? '' : '', // placeholder
     });
   }
 
