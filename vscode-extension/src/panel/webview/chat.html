@@ -188,7 +188,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     <button class="btn-primary" id="btn-signup">Sign Up</button>
     <button class="btn-secondary" id="btn-goto-signin">Sign In</button>
   </div>
-  <div class="welcome-free-note">Free tier available — no account required</div>
+  <div class="welcome-free-note">Free tier available Â· no account required</div>
   <button class="btn-secondary" id="btn-continue-free" style="max-width:280px;width:100%;margin-top:4px;">Continue Free</button>
 </div>
 
@@ -206,7 +206,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       </div>
       <div class="form-group" style="margin-top:10px">
         <label class="form-label">Password</label>
-        <input type="password" class="form-input" id="signin-password" placeholder="••••••••" autocomplete="current-password">
+        <input type="password" class="form-input" id="signin-password" placeholder="Â·Â·Â·Â·Â·Â·Â·Â·" autocomplete="current-password">
       </div>
       <button class="btn-signin" id="btn-signin-submit" style="margin-top:14px">Sign In</button>
       <div class="signin-divider" style="margin-top:14px">or</div>
@@ -289,7 +289,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     <div class="dropdown-section-label">Elite</div>
     <div class="dropdown-item" data-model="elite-claude">
       <span class="dropdown-item-icon">&#11088;</span>
-      <div><div class="dropdown-item-name">Elite (Claude 3.7)</div><div class="dropdown-item-desc">AWS Bedrock — max capability</div></div>
+      <div><div class="dropdown-item-name">Elite (Claude 3.7)</div><div class="dropdown-item-desc">AWS Bedrock Â· max capability</div></div>
       <span class="tier-badge tier-elite">ELITE</span>
     </div>
   </div>
@@ -367,8 +367,8 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
   let agents = [];
 
   const AGENT_ICONS = {
-    security: '??', code: '</>', 'unit-test': '??', 'bug-fix': '??',
-    explain: '??', refactor: '??', docs: '??'
+    security: '\uD83D\uDD12', code: '<\/>', 'unit-test': '\uD83E\uDDEA', 'bug-fix': '\uD83D\uDC1B',
+    explain: '\uD83D\uDCA1', refactor: '\u267B\uFE0F', docs: '\uD83D\uDCDD'
   };
 
   // --- Screen navigation ---
@@ -565,7 +565,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     list.innerHTML = sessions.map(s =>
       '<div class="dropdown-item" onclick="loadSession(\'' + escHtml(s.id) + '\')">' +
       '<div><div class="dropdown-item-name">' + escHtml(s.title || 'Untitled') + '</div>' +
-      '<div class="dropdown-item-desc">' + escHtml(s.agentId) + ' · ' + new Date(s.timestamp).toLocaleDateString() + '</div></div>' +
+      '<div class="dropdown-item-desc">' + escHtml(s.agentId) + ' Â· ' + new Date(s.timestamp).toLocaleDateString() + '</div></div>' +
       '</div>'
     ).join('');
   }
@@ -596,7 +596,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     } else {
       customList.innerHTML = custom.map(a =>
         '<div class="dropdown-item' + (a.id === currentAgent ? ' active' : '') + '" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
-        '<span class="dropdown-item-icon">' + escHtml(a.icon || '??') + '</span>' +
+        '<span class="dropdown-item-icon">' + escHtml(a.icon || 'ðŸ¤–') + '</span>' +
         '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
         '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
         '</div>'
@@ -607,7 +607,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     const slashList = document.getElementById('slash-command-list');
     slashList.innerHTML = agentList.map(a =>
       '<div class="dropdown-item" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
-      '<span class="dropdown-item-icon">' + escHtml(a.icon || '??') + '</span>' +
+      '<span class="dropdown-item-icon">' + escHtml(a.icon || 'ðŸ¤–') + '</span>' +
       '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
       '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
       '</div>'
@@ -618,8 +618,9 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     currentAgent = id;
     closeAllDropdowns();
     const agent = agents.find(a => a.id === id);
-    const label = agent ? (agent.icon + ' ' + agent.name + ' ?') : id + ' ?';
-    document.getElementById('btn-agent-selector').innerHTML = label;
+    const icon = agent ? agent.icon : '';
+    const name = agent ? agent.name : id;
+    document.getElementById('btn-agent-selector').textContent = icon + ' ' + name + ' \u25BE';
     vscode.postMessage({ type: 'switchAgent', agentId: id });
   };
 
@@ -632,7 +633,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     }
     list.innerHTML = files.map(f =>
       '<div class="dropdown-item" onclick="insertAtMention(\'' + escHtml(f) + '\')">' +
-      '<span class="dropdown-item-icon">??</span>' +
+      '<span class="dropdown-item-icon">ðŸ“„</span>' +
       '<div class="dropdown-item-name">' + escHtml(f) + '</div>' +
       '</div>'
     ).join('');
@@ -660,9 +661,9 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     // Update selectors
     const agent = agents.find(a => a.id === currentAgent);
     if (agent) {
-      document.getElementById('btn-agent-selector').innerHTML = agent.icon + ' ' + agent.name + ' ?';
+      document.getElementById('btn-agent-selector').innerHTML = agent.icon + ' ' + agent.name + ' â–¾';
     }
-    document.getElementById('btn-model-selector').textContent = currentModel + ' ?';
+    document.getElementById('btn-model-selector').textContent = currentModel + ' â–¾';
 
     // Clear messages
     const msgs = document.getElementById('messages');
@@ -823,7 +824,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       currentModel = modelId;
       closeAllDropdowns();
       const name = this.querySelector('.dropdown-item-name')?.textContent || modelId;
-      document.getElementById('btn-model-selector').textContent = name + ' ?';
+      document.getElementById('btn-model-selector').textContent = name + ' â–¾';
       vscode.postMessage({ type: 'switchModel', modelId });
     });
   });
@@ -856,7 +857,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
   // Welcome screen buttons
   document.getElementById('btn-signup').addEventListener('click', function() {
     // Open signup in browser
-    vscode.postMessage({ type: 'openExternal', url: 'https://cybermind-backend-8yrt.onrender.com/signup' });
+    vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/auth/register' });
     showScreen('signin');
   });
 
@@ -865,8 +866,8 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
   });
 
   document.getElementById('btn-continue-free').addEventListener('click', function() {
-    vscode.postMessage({ type: 'signInWithApiKey', apiKey: '' });
     showScreen('chat');
+    vscode.postMessage({ type: 'continueAsFree' });
   });
 
   // Sign in screen
@@ -1006,7 +1007,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
           div.innerHTML = '<div class="message-agent-label">Security Scanner</div>' +
             '<div class="message-content">' +
             '<div class="scan-summary">' +
-            '<div class="scan-summary-title">?? Security Scan Complete</div>' +
+            '<div class="scan-summary-title">\uD83D\uDD0D Security Scan Complete</div>' +
             '<div class="scan-counts">' +
             (summary.critical ? '<span class="scan-count count-critical">' + summary.critical + ' Critical</span>' : '') +
             (summary.high ? '<span class="scan-count count-high">' + summary.high + ' High</span>' : '') +

@@ -57,6 +57,15 @@ const DEVICE_TYPES = [
     color: "#8A2BE2",
     note: "Key locked to macOS. Cannot be used on Linux/Windows.",
   },
+  {
+    id: "vscode",
+    icon: "🧩",
+    label: "VSCode Extension",
+    sublabel: "AI coding assistant",
+    features: ["8 AI agents", "Security scanning", "Inline completions", "File editing", "Repo indexing"],
+    color: "#00ffff",
+    note: "Key for the CyberMind VSCode extension. Works on any OS with VSCode installed.",
+  },
 ];
 
 export default function ApiKeysPage() {

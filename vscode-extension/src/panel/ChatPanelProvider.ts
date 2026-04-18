@@ -76,12 +76,13 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     const isAuth = await this.authManager.isAuthenticated();
     if (isAuth) {
       const apiKey = await this.authManager.getApiKey();
-      const token = await this.authManager.getToken();
+      const email = await this.authManager.getUserEmail();
+      const plan = await this.authManager.getUserPlan();
       this.postToWebview({
         type: 'authState',
         isAuthenticated: true,
-        email: token ? 'Authenticated' : undefined,
-        plan: apiKey ? 'api-key' : 'token',
+        email: email || (apiKey ? 'API Key User' : 'Authenticated'),
+        plan: plan || (apiKey ? 'api-key' : 'free'),
       });
       this.postToWebview({ type: 'showScreen', screen: 'chat' });
 
@@ -174,6 +175,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       case 'saveInstructions':
         // Store custom instructions (future use)
         logger.info('Custom instructions saved');
+        break;
+      case 'continueAsFree':
+        // User chose to use free tier without signing in
+        this.postToWebview({ type: 'authState', isAuthenticated: false, plan: 'free' });
+        this.postToWebview({ type: 'showScreen', screen: 'chat' });
+        this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
+        break;
+      case 'openExternal':
+        vscode.env.openExternal(vscode.Uri.parse(message.url as string));
         break;
       case 'confirmDangerousCommand':
         this.terminalManager.confirmDangerousCommand(
@@ -446,7 +456,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     try {
       const result = await this.backendClient.login({ email, password });
       await this.authManager.setToken(result.token);
-      this.postToWebview({ type: 'authState', isAuthenticated: true, email, plan: 'token' });
+      if (result.email) await this.authManager.setUserEmail(result.email);
+      if (result.plan) await this.authManager.setUserPlan(result.plan);
+      const plan = result.plan || 'free';
+      this.postToWebview({ type: 'authState', isAuthenticated: true, email, plan });
       this.postToWebview({ type: 'showScreen', screen: 'chat' });
       this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
     } catch (error) {
@@ -460,14 +473,17 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const valid = await this.backendClient.validateApiKey(apiKey);
-    if (!valid) {
+    const result = await this.backendClient.validateApiKey(apiKey);
+    if (!result.valid) {
       this.postToWebview({ type: 'error', message: 'API key validation failed. Please check your key.' });
       return;
     }
 
     await this.authManager.setApiKey(apiKey);
-    this.postToWebview({ type: 'authState', isAuthenticated: true, plan: 'api-key' });
+    if (result.email) await this.authManager.setUserEmail(result.email);
+    if (result.plan) await this.authManager.setUserPlan(result.plan);
+    const plan = result.plan || 'free';
+    this.postToWebview({ type: 'authState', isAuthenticated: true, email: result.email, plan });
     this.postToWebview({ type: 'showScreen', screen: 'chat' });
     this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
   }
@@ -477,8 +493,12 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       this.postToWebview({ type: 'error', message: 'Invalid API key format. Must start with cp_live_' });
       return;
     }
+    const result = await this.backendClient.validateApiKey(apiKey);
     await this.authManager.setApiKey(apiKey);
-    this.postToWebview({ type: 'authState', isAuthenticated: true, plan: 'api-key' });
+    if (result.email) await this.authManager.setUserEmail(result.email);
+    if (result.plan) await this.authManager.setUserPlan(result.plan);
+    const plan = result.plan || 'free';
+    this.postToWebview({ type: 'authState', isAuthenticated: true, email: result.email, plan });
   }
 
   private async handleReindexWorkspace(): Promise<void> {

@@ -6,6 +6,9 @@ node_modules/**
 !dist/**
 !media/**
 esbuild.config.js
+fix-html.js
+fix-html2.js
+gen-icon.js
 tsconfig.json
 jest.config.js
 **/*.test.ts

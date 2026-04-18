@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 
 const KEY_AUTH_TOKEN = 'cybermind.authToken';
 const KEY_API_KEY = 'cybermind.apiKey';
+const KEY_USER_EMAIL = 'cybermind.userEmail';
+const KEY_USER_PLAN = 'cybermind.userPlan';
 const API_KEY_REGEX = /^cp_live_[a-zA-Z0-9]+$/;
 
 export class AuthManager {
@@ -25,9 +27,29 @@ export class AuthManager {
     await this.secrets.store(KEY_API_KEY, apiKey);
   }
 
+  async getUserEmail(): Promise<string | null> {
+    const email = await this.secrets.get(KEY_USER_EMAIL);
+    return email ?? null;
+  }
+
+  async setUserEmail(email: string): Promise<void> {
+    await this.secrets.store(KEY_USER_EMAIL, email);
+  }
+
+  async getUserPlan(): Promise<string> {
+    const plan = await this.secrets.get(KEY_USER_PLAN);
+    return plan ?? 'free';
+  }
+
+  async setUserPlan(plan: string): Promise<void> {
+    await this.secrets.store(KEY_USER_PLAN, plan);
+  }
+
   async clearAll(): Promise<void> {
     await this.secrets.delete(KEY_AUTH_TOKEN);
     await this.secrets.delete(KEY_API_KEY);
+    await this.secrets.delete(KEY_USER_EMAIL);
+    await this.secrets.delete(KEY_USER_PLAN);
   }
 
   async isAuthenticated(): Promise<boolean> {

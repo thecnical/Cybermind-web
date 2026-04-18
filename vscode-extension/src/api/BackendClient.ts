@@ -20,10 +20,19 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  plan?: string;
+  email?: string;
+}
+
+export interface UserInfo {
+  email: string;
+  plan: string;
+  credits_used_today: number;
+  credits_limit: number;
 }
 
 export class BackendClient {
-  private readonly baseUrl = 'https://cybermind-backend-8yrt.onrender.com';
+  public readonly baseUrl = 'https://cybermind-backend-8yrt.onrender.com';
   private abortController: AbortController | null = null;
 
   async chat(
@@ -33,8 +42,7 @@ export class BackendClient {
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken
   ): Promise<string> {
-    const isElite = model.startsWith('elite');
-    const isFree = model === 'cybermindcli';
+    const isFree = model === 'cybermindcli' || (!apiKey);
 
     if (isFree) {
       return this.freeChat(request, onToken, cancellationToken);
@@ -48,8 +56,10 @@ export class BackendClient {
       headers['X-API-Key'] = apiKey;
     }
 
-    if (isElite) {
+    if (model.startsWith('elite')) {
       headers['X-User-Plan'] = 'elite';
+    } else if (model.startsWith('pro')) {
+      headers['X-User-Plan'] = 'pro';
     }
 
     return this.withRetry(async () => {
@@ -101,7 +111,6 @@ export class BackendClient {
           signal,
         });
       } catch (fetchErr) {
-        // Network error — no connection
         const networkError = new Error('Unable to reach CyberMind backend. Check your connection.');
         (networkError as any).isNetworkError = true;
         throw networkError;
@@ -112,7 +121,6 @@ export class BackendClient {
         const error = new Error(`HTTP ${response.status}: ${errorBody || response.statusText}`);
         (error as any).statusCode = response.status;
 
-        // Parse Retry-After for 429
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After');
           (error as any).retryAfter = retryAfter ? parseInt(retryAfter, 10) : 60;
@@ -179,16 +187,32 @@ export class BackendClient {
     return response.json() as Promise<LoginResponse>;
   }
 
-  async validateApiKey(apiKey: string): Promise<boolean> {
+  async validateApiKey(apiKey: string): Promise<{ valid: boolean; plan?: string; email?: string }> {
     try {
       const url = `${this.baseUrl}/auth/validate`;
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'X-API-Key': apiKey },
       });
-      return response.ok;
+      if (!response.ok) return { valid: false };
+      const data = await response.json().catch(() => ({})) as { plan?: string; email?: string };
+      return { valid: true, plan: data.plan, email: data.email };
     } catch {
-      return false;
+      return { valid: false };
+    }
+  }
+
+  async getUserInfo(apiKey: string): Promise<UserInfo | null> {
+    try {
+      const url = `${this.baseUrl}/user/info`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'X-API-Key': apiKey },
+      });
+      if (!response.ok) return null;
+      return response.json() as Promise<UserInfo>;
+    } catch {
+      return null;
     }
   }
 
@@ -213,7 +237,6 @@ export class BackendClient {
         lastError = error instanceof Error ? error : new Error(String(error));
         const statusCode = (error as any).statusCode;
 
-        // Only retry on 5xx errors
         if (statusCode && statusCode >= 500 && statusCode < 600 && attempt < maxRetries) {
           const delay = delays[attempt] ?? 4000;
           logger.warn(`Request failed with ${statusCode}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
@@ -221,7 +244,6 @@ export class BackendClient {
           continue;
         }
 
-        // Don't retry on 4xx or non-HTTP errors
         throw lastError;
       }
     }
