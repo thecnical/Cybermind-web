@@ -21,20 +21,20 @@ const HACKING_TABS = [
     id: "windows-hack",
     label: "🪟 Windows",
     cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex',
-    note: "One command installs everything — AI chat + CBM Code. Key saved automatically.",
-    features: ["AI security chat", "CBM Code (AI coding)", "CVE intel", "Payload generator", "Report writer"],
+    note: "One command installs everything — AI chat + AI coding assistant. Key saved automatically.",
+    features: ["AI security chat", "AI coding assistant", "CVE intel", "Payload generator", "Report writer"],
   },
   {
     id: "macos-hack",
     label: "🍎 macOS",
     cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash",
-    note: "One command installs everything — AI chat + CBM Code. Key saved automatically.",
-    features: ["AI security chat", "CBM Code (AI coding)", "CVE intel", "Payload generator", "Report writer"],
+    note: "One command installs everything — AI chat + AI coding assistant. Key saved automatically.",
+    features: ["AI security chat", "AI coding assistant", "CVE intel", "Payload generator", "Report writer"],
   },
 ];
 
-// ─── CBM Code — SAME install command, same binary, same key
-// After install: run `cybermind vibe` to launch CBM Code
+// ─── AI Coding — SAME install command, same binary, same key
+// After install: run `cybermind vibe` to launch AI coding assistant
 const CBM_TABS = [
   {
     id: "windows-cbm",
@@ -65,8 +65,8 @@ const CBM_TROUBLESHOOT = [
     body: "Run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser\nThis only affects your user — no admin needed.",
   },
   {
-    title: "Does CBM Code need admin rights on Windows?",
-    body: "No. CBM Code installs to C:\\Users\\YourName\\.cybermind\\ (your user folder). It reads/writes files in YOUR project folder only — same permissions as your terminal. It never touches C:\\Windows\\ or C:\\Program Files\\.",
+    title: "Does the AI coding assistant need admin rights on Windows?",
+    body: "No. The AI coding assistant installs to C:\\Users\\YourName\\.cybermind\\ (your user folder). It reads/writes files in YOUR project folder only — same permissions as your terminal. It never touches C:\\Windows\\ or C:\\Program Files\\.",
   },
   {
     title: "TUI not rendering on Windows",
@@ -129,7 +129,7 @@ export default function InstallPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--text-soft)]">
               CyberMind CLI includes both the <strong className="text-white">hacking/security pipeline</strong> and
-              <strong className="text-white"> CBM Code AI coding assistant</strong>. Same binary, same key.
+              <strong className="text-white"> AI coding assistant</strong>. Same binary, same key.
               <strong className="text-white"> Globally installed</strong> — run from any folder, any terminal.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
@@ -139,7 +139,7 @@ export default function InstallPage() {
               </div>
               <div className="flex items-center gap-2 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1.5">
                 <Code2 size={12} className="text-[#00d4ff]" />
-                <span className="text-xs font-semibold text-[#00d4ff]">CBM Code — Windows + macOS (full AI coding)</span>
+                <span className="text-xs font-semibold text-[#00d4ff]">AI Coding Assistant — Windows + macOS (full AI coding)</span>
               </div>
             </div>
           </div>
@@ -189,8 +189,8 @@ export default function InstallPage() {
             <div className="mt-4 mb-5 grid gap-3 md:grid-cols-3">
               {[
                 { icon: "🐧", platform: "Linux / Kali", color: "#00FF88", items: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"] },
-                { icon: "🪟", platform: "Windows", color: "#FFD700", items: ["AI security chat", "CBM Code ✓", "CVE intel", "Payload gen", "Report writer"] },
-                { icon: "🍎", platform: "macOS", color: "#FFD700", items: ["AI security chat", "CBM Code ✓", "CVE intel", "Payload gen", "Report writer"] },
+                { icon: "🪟", platform: "Windows", color: "#FFD700", items: ["AI security chat", "AI coding ✓", "CVE intel", "Payload gen", "Report writer"] },
+                { icon: "🍎", platform: "macOS", color: "#FFD700", items: ["AI security chat", "AI coding ✓", "CVE intel", "Payload gen", "Report writer"] },
               ].map(p => (
                 <div key={p.platform} className="rounded-2xl border border-white/8 p-4">
                   <p className="text-sm font-semibold text-white mb-2">{p.icon} {p.platform}</p>
@@ -239,25 +239,25 @@ export default function InstallPage() {
           </Surface>
         </div>
 
-        {/* ── SECTION 2: CBM Code ── */}
+        {/* ── SECTION 2: AI Coding Assistant ── */}
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-2 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1.5">
               <Code2 size={12} className="text-[#00d4ff]" />
-              <span className="text-xs font-bold text-[#00d4ff] uppercase tracking-wider">CBM Code — AI Coding Assistant</span>
+              <span className="text-xs font-bold text-[#00d4ff] uppercase tracking-wider">AI Coding Assistant</span>
             </div>
           </div>
 
           <Surface variant="clay" tone="default" elevation="high" className="rounded-[30px] p-6 md:p-8">
             <div className="flex items-start justify-between gap-4 mb-2">
               <div>
-                <h2 className="text-2xl font-semibold text-white">Launch CBM Code</h2>
+                <h2 className="text-2xl font-semibold text-white">Launch AI Coding Assistant</h2>
                 <p className="mt-1 text-sm text-[var(--text-soft)]">
                   Same binary — run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> after install. Full support on Windows + macOS.
                 </p>
               </div>
-              <Link href="/docs/cbm-code" className="hidden md:block cm-button-secondary text-sm flex-shrink-0">
-                CBM Code docs →
+              <Link href="/docs" className="hidden md:block cm-button-secondary text-sm flex-shrink-0">
+                Docs →
               </Link>
             </div>
 
@@ -266,7 +266,7 @@ export default function InstallPage() {
               <p className="text-sm text-[#00FF88] font-semibold">✓ Same install command — one binary, two modes</p>
               <p className="text-xs text-[var(--text-soft)] mt-1">
                 If you already installed CyberMind CLI above, skip this section.
-                Just run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> to launch CBM Code.
+                Just run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> to launch the AI coding assistant.
               </p>
             </div>
 
@@ -286,7 +286,7 @@ export default function InstallPage() {
             {/* After install */}
             <div className="mt-4 grid gap-2 md:grid-cols-3">
               {[
-                { label: "Launch CBM Code", cmd: "cybermind vibe" },
+                { label: "Launch AI coding", cmd: "cybermind vibe" },
                 { label: "Security scan mode", cmd: "cybermind vibe --cyber" },
                 { label: "Check providers", cmd: "cybermind vibe --providers" },
               ].map(item => (
@@ -297,7 +297,7 @@ export default function InstallPage() {
               ))}
             </div>
 
-            {/* CBM Code features */}
+            {/* AI coding features */}
             <div className="mt-5 grid gap-2 md:grid-cols-2">
               {activeCbm.features.map(f => (
                 <div key={f} className="flex items-center gap-2 text-sm text-[var(--text-soft)]">
@@ -327,7 +327,7 @@ export default function InstallPage() {
               { cmd: "sudo cybermind /plan target.com",  desc: "Scan specific target" },
               { cmd: "sudo cybermind /bizlogic target.com", desc: "Business logic bugs" },
               { cmd: "sudo cybermind /guide target.com", desc: "AI manual testing guide" },
-              { cmd: "cybermind /vibe",                  desc: "CBM Code AI coding (all platforms)" },
+              { cmd: "cybermind /vibe",                  desc: "AI coding assistant (all platforms)" },
               { cmd: "cybermind chat",                   desc: "AI security chat" },
             ].map(item => (
               <div key={item.cmd} className="flex items-center gap-3 rounded-xl border border-white/8 px-3 py-2">

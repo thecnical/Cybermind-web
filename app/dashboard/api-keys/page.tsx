@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Check, Copy, Key, Loader2, Plus, RefreshCw, Trash2, Shield, Code2, Monitor } from "lucide-react";
@@ -32,34 +32,34 @@ function getStoredKey(keyId: string): string | null {
 const DEVICE_TYPES = [
   {
     id: "linux",
-    icon: "🐧",
+    icon: "??",
     label: "Linux / Kali",
     sublabel: "Full hacking pipeline",
     features: ["Recon (20 tools)", "Hunt (11 tools)", "Abhimanyu exploit", "Omega plan mode", "AI security chat"],
     color: "#00FF88",
-    note: "Key locked to Linux. Hacking tools only — CBM Code not available on Linux.",
+    note: "Key locked to Linux. Hacking tools only � AI coding not available on Linux.",
   },
   {
     id: "windows",
-    icon: "🪟",
+    icon: "??",
     label: "Windows",
-    sublabel: "AI chat + CBM Code",
-    features: ["AI security chat", "CBM Code (full)", "CVE intel", "Payload gen", "Report writer"],
+    sublabel: "AI chat + AI coding",
+    features: ["AI security chat", "AI coding (full)", "CVE intel", "Payload gen", "Report writer"],
     color: "#00d4ff",
     note: "Key locked to Windows. Cannot be used on Linux/macOS.",
   },
   {
     id: "mac",
-    icon: "🍎",
+    icon: "??",
     label: "macOS",
-    sublabel: "AI chat + CBM Code",
-    features: ["AI security chat", "CBM Code (full)", "CVE intel", "Payload gen", "Report writer"],
+    sublabel: "AI chat + AI coding",
+    features: ["AI security chat", "AI coding (full)", "CVE intel", "Payload gen", "Report writer"],
     color: "#8A2BE2",
     note: "Key locked to macOS. Cannot be used on Linux/Windows.",
   },
   {
     id: "vscode",
-    icon: "🧩",
+    icon: "??",
     label: "VSCode Extension",
     sublabel: "AI coding assistant",
     features: ["8 AI agents", "Security scanning", "Inline completions", "File editing", "Repo indexing"],
@@ -149,7 +149,7 @@ export default function ApiKeysPage() {
             <p className="cm-label">Dashboard</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">API Keys</h1>
             <p className="mt-2 text-sm text-[var(--text-soft)]">
-              {activeKeys.length} active · Each key is locked to one OS for security.
+              {activeKeys.length} active � Each key is locked to one OS for security.
             </p>
           </div>
           <button onClick={() => { setShowCreate(true); setCreateError(""); }}
@@ -161,10 +161,10 @@ export default function ApiKeysPage() {
 
       {/* OS lock explanation */}
       <div className="rounded-2xl border border-[#FFD700]/20 bg-[#FFD700]/5 px-5 py-4">
-        <p className="text-sm font-semibold text-[#FFD700] mb-1">🔒 OS-locked keys</p>
+        <p className="text-sm font-semibold text-[#FFD700] mb-1">?? OS-locked keys</p>
         <p className="text-xs text-[var(--text-soft)]">
           Each API key is locked to the OS you select. A Linux key enables the full hacking pipeline (recon, hunt, Abhimanyu).
-          A Windows/macOS key enables AI chat + CBM Code. Keys cannot be used across different operating systems.
+          A Windows/macOS key enables AI chat + AI coding assistant. Keys cannot be used across different operating systems.
           Pro/Elite plans can create keys for multiple devices.
         </p>
       </div>
@@ -172,7 +172,7 @@ export default function ApiKeysPage() {
       {/* New key reveal */}
       {newKeyValue && (
         <section className="cm-card-soft p-5">
-          <p className="mb-2 text-sm font-semibold text-[#00FF88]">✓ Key created — copy it now (shown once, available 48h)</p>
+          <p className="mb-2 text-sm font-semibold text-[#00FF88]">? Key created � copy it now (shown once, available 48h)</p>
           <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
             <code className="min-w-0 flex-1 break-all font-mono text-sm text-white">{newKeyValue}</code>
             <button onClick={() => handleCopy(newKeyValue, "new")}
@@ -228,7 +228,7 @@ export default function ApiKeysPage() {
                   <ul className="space-y-1">
                     {device.features.map(f => (
                       <li key={f} className="flex items-center gap-1.5 text-xs text-[var(--text-soft)]">
-                        <span style={{ color: device.color }}>✓</span> {f}
+                        <span style={{ color: device.color }}>?</span> {f}
                       </li>
                     ))}
                   </ul>
@@ -324,15 +324,15 @@ export default function ApiKeysPage() {
                       )}
                     </div>
                     <p className="text-xs text-[var(--text-muted)]">
-                      Created {new Date(key.created_at).toLocaleDateString()} ·
-                      {key.last_used ? ` Last used ${new Date(key.last_used).toLocaleDateString()}` : " Never used"} ·
+                      Created {new Date(key.created_at).toLocaleDateString()} �
+                      {key.last_used ? ` Last used ${new Date(key.last_used).toLocaleDateString()}` : " Never used"} �
                       {key.requests_today} req today
                     </p>
                     <p className="mt-1 font-mono text-xs text-[var(--text-soft)]">
                       {storedKey
-                        ? storedKey.slice(0, 20) + "••••••••••••"
+                        ? storedKey.slice(0, 20) + "������������"
                         : key.key_prefix
-                        ? `${key.key_prefix}${"•".repeat(16)}`
+                        ? `${key.key_prefix}${"�".repeat(16)}`
                         : "key hidden"}
                     </p>
                   </div>
@@ -341,7 +341,7 @@ export default function ApiKeysPage() {
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => handleCopy(copyValue, key.id)}
                           className="text-[var(--text-muted)] transition-colors hover:text-white"
-                          title={`Copy full key — ${timeLeft}`}>
+                          title={`Copy full key � ${timeLeft}`}>
                           {copied === key.id ? <Check size={16} className="text-[#00FF88]" /> : <Copy size={16} />}
                         </button>
                         <span className="text-[10px] text-[#00FF88] bg-[#00FF88]/10 rounded-full px-2 py-0.5">
@@ -369,3 +369,4 @@ export default function ApiKeysPage() {
     </div>
   );
 }
+

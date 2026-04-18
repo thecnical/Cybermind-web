@@ -4,7 +4,7 @@ import { CommandBar } from "@/components/SitePrimitives";
 
 export const metadata = {
   title: "Install CyberMind CLI — Windows & macOS Guide | CyberMind",
-  description: "Step-by-step installation guide for CyberMind CLI on Windows (PowerShell) and macOS. No admin rights needed. Install CBM Code AI coding assistant in under 2 minutes.",
+  description: "Step-by-step installation guide for CyberMind CLI on Windows (PowerShell) and macOS. No admin rights needed. Install the AI coding assistant in under 2 minutes.",
 };
 
 export default function InstallationDocsPage() {
@@ -16,7 +16,7 @@ export default function InstallationDocsPage() {
         <h1 className="text-3xl font-semibold text-white md:text-4xl">Installation Guide</h1>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)] max-w-2xl">
           CyberMind CLI works on <strong className="text-white">Windows</strong> and <strong className="text-white">macOS</strong>.
-          One command installs everything — AI chat + CBM Code. No admin rights needed.
+          One command installs everything — AI chat + AI coding assistant. No admin rights needed.
           Key passed via environment variable — never in shell history.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -29,9 +29,9 @@ export default function InstallationDocsPage() {
 
       {/* Permissions explanation */}
       <Surface variant="clay" tone="default" elevation="medium" className="rounded-[30px] p-6 md:p-8">
-        <h2 className="text-xl font-semibold text-white mb-3">Does CBM Code need admin rights?</h2>
+        <h2 className="text-xl font-semibold text-white mb-3">Does the AI coding assistant need admin rights?</h2>
         <p className="text-sm leading-7 text-[var(--text-soft)] mb-4">
-          <strong className="text-white">No.</strong> CBM Code installs to <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1 rounded">C:\Users\YourName\.cybermind\</code> on Windows
+          <strong className="text-white">No.</strong> The AI coding assistant installs to <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1 rounded">C:\Users\YourName\.cybermind\</code> on Windows
           and <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1 rounded">/usr/local/bin/</code> on macOS (requires sudo once for macOS).
         </p>
         <div className="grid gap-3 md:grid-cols-2">
@@ -51,7 +51,7 @@ export default function InstallationDocsPage() {
         </div>
         <div className="mt-4 rounded-xl border border-[#00d4ff]/20 bg-[#00d4ff]/5 p-3">
           <p className="text-xs text-[var(--text-soft)]">
-            <strong className="text-white">How it works:</strong> CBM Code runs as your user process.
+            <strong className="text-white">How it works:</strong> The AI coding assistant runs as your user process.
             When you run <code className="font-mono text-[#00d4ff]">cybermind vibe</code> in your project folder,
             it has exactly the same file permissions as you do in that terminal session.
             It can read/write any file you can read/write — nothing more, nothing less.
@@ -68,7 +68,7 @@ export default function InstallationDocsPage() {
           <h2 className="text-xl font-semibold text-white">Get your API key first</h2>
         </div>
         <p className="text-sm leading-7 text-[var(--text-soft)] mb-4">
-          One key works for both AI chat and CBM Code. Looks like <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1.5 py-0.5 rounded">cp_live_xxxxxxxxxxxx</code>
+          One key works for both AI chat and AI coding assistant. Looks like <code className="font-mono text-[#00d4ff] bg-[#00d4ff]/10 px-1.5 py-0.5 rounded">cp_live_xxxxxxxxxxxx</code>
         </p>
         <Link href="/dashboard" className="cm-button-primary text-sm gap-2 inline-flex">
           Get your key → Dashboard
@@ -144,16 +144,16 @@ export default function InstallationDocsPage() {
               <span className="text-xs font-bold text-[#00FF88]">4</span>
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-semibold text-white mb-2">Launch CBM Code</h3>
+              <h3 className="text-base font-semibold text-white mb-2">Launch AI Coding Assistant</h3>
               <p className="text-sm text-[var(--text-soft)] mb-3">
-                Navigate to your project folder and launch CBM Code:
+                Navigate to your project folder and launch the AI coding assistant:
               </p>
               <div className="grid gap-2">
                 <CommandBar command="cd C:\Users\YourName\my-project" variant="skeuo" tone="cyan" className="max-w-full" />
                 <CommandBar command="cybermind vibe" variant="skeuo" tone="cyan" className="max-w-full" />
               </div>
               <p className="mt-2 text-xs text-[#00FF88]">
-                ✓ CBM Code will index your project and launch the interactive TUI
+                ✓ The AI coding assistant will index your project and launch the interactive TUI
               </p>
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function InstallationDocsPage() {
               <span className="text-xs font-bold text-[#00FF88]">4</span>
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-semibold text-white mb-2">Launch CBM Code</h3>
+              <h3 className="text-base font-semibold text-white mb-2">Launch AI Coding Assistant</h3>
               <div className="grid gap-2">
                 <CommandBar command="cd ~/my-project" variant="skeuo" tone="cyan" className="max-w-full" />
                 <CommandBar command="cybermind vibe" variant="skeuo" tone="cyan" className="max-w-full" />
@@ -274,11 +274,11 @@ export default function InstallationDocsPage() {
         <h2 className="text-2xl font-semibold text-white mb-5">What to do after installing</h2>
         <div className="grid gap-3 md:grid-cols-2">
           {[
-            { title: "Launch CBM Code (AI coding)", cmd: "cybermind vibe", desc: "Opens the AI coding assistant in your current directory" },
+            { title: "Launch AI coding assistant", cmd: "cybermind vibe", desc: "Opens the AI coding assistant in your current directory" },
             { title: "AI chat (security mode)", cmd: "cybermind chat", desc: "Interactive AI chat with security context" },
             { title: "Check your plan & key", cmd: "cybermind --whoami", desc: "Shows your tier, provider, model, and masked key" },
             { title: "Run diagnostics", cmd: "cybermind doctor", desc: "Checks your setup and fixes common issues" },
-            { title: "Security scan (CBM Code)", cmd: "cybermind vibe --cyber", desc: "Launches CBM Code in security mode" },
+            { title: "Security scan mode", cmd: "cybermind vibe --cyber", desc: "Launches AI coding assistant in security mode" },
             { title: "Update to latest version", cmd: "cybermind update", desc: "Downloads and installs the latest release" },
           ].map(item => (
             <div key={item.title} className="rounded-2xl border border-white/8 p-4">
@@ -290,24 +290,24 @@ export default function InstallationDocsPage() {
         </div>
       </Surface>
 
-      {/* ── CBM Code quick start ───────────────────────────────────────── */}
+      {/* ── AI Coding quick start ───────────────────────────────────────── */}
       <Surface variant="clay" tone="accent" elevation="medium" className="rounded-[30px] p-6 md:p-8">
-        <h2 className="text-2xl font-semibold text-white mb-2">CBM Code — First session</h2>
+        <h2 className="text-2xl font-semibold text-white mb-2">AI Coding Assistant — First session</h2>
         <p className="text-sm text-[var(--text-soft)] mb-5">
-          Once CBM Code launches, here is what you will see and how to use it:
+          Once the AI coding assistant launches, here is what you will see and how to use it:
         </p>
         <div className="grid gap-4">
           <div className="rounded-2xl border border-white/8 bg-[#030508] p-4 font-mono text-xs leading-6">
-            <p className="text-[#00d4ff]">⚡ CBM Code v2.5.0  |  Workspace: ~/my-project (1,247 files)</p>
+            <p className="text-[#00d4ff]">⚡ CyberMind AI v2.5.0  |  Workspace: ~/my-project (1,247 files)</p>
             <p className="text-[rgba(255,255,255,0.5)]">   Model: MiniMax M2.5  |  Provider: OpenRouter  |  Mode: Guard</p>
             <p className="text-white mt-2">&gt; add JWT authentication to the Express API</p>
-            <p className="text-[#8A2BE2] mt-1">◆ CBM Code: Reading project structure...</p>
+            <p className="text-[#8A2BE2] mt-1">◆ AI: Reading project structure...</p>
             <p className="text-[#00FF88]">  ✓ Found: src/routes/auth.js, src/middleware/</p>
             <p className="text-[#00FF88]">  ✓ Plan ready — 3 files to edit, 1 to create</p>
             <p className="text-[#FFD700] mt-1">  [A]pply  [S]kip  [P]review  [E]xplain</p>
           </div>
           <div className="grid gap-2 text-sm text-[var(--text-soft)]">
-            <p><strong className="text-white">Type your task</strong> in plain English — CBM Code reads your codebase and makes targeted edits.</p>
+            <p><strong className="text-white">Type your task</strong> in plain English — the AI reads your codebase and makes targeted edits.</p>
             <p><strong className="text-white">Press A</strong> to apply changes, <strong className="text-white">S</strong> to skip, <strong className="text-white">P</strong> to preview the diff first.</p>
             <p><strong className="text-white">Type /</strong> to open the command menu — add files, change mode, undo, compress context.</p>
             <p><strong className="text-white">Press Tab</strong> to cycle through edit modes (Guard → AutoEdit → Blueprint → Autopilot).</p>
@@ -320,9 +320,9 @@ export default function InstallationDocsPage() {
         <p className="text-sm font-semibold text-white mb-3">Next steps</p>
         <div className="flex flex-wrap gap-3">
           {[
-            ["/docs/cbm-code", "CBM Code full guide"],
-            ["/docs/cbm-code#commands", "Slash commands reference"],
-            ["/docs/cbm-code#mcp", "MCP integration"],
+            ["/docs", "Docs home"],
+            ["/extensions", "VSCode Extension"],
+            ["/model", "AI Model"],
             ["/plans", "Upgrade your plan"],
             ["/dashboard", "Get your API key"],
           ].map(([href, label]) => (

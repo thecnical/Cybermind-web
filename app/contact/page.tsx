@@ -218,6 +218,27 @@ export default function ContactPage() {
             ))}
           </div>
         </section>
+
+        {/* ── MAP ── */}
+        <Surface variant="glass" elevation="medium" className="rounded-[30px] p-6 md:p-8">
+          <p className="cm-label">Our location</p>
+          <h2 className="mt-3 text-2xl font-semibold text-white">Uttar Pradesh, India</h2>
+          <p className="mt-2 text-sm text-[var(--text-soft)]">
+            CyberMind CLI is headquartered in Uttar Pradesh, India. Reach us via email for all inquiries.
+          </p>
+          <div className="mt-6 overflow-hidden rounded-[20px] border border-white/10">
+            <iframe
+              src="https://www.mapcn.dev/map?lat=26.8467&lng=80.9462&zoom=8&theme=dark"
+              width="100%"
+              height="400"
+              frameBorder="0"
+              title="CyberMind CLI office location — Uttar Pradesh, India"
+              className="block w-full"
+              loading="lazy"
+              allowFullScreen
+            />
+          </div>
+        </Surface>
       </main>
       <Footer />
     </div>

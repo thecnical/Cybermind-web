@@ -84,11 +84,11 @@ function buildReply(query: string) {
     };
   }
 
-  if (normalized.includes("cbm") || normalized.includes("vibe") || normalized.includes("code")) {
+  if (normalized.includes("cbm") || normalized.includes("vibe") || normalized.includes("code") || normalized.includes("extension") || normalized.includes("vscode")) {
     return {
-      text: "CBM Code is a terminal AI coding assistant — free Claude Code alternative. Supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, GPT-5. Works on Windows & macOS.",
+      text: "CyberMind has a VSCode extension with 8 AI agents, OWASP security scanning, and inline completions. Also check out cybermindcli — the uncensored security AI model.",
       code: "cybermind vibe",
-      links: [{ href: "/docs/cbm-code", label: "Docs" }],
+      links: [{ href: "/extensions", label: "VSCode Extension" }, { href: "/model", label: "AI Model" }],
     };
   }
 
@@ -110,7 +110,7 @@ function buildReply(query: string) {
 
   if (normalized.includes("windows") || normalized.includes("powershell")) {
     return {
-      text: "CyberMind fully supports Windows via PowerShell. CBM Code, AI chat, /scan, /osint, /payload, /cve all work. Recon/hunt requires Linux/Kali.",
+      text: "CyberMind fully supports Windows via PowerShell. AI chat, /scan, /osint, /payload, /cve all work. Recon/hunt requires Linux/Kali.",
       code: `iwr -useb https://cybermindcli1.vercel.app/install.ps1 | iex`,
       links: [{ href: "/install", label: "Windows install" }],
     };
@@ -118,7 +118,7 @@ function buildReply(query: string) {
 
   if (matches.length === 0) {
     return {
-      text: "I didn't find a direct match. Try asking about: install commands, plan pricing, CBM Code, recon/hunt tools, API keys, or Windows vs Linux support.",
+      text: "I didn't find a direct match. Try asking about: install commands, plan pricing, VSCode extension, recon/hunt tools, API keys, or Windows vs Linux support.",
       links: [
         { href: "/install", label: "Install" },
         { href: "/plans", label: "Plans" },

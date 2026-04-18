@@ -1,10 +1,10 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Surface } from "@/components/DesignPrimitives";
 import { CommandBar } from "@/components/SitePrimitives";
 
 export const metadata = {
-  title: "CBM Code — Complete Guide | MCP, Models, Commands | CyberMind",
-  description: "Complete guide to CBM Code AI coding assistant. MiniMax M2.5, DeepSeek R1, Qwen3 Coder support. MCP integration, slash commands, edit modes, Windows & macOS.",
+  title: "AI Coding Assistant � Complete Guide | MCP, Models, Commands | CyberMind",
+  description: "Complete guide to CyberMind AI coding assistant. MiniMax M2.5, DeepSeek R1, Qwen3 Coder support. MCP integration, slash commands, edit modes, Windows & macOS.",
 };
 
 export default function CBMCodeDocsPage() {
@@ -15,16 +15,16 @@ export default function CBMCodeDocsPage() {
       <Surface variant="clay" tone="accent" elevation="high" className="rounded-[30px] p-6 md:p-8">
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1 text-xs font-semibold text-[#00d4ff] uppercase tracking-wider">
-            CBM Code
+            AI Coding Assistant
           </span>
         </div>
-        <h1 className="text-3xl font-semibold text-white md:text-4xl">CBM Code — Complete Guide</h1>
+        <h1 className="text-3xl font-semibold text-white md:text-4xl">AI Coding Assistant � Complete Guide</h1>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)] max-w-2xl">
           Terminal-based AI coding assistant. Supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, and 11+ providers.
           Works on Windows and macOS. Free tier with your own API keys.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link href="/cbm-code" className="cm-button-primary text-sm">Product page</Link>
+          <Link href="/extensions" className="cm-button-primary text-sm">Product page</Link>
           <Link href="/docs/installation" className="cm-button-secondary text-sm">Install guide</Link>
           <Link href="/auth/register" className="cm-button-secondary text-sm">Get started free</Link>
         </div>
@@ -39,7 +39,7 @@ export default function CBMCodeDocsPage() {
             { step: "1", label: "Install CyberMind CLI (Windows)", cmd: '$env:CYBERMIND_KEY="YOUR_KEY"; (iwr https://cybermindcli1.vercel.app/install.ps1 -UseBasicParsing).Content | iex' },
             { step: "1", label: "Install CyberMind CLI (macOS)", cmd: "CYBERMIND_KEY=YOUR_KEY curl -sL https://cybermindcli1.vercel.app/install-mac.sh | bash" },
             { step: "2", label: "Navigate to your project", cmd: "cd my-project" },
-            { step: "3", label: "Launch CBM Code", cmd: "cybermind vibe" },
+            { step: "3", label: "Launch AI Coding Assistant", cmd: "cybermind vibe" },
           ].map((item, i) => (
             <div key={i} className="flex gap-4 items-start">
               <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#00d4ff]/15 border border-[#00d4ff]/30 flex items-center justify-center">
@@ -58,7 +58,7 @@ export default function CBMCodeDocsPage() {
       <Surface variant="clay" tone="default" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <h2 className="text-2xl font-semibold text-white" id="models">AI Models & Providers</h2>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">
-          CBM Code auto-routes to the best model for your task. For coding tasks, it prioritizes MiniMax M2.5 and Qwen3 Coder.
+          AI Coding Assistant auto-routes to the best model for your task. For coding tasks, it prioritizes MiniMax M2.5 and Qwen3 Coder.
           For reasoning tasks, it uses DeepSeek R1. You can override the model at any time.
         </p>
         <div className="mt-5 overflow-x-auto">
@@ -106,11 +106,11 @@ export default function CBMCodeDocsPage() {
       <Surface variant="clay" tone="default" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <h2 className="text-2xl font-semibold text-white" id="modes">Edit Modes</h2>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">
-          CBM Code has 5 edit modes that control how autonomously it edits your files. Switch with <kbd className="font-mono text-xs bg-white/10 border border-white/20 rounded px-1.5 py-0.5">Tab</kbd> or the <code className="font-mono text-[#00d4ff]">/mode</code> command.
+          AI Coding Assistant has 5 edit modes that control how autonomously it edits your files. Switch with <kbd className="font-mono text-xs bg-white/10 border border-white/20 rounded px-1.5 py-0.5">Tab</kbd> or the <code className="font-mono text-[#00d4ff]">/mode</code> command.
         </p>
         <div className="mt-5 grid gap-3">
           {[
-            { mode: "guard", desc: "Asks approval before every file edit and command. Safest — recommended for new users.", default: true },
+            { mode: "guard", desc: "Asks approval before every file edit and command. Safest � recommended for new users.", default: true },
             { mode: "auto_edit", desc: "Applies file edits automatically but still shows a diff preview. Commands still require approval." },
             { mode: "blueprint", desc: "Explores your codebase and presents a full plan before making any edits. Good for large refactors." },
             { mode: "autopilot", desc: "Smart auto-approve: low-risk actions (reads, small edits) auto-apply. High-risk actions ask." },
@@ -131,7 +131,7 @@ export default function CBMCodeDocsPage() {
       <Surface variant="clay" tone="default" elevation="medium" className="rounded-[30px] p-6 md:p-8">
         <h2 className="text-2xl font-semibold text-white" id="commands">Slash Commands</h2>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">
-          Type <code className="font-mono text-[#00d4ff]">/</code> inside CBM Code to open the command menu. All commands:
+          Type <code className="font-mono text-[#00d4ff]">/</code> inside AI Coding Assistant to open the command menu. All commands:
         </p>
         <div className="mt-5 overflow-x-auto">
           <table className="w-full min-w-[400px]">
@@ -165,33 +165,33 @@ export default function CBMCodeDocsPage() {
         </div>
       </Surface>
 
-      {/* ── MCP INTEGRATION ─────────────────────────────────────────────── */}
+      {/* -- MCP INTEGRATION ----------------------------------------------- */}
       <Surface variant="clay" tone="default" elevation="high" className="rounded-[30px] p-6 md:p-8">
         <div className="flex items-center gap-2 mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#8A2BE2]/30 bg-[#8A2BE2]/10 px-3 py-1 text-xs font-semibold text-[#8A2BE2] uppercase tracking-wider">
             MCP
           </span>
         </div>
-        <h2 className="text-2xl font-semibold text-white" id="mcp">MCP — Model Context Protocol</h2>
+        <h2 className="text-2xl font-semibold text-white" id="mcp">MCP � Model Context Protocol</h2>
         <p className="mt-3 text-sm leading-7 text-[var(--text-soft)] max-w-2xl">
-          CBM Code has built-in MCP support. MCP servers extend CBM Code with external tools — GitHub, Figma, Playwright, databases, and more.
+          AI Coding Assistant has built-in MCP support. MCP servers extend AI Coding Assistant with external tools � GitHub, Figma, Playwright, databases, and more.
           Configure them in <code className="font-mono text-[#00d4ff]">~/.cybermind/mcp.json</code>.
         </p>
 
         {/* How MCP works */}
         <div className="mt-6 rounded-2xl border border-[#8A2BE2]/20 bg-[#8A2BE2]/5 p-5">
-          <p className="text-sm font-semibold text-[#8A2BE2] mb-3">How MCP works in CBM Code</p>
+          <p className="text-sm font-semibold text-[#8A2BE2] mb-3">How MCP works in AI Coding Assistant</p>
           <div className="grid gap-2 text-sm text-[var(--text-soft)]">
             <p>1. You configure MCP servers in <code className="font-mono text-[#00d4ff]">~/.cybermind/mcp.json</code></p>
-            <p>2. CBM Code starts each enabled server as a subprocess when you launch <code className="font-mono text-[#00d4ff]">cybermind vibe</code></p>
+            <p>2. AI Coding Assistant starts each enabled server as a subprocess when you launch <code className="font-mono text-[#00d4ff]">cybermind vibe</code></p>
             <p>3. The AI can call MCP tools just like built-in tools (read_file, run_command, etc.)</p>
-            <p>4. MCP tools appear in the AI context automatically — no extra prompting needed</p>
+            <p>4. MCP tools appear in the AI context automatically � no extra prompting needed</p>
           </div>
         </div>
 
         {/* mcp.json config */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Step 1 — Create ~/.cybermind/mcp.json</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Step 1 � Create ~/.cybermind/mcp.json</h3>
           <p className="text-sm text-[var(--text-soft)] mb-3">
             Create this file at <code className="font-mono text-[#00d4ff]">~/.cybermind/mcp.json</code> (Windows: <code className="font-mono text-[#00d4ff]">C:\Users\YourName\.cybermind\mcp.json</code>):
           </p>
@@ -244,7 +244,7 @@ export default function CBMCodeDocsPage() {
 
         {/* Available MCP servers */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Step 2 — Install MCP server packages</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Step 2 � Install MCP server packages</h3>
           <p className="text-sm text-[var(--text-soft)] mb-3">
             MCP servers are npm packages. Install the ones you want to use (Node.js required):
           </p>
@@ -270,7 +270,7 @@ export default function CBMCodeDocsPage() {
 
         {/* Using MCP in session */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-white mb-3">Step 3 — Use MCP tools in CBM Code</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Step 3 � Use MCP tools in AI Coding Assistant</h3>
           <p className="text-sm text-[var(--text-soft)] mb-3">
             Once configured, MCP tools are available automatically. You can also manage them with slash commands:
           </p>
@@ -282,8 +282,8 @@ export default function CBMCodeDocsPage() {
           <div className="mt-4 rounded-2xl border border-white/8 bg-[#030508] p-4">
             <p className="font-mono text-xs text-[var(--text-muted)] mb-2"># Example: using GitHub MCP in a session</p>
             <p className="font-mono text-xs text-white">&gt; create a GitHub issue for the bug we just fixed in auth.js</p>
-            <p className="font-mono text-xs text-[#8A2BE2] mt-1">◆ CBM Code: Using github.create_issue tool...</p>
-            <p className="font-mono text-xs text-[#00FF88]">  ✓ Issue #47 created: "Fix JWT validation bypass in auth.js"</p>
+            <p className="font-mono text-xs text-[#8A2BE2] mt-1">? AI Coding Assistant: Using github.create_issue tool...</p>
+            <p className="font-mono text-xs text-[#00FF88]">  ? Issue #47 created: "Fix JWT validation bypass in auth.js"</p>
           </div>
         </div>
 
@@ -316,7 +316,7 @@ export default function CBMCodeDocsPage() {
                 ["--debug",               "Enable debug logging"],
                 ["--whoami",              "Show current tier, provider, model, masked key"],
                 ["--providers",           "List all configured providers and their keys"],
-                ["--version",             "Show CBM Code version"],
+                ["--version",             "Show AI Coding Assistant version"],
               ].map(([flag, desc]) => (
                 <tr key={flag}>
                   <td className="py-2.5 pr-4 font-mono text-xs text-[#00d4ff] whitespace-nowrap">{flag}</td>
@@ -335,7 +335,7 @@ export default function CBMCodeDocsPage() {
           {[
             {
               q: "No response / server sleeping",
-              a: "The backend may be waking up (Render free tier sleeps after 15 min). Wait 30 seconds — CBM Code shows a progress bar while it wakes.",
+              a: "The backend may be waking up (Render free tier sleeps after 15 min). Wait 30 seconds � AI Coding Assistant shows a progress bar while it wakes.",
             },
             {
               q: "\"No AI providers configured\"",
@@ -347,7 +347,7 @@ export default function CBMCodeDocsPage() {
             },
             {
               q: "Rate limit (429)",
-              a: "You hit the rate limit for this provider. CBM Code automatically tries the next provider in the chain.",
+              a: "You hit the rate limit for this provider. AI Coding Assistant automatically tries the next provider in the chain.",
             },
             {
               q: "TUI not rendering correctly on Windows",
@@ -371,13 +371,13 @@ export default function CBMCodeDocsPage() {
         <p className="text-sm font-semibold text-white mb-3">Related</p>
         <div className="flex flex-wrap gap-3">
           {[
-            ["/cbm-code", "CBM Code product page"],
+            ["/extensions", "AI Coding Assistant product page"],
             ["/docs/installation", "Installation guide"],
             ["/plans", "Pricing & plans"],
             ["/dashboard", "Get your API key"],
           ].map(([href, label]) => (
             <Link key={href} href={href} className="text-sm text-[#00d4ff] hover:underline">
-              {label} →
+              {label} ?
             </Link>
           ))}
         </div>
@@ -386,3 +386,4 @@ export default function CBMCodeDocsPage() {
     </div>
   );
 }
+

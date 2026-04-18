@@ -142,27 +142,26 @@ export default function AboutPage() {
           </div>
         </Surface>
 
-        {/* ── CBM Code Product Section ── */}
+        {/* ── VSCode Extension & AI Model Section ── */}
         <Reveal>
           <Surface variant="clay" tone="accent" elevation="high" className="rounded-[36px] p-6 md:p-10">
             <div className="flex items-center gap-2 mb-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/10 px-3 py-1 text-xs font-semibold text-[#00d4ff] uppercase tracking-wider">
-                New Product
+                New Products
               </span>
             </div>
             <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
-              CBM Code — AI Coding Assistant
+              VSCode Extension & cybermindcli AI Model
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-soft)]">
-              Built into CyberMind CLI, CBM Code is a terminal-native AI coding assistant that competes with Claude Code.
-              Free tier with your own API keys. Supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, and 11+ providers.
-              Works on Windows and macOS.
+              CyberMind now ships a VSCode extension with 8 AI agents and OWASP security scanning, plus cybermindcli — a fine-tuned uncensored security AI model on HuggingFace.
+              Free tier available. Works on Windows, macOS, and Linux.
             </p>
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {[
-                { icon: Brain, title: "11+ AI Providers", desc: "MiniMax M2.5, DeepSeek R1, Qwen3 Coder, GPT-5, Claude, Groq, Bytez, Nvidia and more", color: "#00d4ff" },
-                { icon: Code2, title: "Agent Mode Default", desc: "Autonomous task execution — plan, code, debug, fix errors in a single loop", color: "#00FF88" },
-                { icon: Shield, title: "Security Mode", desc: "Built-in vulnerability scanner, CVE checker, and ethical filter for security-aware coding", color: "#8A2BE2" },
+                { icon: Brain, title: "8 AI Agents", desc: "Security, Code, Test, BugFix, Explain, Refactor, Docs, and Custom agents in VSCode", color: "#00d4ff" },
+                { icon: Code2, title: "OWASP Scanning", desc: "Inline security diagnostics — SQL injection, XSS, hardcoded secrets, and more", color: "#00FF88" },
+                { icon: Shield, title: "cybermindcli Model", desc: "Fine-tuned uncensored security AI — no safety filters, trained on pentest data", color: "#8A2BE2" },
                 { icon: Zap, title: "MCP Support", desc: "GitHub, Figma, Playwright, 21st Magic UI — extend with any MCP server", color: "#FF6B35" },
               ].map((item) => {
                 const Icon = item.icon;
@@ -179,11 +178,11 @@ export default function AboutPage() {
               })}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/cbm-code" className="cm-button-primary gap-2 text-sm">
-                <Code2 size={14} /> Learn about CBM Code
+              <Link href="/extensions" className="cm-button-primary gap-2 text-sm">
+                <Code2 size={14} /> VSCode Extension
               </Link>
-              <Link href="/docs/cbm-code" className="cm-button-secondary text-sm">
-                Read the docs
+              <Link href="/model" className="cm-button-secondary text-sm">
+                cybermindcli AI Model
               </Link>
             </div>
           </Surface>

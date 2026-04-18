@@ -37,36 +37,42 @@ function meta(
 
 export const PAGE_META = {
   home: meta(
-    "CyberMind CLI — AI Security CLI + CBM Code AI Coding Assistant",
-    "Terminal-first AI security CLI with 20-tool recon, 11-tool hunt, Abhimanyu exploit mode, and CBM Code — the free Claude Code alternative with MiniMax M2.5, DeepSeek R1, Qwen3 Coder. Windows & macOS.",
+    "CyberMind CLI — AI Security CLI + VSCode Extension",
+    "Terminal-first AI security CLI with 20-tool recon, 11-tool hunt, Abhimanyu exploit mode, VSCode extension, and cybermindcli fine-tuned security AI. Windows & macOS.",
     "/",
-    { keywords: ["cybermind CLI","CBM Code","AI coding assistant","claude code alternative","offensive security CLI","penetration testing","bug bounty","MiniMax M2.5","DeepSeek R1","Qwen3 Coder","free AI coding tool","Windows AI coding","cybermind vibe coder","terminal AI coding","ethical hacking CLI"] }
+    { keywords: ["cybermind CLI","cybermindcli","AI coding assistant","offensive security CLI","penetration testing","bug bounty","MiniMax M2.5","DeepSeek R1","Qwen3 Coder","free AI coding tool","Windows AI coding","cybermind vibe coder","terminal AI coding","ethical hacking CLI","VSCode extension"] }
   ),
-  cbmCode: meta(
-    "CBM Code — Free AI Coding Assistant | Claude Code Alternative | CyberMind",
-    "CBM Code is a terminal-based AI coding assistant with 11+ providers (MiniMax M2.5, DeepSeek R1, Qwen3 Coder), free tier, MCP support, built-in security scanner. Works on Windows & macOS. Better than Claude Code.",
-    "/cbm-code",
-    { keywords: ["CBM Code","AI coding assistant","claude code alternative","MiniMax M2.5","DeepSeek R1 coding","Qwen3 Coder","free AI coding tool","Windows AI coding","cybermind vibe coder","AI code editor terminal","free claude code alternative","AI pair programmer terminal","coding AI CLI","MCP AI coding","terminal coding assistant"] }
+  extensions: meta(
+    "CyberMind AI for VSCode — Security-Focused VSCode Extension",
+    "AI-powered VSCode extension with 8 specialized agents, OWASP security scanning, inline completions, and real file editing. Free tier available.",
+    "/extensions",
+    { keywords: ["VSCode extension","AI coding","security scanning","OWASP","cybermind VSCode","AI agents","inline completions","code assistant"] }
+  ),
+  model: meta(
+    "cybermindcli — The Uncensored Security AI Model | CyberMind",
+    "Fine-tuned security AI model for offensive security research. No safety filters. Trained on pentest data, CVE analysis, and bug bounty workflows.",
+    "/model",
+    { keywords: ["cybermindcli","security AI model","uncensored AI","pentest AI","bug bounty AI","exploit research","payload generation","HuggingFace model"] }
   ),
   install: meta(
     "Install CyberMind CLI — Windows & macOS One-Command Setup",
-    "Install CyberMind CLI on Windows (PowerShell) or macOS in under 2 minutes. Get your API key, launch CBM Code AI coding assistant, start building immediately.",
+    "Install CyberMind CLI on Windows (PowerShell) or macOS in under 2 minutes. Get your API key and start building immediately.",
     "/install",
-    { keywords: ["install cybermind CLI","cybermind windows install","cybermind mac install","CBM Code install","AI coding assistant install","cybermind setup","install CBM Code Windows","install CBM Code macOS"] }
+    { keywords: ["install cybermind CLI","cybermind windows install","cybermind mac install","AI coding assistant install","cybermind setup"] }
   ),
   plans: meta(
     "CyberMind CLI Pricing — Free, Starter, Pro & Elite Plans",
-    "Free tier with CBM Code AI coding + AI chat. Pro with full recon & hunt. Elite with Abhimanyu mode, unlimited requests, and GPT-5/Claude Opus access.",
+    "Free tier with AI coding + AI chat. Pro with full recon & hunt. Elite with Abhimanyu mode, unlimited requests, and GPT-5/Claude Opus access.",
     "/plans"
   ),
   docs: meta(
-    "CyberMind CLI Docs — CBM Code, Recon, Hunt, MCP & More",
-    "Complete documentation: CBM Code AI coding assistant, MCP integration, Windows/macOS install, slash commands, edit modes, AI providers, and API reference.",
+    "CyberMind CLI Docs — VSCode Extension, Recon, Hunt, MCP & More",
+    "Complete documentation: VSCode extension, MCP integration, Windows/macOS install, slash commands, edit modes, AI providers, and API reference.",
     "/docs"
   ),
   features: meta(
-    "CyberMind CLI Features — CBM Code, Recon, Hunt, Abhimanyu & AI Chat",
-    "CBM Code AI coding assistant, 20-tool recon chain, 11-tool hunt engine, Abhimanyu exploit mode, MCP support, 11+ AI providers. Free tier available.",
+    "CyberMind CLI Features — VSCode Extension, Recon, Hunt, Abhimanyu & AI Chat",
+    "VSCode AI extension, 20-tool recon chain, 11-tool hunt engine, Abhimanyu exploit mode, MCP support, 11+ AI providers. Free tier available.",
     "/features"
   ),
   about: meta(
@@ -91,7 +97,7 @@ export const PAGE_META = {
   ),
   changelog: meta(
     "CyberMind CLI Changelog — Updates & Releases",
-    "Latest updates, bug fixes, and new features in CyberMind CLI and CBM Code.",
+    "Latest updates, bug fixes, and new features in CyberMind CLI.",
     "/changelog"
   ),
   aiModels: meta(

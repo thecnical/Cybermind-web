@@ -27,7 +27,8 @@ const navLinks: NavItem[] = [
   { href: "/install", label: "Install" },
   { href: "/plans", label: "Plans" },
   { href: "/docs", label: "Docs" },
-  { href: "/ai-models", label: "AI Models" },
+  { href: "/extensions", label: "VSCode Extension" },
+  { href: "/model", label: "AI Model" },
   { href: "/features", label: "Features" },
   { href: "/about", label: "About" },
 ];
@@ -160,9 +161,14 @@ export default function Navbar() {
             );
 
             return (
-              <Link key={link.href} href={link.href} className={linkClass}
+              <Link key={link.href} href={link.href} className={cn(linkClass, "relative inline-flex items-center gap-1.5")}
                 aria-current={active ? "page" : undefined}>
                 {link.label}
+                {link.href === "/extensions" && (
+                  <span className="rounded-full bg-[#00ffff] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-black">
+                    NEW
+                  </span>
+                )}
               </Link>
             );
           })}

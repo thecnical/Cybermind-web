@@ -43,12 +43,12 @@ export const metadata: Metadata = {
     template: "%s | CyberMind CLI",
   },
   description:
-    "CyberMind CLI — AI-powered offensive security CLI with CBM Code AI coding assistant, 20-tool recon chain, OMEGA plan mode, Abhimanyu exploit mode, and MiniMax M2.7 primary coding agent.",
+    "CyberMind CLI — AI-powered offensive security CLI with VSCode extension, 20-tool recon chain, OMEGA plan mode, Abhimanyu exploit mode, and cybermindcli fine-tuned security AI model.",
   keywords: [
     "cybersecurity CLI", "offensive security", "penetration testing", "bug bounty",
     "AI hacking tool", "recon automation", "ethical hacking", "kali linux",
     "cybermind", "security automation", "nuclei", "subfinder", "nmap",
-    "CBM Code", "AI coding assistant", "claude code alternative",
+    "cybermindcli", "AI coding assistant", "VSCode extension",
     "terminal AI coding", "MiniMax M2.7", "Kimi K2", "DeepSeek R1", "Qwen3 Coder",
     "free AI coding tool", "Windows AI coding assistant", "NVIDIA NIM",
     "OMEGA plan mode", "bug bounty automation", "recon automation",
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     siteName: "CyberMind CLI",
     title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
     description:
-      "AI-powered offensive security CLI with CBM Code AI coding assistant, OMEGA plan mode, recon, hunt, Abhimanyu exploit mode, and MiniMax M2.7 primary coding agent.",
+      "AI-powered offensive security CLI with VSCode extension, OMEGA plan mode, recon, hunt, Abhimanyu exploit mode, and cybermindcli security AI model.",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
-    description: "AI-powered offensive security CLI with CBM Code, OMEGA plan mode, recon, hunt, and Abhimanyu exploit mode.",
+    description: "AI-powered offensive security CLI with VSCode extension, OMEGA plan mode, recon, hunt, and Abhimanyu exploit mode.",
     images: [`${BASE_URL}/og-image.png`],
     creator: "@thecnical",
   },
@@ -109,7 +109,7 @@ const organizationSchema = {
   name: "CyberMind CLI",
   url: BASE_URL,
   logo: `${BASE_URL}/og-image.png`,
-  description: "AI-powered offensive security CLI and CBM Code AI coding assistant for penetration testers and developers.",
+  description: "AI-powered offensive security CLI and VSCode extension for penetration testers and developers.",
   founder: { "@type": "Person", name: "Chandan Pandey", url: "https://github.com/thecnical" },
   sameAs: ["https://github.com/thecnical", "https://twitter.com/thecnical"],
 };
@@ -123,9 +123,9 @@ const softwareSchema = {
   operatingSystem: "Windows, macOS",
   url: BASE_URL,
   downloadUrl: `${BASE_URL}/install`,
-  description: "AI-powered offensive security CLI with CBM Code AI coding assistant, recon, hunt, and exploit automation.",
+  description: "AI-powered offensive security CLI with VSCode extension, recon, hunt, and exploit automation.",
   featureList: [
-    "CBM Code AI coding assistant (Claude Code alternative)",
+    "cybermindcli fine-tuned security AI model",
     "MiniMax M2.5, DeepSeek R1, Qwen3 Coder support",
     "11+ AI providers with smart routing",
     "20-tool automated recon chain",
@@ -149,41 +149,41 @@ const softwareSchema = {
   },
 };
 
-// FAQ schema for CBM Code — helps Google show rich results
+// FAQ schema for CyberMind — helps Google show rich results
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
     {
       "@type": "Question",
-      name: "What is CBM Code?",
+      name: "What is CyberMind CLI?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CBM Code is a terminal-based AI coding assistant built into CyberMind CLI. It supports 11+ AI providers including MiniMax M2.5, DeepSeek R1, and Qwen3 Coder. It works on Windows and macOS and is a free alternative to Claude Code.",
+        text: "CyberMind CLI is an AI-powered offensive security CLI with a VSCode extension, 20-tool recon chain, OMEGA plan mode, and the cybermindcli fine-tuned security AI model.",
       },
     },
     {
       "@type": "Question",
-      name: "Is CBM Code free?",
+      name: "Is CyberMind CLI free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. CBM Code has a free tier where you can bring your own API keys from OpenRouter, Groq, or any provider. No subscription required to start.",
+        text: "Yes. CyberMind CLI has a free tier where you can bring your own API keys from OpenRouter, Groq, or any provider. No subscription required to start.",
       },
     },
     {
       "@type": "Question",
-      name: "Does CBM Code work on Windows?",
+      name: "Does CyberMind CLI work on Windows?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. CBM Code fully supports Windows via PowerShell. Install with one command and launch with 'cybermind vibe' or 'cybermind cbm-code'.",
+        text: "Yes. CyberMind CLI fully supports Windows via PowerShell. Install with one command and launch with 'cybermind vibe'.",
       },
     },
     {
       "@type": "Question",
-      name: "What AI models does CBM Code use?",
+      name: "What AI models does CyberMind CLI use?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CBM Code supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, Gemma 4, Llama 3.3 70B, GPT-5, Claude, and 11+ other providers. It auto-routes to the best model for your task.",
+        text: "CyberMind CLI supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, Gemma 4, Llama 3.3 70B, GPT-5, Claude, and 11+ other providers. It auto-routes to the best model for your task.",
       },
     },
   ],

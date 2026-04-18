@@ -42,7 +42,7 @@ const QUICK_PROMPTS = [
   "How do I install CyberMind CLI?",
   "My API key is not working",
   "How do I upgrade my plan?",
-  "CBM Code is not responding",
+  "VSCode extension not responding",
   "Recon mode not running on Linux",
   "Billing / payment issue",
 ];
@@ -334,7 +334,7 @@ export default function SupportPage() {
               </div>
             </div>
             <p className="text-[var(--text-soft)] text-sm leading-6 max-w-2xl">
-              Get help with installation, API keys, plans, CBM Code, recon/hunt tools, or anything else.
+              Get help with installation, API keys, plans, VSCode extension, recon/hunt tools, or anything else.
               Our AI bot responds instantly — complex issues are escalated to the team.
             </p>
           </div>

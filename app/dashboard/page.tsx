@@ -501,8 +501,8 @@ export default function DashboardPage() {
           {platform === "linux"
             ? "✓ Full pipeline: recon → hunt → Abhimanyu. Key auto-saved. Installs both cybermind and cbm commands."
             : platform === "windows"
-            ? "✓ AI chat + CBM Code. Key auto-saved. Installs both cybermind and cbm commands. Open a new terminal after install."
-            : "✓ AI chat + CBM Code on macOS. Key auto-saved. Installs both cybermind and cbm commands."}
+            ? "✓ AI chat + AI coding assistant. Key auto-saved. Installs both cybermind and cbm commands. Open a new terminal after install."
+            : "✓ AI chat + AI coding assistant on macOS. Key auto-saved. Installs both cybermind and cbm commands."}
         </p>
       </section>
 

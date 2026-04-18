@@ -112,7 +112,7 @@ Write-Host "  CyberMind CLI installed successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Commands (from ANY folder):" -ForegroundColor Cyan
 Write-Host "    cybermind              - AI security chat" -ForegroundColor DarkGray
-Write-Host "    cybermind vibe         - CBM Code (AI coding assistant)" -ForegroundColor DarkGray
+Write-Host "    cybermind vibe         - AI coding assistant" -ForegroundColor DarkGray
 Write-Host "    cbm vibe               - same as above (short alias)" -ForegroundColor DarkGray
 Write-Host "    cybermind --version    - check version" -ForegroundColor DarkGray
 Write-Host "    cybermind --key <key>  - update API key" -ForegroundColor DarkGray

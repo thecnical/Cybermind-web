@@ -10,7 +10,7 @@ const page = {
   title: "Features",
   eyebrow: "Full Capabilities",
   description:
-    "CyberMind CLI — AI-powered offensive security CLI with OMEGA plan mode, 50+ tool recon/hunt pipeline, auto PoC generation, HackerOne integration, CBM Code AI coding assistant, and full Linux hacking workflow.",
+    "CyberMind CLI — AI-powered offensive security CLI with OMEGA plan mode, 50+ tool recon/hunt pipeline, auto PoC generation, HackerOne integration, VSCode AI extension, and full Linux hacking workflow.",
   command: "sudo cybermind /plan --auto-target --focus idor,xss",
   sections: [
     {
@@ -88,7 +88,7 @@ const page = {
       ],
     },
     {
-      title: "CBM Code — AI Coding Assistant",
+      title: "AI Coding Assistant",
       body:
         "Terminal-native AI coding assistant. Free Claude Code alternative. Works on Windows, macOS, Linux.",
       bullets: [
@@ -127,7 +127,7 @@ const page = {
         "/payload — AI payload generator (no msfvenom)",
         "/cve — CVE intelligence from NVD",
         "/wordlist — custom wordlist generator",
-        "CBM Code — AI coding assistant (Windows/macOS/Linux)",
+        "AI coding assistant (Windows/macOS/Linux)",
         "AI chat — interactive security assistant",
       ],
     },

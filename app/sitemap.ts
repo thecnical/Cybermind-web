@@ -9,12 +9,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     // Core pages — highest priority
     { url: BASE_URL,                          lastModified: now, changeFrequency: "weekly",  priority: 1.0 },
-    { url: `${BASE_URL}/cbm-code`,            lastModified: now, changeFrequency: "weekly",  priority: 1.0 },
+    { url: `${BASE_URL}/extensions`,          lastModified: now, changeFrequency: "weekly",  priority: 1.0 },
+    { url: `${BASE_URL}/model`,               lastModified: now, changeFrequency: "weekly",  priority: 0.95 },
     { url: `${BASE_URL}/install`,             lastModified: now, changeFrequency: "weekly",  priority: 0.95 },
     { url: `${BASE_URL}/plans`,               lastModified: now, changeFrequency: "weekly",  priority: 0.95 },
     // Docs
     { url: `${BASE_URL}/docs`,                lastModified: now, changeFrequency: "weekly",  priority: 0.9 },
-    { url: `${BASE_URL}/docs/cbm-code`,       lastModified: now, changeFrequency: "weekly",  priority: 0.9 },
+    { url: `${BASE_URL}/docs/vscode-extension`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/docs/installation`,   lastModified: now, changeFrequency: "weekly",  priority: 0.9 },
     { url: `${BASE_URL}/docs/quickstart`,     lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
     { url: `${BASE_URL}/docs/commands`,       lastModified: now, changeFrequency: "monthly", priority: 0.8 },
