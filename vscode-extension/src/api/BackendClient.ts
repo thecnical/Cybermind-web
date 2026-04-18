@@ -31,8 +31,16 @@ export interface UserInfo {
   credits_limit: number;
 }
 
+// OpenRouter free models — no API key needed
+const OPENROUTER_FREE_MODELS = [
+  'deepseek/deepseek-r1:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
+];
+
 export class BackendClient {
   public readonly baseUrl = 'https://cybermind-backend-8yrt.onrender.com';
+  private readonly openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private abortController: AbortController | null = null;
 
   async chat(
@@ -42,10 +50,10 @@ export class BackendClient {
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken
   ): Promise<string> {
-    const isFree = model === 'cybermindcli' || (!apiKey);
+    const isFree = model === 'cybermindcli' || model === 'free' || (!apiKey);
 
     if (isFree) {
-      return this.freeChat(request, onToken, cancellationToken);
+      return this.openRouterFreeChat(request, onToken, cancellationToken);
     }
 
     const headers: Record<string, string> = {
@@ -67,18 +75,98 @@ export class BackendClient {
     });
   }
 
+  // Free tier: try CyberMind backend first, fallback to OpenRouter free models
+  async openRouterFreeChat(
+    request: ChatRequest,
+    onToken: (token: string) => void,
+    cancellationToken?: vscode.CancellationToken
+  ): Promise<string> {
+    try {
+      return await this._doRequest('/free/chat', { 'Content-Type': 'application/json' }, request, onToken, cancellationToken);
+    } catch {
+      logger.warn('CyberMind free endpoint failed, falling back to OpenRouter');
+      return this._openRouterChat(request, onToken, cancellationToken);
+    }
+  }
+
   async freeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken
   ): Promise<string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    return this.openRouterFreeChat(request, onToken, cancellationToken);
+  }
 
-    return this.withRetry(async () => {
-      return this._doRequest('/free/chat', headers, request, onToken, cancellationToken);
-    });
+  private async _openRouterChat(
+    request: ChatRequest,
+    onToken: (token: string) => void,
+    cancellationToken?: vscode.CancellationToken
+  ): Promise<string> {
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
+    let cancelDisposable: vscode.Disposable | undefined;
+    if (cancellationToken) {
+      cancelDisposable = cancellationToken.onCancellationRequested(() => {
+        this.abortController?.abort();
+      });
+    }
+
+    try {
+      const systemPrompt = `You are CyberMind AI, an expert security and coding assistant. ${request.context ? 'Context: ' + request.context : ''}`;
+
+      const response = await fetch(this.openRouterUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://cybermindcli1.vercel.app',
+          'X-Title': 'CyberMind VSCode Extension',
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_FREE_MODELS[0],
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: request.message },
+          ],
+          stream: true,
+          max_tokens: 2048,
+        }),
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter HTTP ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      let fullResponse = '';
+
+      if (reader) {
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                const token = parsed.choices?.[0]?.delta?.content || '';
+                if (token) { onToken(token); fullResponse += token; }
+              } catch { /* skip */ }
+            }
+          }
+        }
+      }
+
+      return fullResponse;
+    } finally {
+      cancelDisposable?.dispose();
+      this.abortController = null;
+    }
   }
 
   private async _doRequest(
@@ -110,7 +198,7 @@ export class BackendClient {
           body: JSON.stringify(request),
           signal,
         });
-      } catch (fetchErr) {
+      } catch {
         const networkError = new Error('Unable to reach CyberMind backend. Check your connection.');
         (networkError as any).isNetworkError = true;
         throw networkError;

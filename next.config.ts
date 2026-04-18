@@ -19,7 +19,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   // FIX: specific origins only — no wildcard https: or wss:
-  `connect-src 'self' ${BACKEND_URL} https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com https://api.stripe.com`,
+  `connect-src 'self' ${BACKEND_URL} https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com https://api.stripe.com https://openrouter.ai`,
   "frame-src 'none' https://js.stripe.com https://hooks.stripe.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
