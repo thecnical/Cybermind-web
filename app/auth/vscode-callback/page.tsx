@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -7,32 +8,28 @@ import CyberMindLogo from "@/components/CyberMindLogo";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
-// Handles Google OAuth redirect back from Supabase
-// URL: /auth/vscode-callback?state=<state>#access_token=...
-export default function VscodeCallbackPage() {
+function VscodeCallbackInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const state = searchParams.get("state") ?? "";
 
   useEffect(() => {
     async function handleCallback() {
-      // Supabase puts the token in the URL hash after OAuth
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = (await supabase.auth.getSession()).data.session;
 
       if (!session?.access_token) {
-        // Wait a moment for Supabase to process the hash
         await new Promise(r => setTimeout(r, 1500));
-        const { data: { session: session2 } } = await supabase.auth.getSession();
-        if (!session2?.access_token) {
-          router.replace(`/auth/vscode?state=${state}`);
-          return;
-        }
+        session = (await supabase.auth.getSession()).data.session;
       }
 
-      const token = session?.access_token ?? "";
-      const email = session?.user?.email ?? "";
+      if (!session?.access_token) {
+        router.replace(`/auth/vscode?state=${state}`);
+        return;
+      }
 
-      // Fetch plan
+      const token = session.access_token;
+      const email = session.user?.email ?? "";
+
       let plan = "free";
       try {
         const res = await fetch(`${BACKEND_URL}/auth/profile`, {
@@ -45,7 +42,6 @@ export default function VscodeCallbackPage() {
         }
       } catch { /* use free */ }
 
-      // Redirect to VSCode
       const params = new URLSearchParams({ token, plan, email, state });
       window.location.href = `vscode://cybermind/auth?${params.toString()}`;
     }
@@ -63,5 +59,17 @@ export default function VscodeCallbackPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VscodeCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#06070B] flex items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
+      </div>
+    }>
+      <VscodeCallbackInner />
+    </Suspense>
   );
 }

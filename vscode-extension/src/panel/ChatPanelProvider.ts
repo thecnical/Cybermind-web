@@ -182,10 +182,14 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         this.postToWebview({ type: 'showScreen', screen: 'chat' });
         this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
         break;
-      case 'webSignIn':
-        // Open browser OAuth flow
-        vscode.commands.executeCommand('cybermind.signIn');
+      case 'webSignIn': {
+        // Open browser OAuth flow directly — no command needed
+        const crypto = require('crypto') as typeof import('crypto');
+        const state = crypto.randomBytes(16).toString('hex');
+        const loginUrl = `https://cybermindcli1.vercel.app/auth/vscode?state=${state}`;
+        vscode.env.openExternal(vscode.Uri.parse(loginUrl));
         break;
+      }
       case 'openExternal':
         vscode.env.openExternal(vscode.Uri.parse(message.url as string));
         break;
@@ -267,6 +271,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     try {
       const apiKey = await this.authManager.getApiKey();
+      const jwtToken = await this.authManager.getToken();
       const cancellationSource = new vscode.CancellationTokenSource();
 
       let fullResponse = '';
@@ -285,7 +290,8 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
           fullResponse += token;
           this.postToWebview({ type: 'token', text: token });
         },
-        cancellationSource.token
+        cancellationSource.token,
+        jwtToken
       );
 
       // Parse file operations from response

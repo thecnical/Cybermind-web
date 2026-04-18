@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CyberMindLogo from "@/components/CyberMindLogo";
@@ -10,7 +10,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-ba
 
 type Step = "loading" | "login" | "authorizing" | "success" | "error";
 
-export default function VscodeAuthPage() {
+function VscodeAuthInner() {
   const searchParams = useSearchParams();
   const state = searchParams.get("state") ?? "";
 
@@ -23,7 +23,6 @@ export default function VscodeAuthPage() {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    // Check if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.access_token) {
         handleAuthorize(session.access_token, session.user?.email ?? "");
@@ -31,12 +30,12 @@ export default function VscodeAuthPage() {
         setStep("login");
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleAuthorize(token: string, email: string) {
+  async function handleAuthorize(token: string, emailAddr: string) {
     setStep("authorizing");
     try {
-      // Fetch plan from backend
       let userPlan = "free";
       try {
         const res = await fetch(`${BACKEND_URL}/auth/profile`, {
@@ -50,21 +49,12 @@ export default function VscodeAuthPage() {
       } catch { /* use free */ }
 
       setPlan(userPlan);
-      setUserEmail(email);
+      setUserEmail(emailAddr);
       setStep("success");
 
-      // Redirect to VSCode via custom URI scheme
-      const params = new URLSearchParams({
-        token,
-        plan: userPlan,
-        email,
-        state,
-      });
-      const vscodeUri = `vscode://cybermind/auth?${params.toString()}`;
-
-      // Small delay so user sees the success screen
+      const params = new URLSearchParams({ token, plan: userPlan, email: emailAddr, state });
       setTimeout(() => {
-        window.location.href = vscodeUri;
+        window.location.href = `vscode://cybermind/auth?${params.toString()}`;
       }, 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authorization failed");
@@ -77,7 +67,6 @@ export default function VscodeAuthPage() {
     if (!email || !password) return;
     setSubmitting(true);
     setError("");
-
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError || !data.session) {
@@ -97,7 +86,7 @@ export default function VscodeAuthPage() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/vscode-callback?state=${state}`,
+        redirectTo: `${typeof window !== "undefined" ? window.location.origin : "https://cybermindcli1.vercel.app"}/auth/vscode-callback?state=${state}`,
       },
     });
     if (authError) {
@@ -109,14 +98,12 @@ export default function VscodeAuthPage() {
   return (
     <div className="min-h-screen bg-[#06070B] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <CyberMindLogo size={48} />
           <h1 className="mt-4 text-xl font-semibold text-white">CyberMind for VSCode</h1>
           <p className="mt-1 text-sm text-[#666]">Sign in to connect your account</p>
         </div>
 
-        {/* Loading */}
         {step === "loading" && (
           <div className="flex items-center justify-center gap-3 text-[#666]">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
@@ -124,10 +111,8 @@ export default function VscodeAuthPage() {
           </div>
         )}
 
-        {/* Login form */}
         {step === "login" && (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-            {/* Google */}
             <button
               onClick={handleGoogleLogin}
               disabled={submitting}
@@ -182,14 +167,11 @@ export default function VscodeAuthPage() {
 
             <p className="mt-4 text-center text-xs text-[#555]">
               No account?{" "}
-              <Link href="/auth/register" className="text-[#00ffff] hover:underline">
-                Sign up free
-              </Link>
+              <Link href="/auth/register" className="text-[#00ffff] hover:underline">Sign up free</Link>
             </p>
           </div>
         )}
 
-        {/* Authorizing */}
         {step === "authorizing" && (
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
@@ -197,22 +179,17 @@ export default function VscodeAuthPage() {
           </div>
         )}
 
-        {/* Success */}
         {step === "success" && (
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10 text-2xl">
-              ✓
-            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#00FF88]/30 bg-[#00FF88]/10 text-2xl">✓</div>
             <div>
-              <p className="text-base font-semibold text-white">Signed in successfully!</p>
+              <p className="text-base font-semibold text-white">Signed in!</p>
               <p className="mt-1 text-sm text-[#888]">{userEmail}</p>
-              <span className="mt-2 inline-block rounded-full border border-[#00ffff]/30 bg-[#00ffff]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-[#00ffff]">
-                {plan}
-              </span>
+              <span className="mt-2 inline-block rounded-full border border-[#00ffff]/30 bg-[#00ffff]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-[#00ffff]">{plan}</span>
             </div>
             <p className="text-xs text-[#555]">Redirecting back to VSCode...</p>
             <p className="text-xs text-[#444]">
-              If VSCode doesn&apos;t open,{" "}
+              Not redirecting?{" "}
               <button
                 onClick={() => {
                   const params = new URLSearchParams({ plan, email: userEmail, state });
@@ -220,22 +197,31 @@ export default function VscodeAuthPage() {
                 }}
                 className="text-[#00ffff] hover:underline"
               >
-                click here
+                Click here
               </button>
             </p>
           </div>
         )}
 
-        {/* Error */}
         {step === "error" && (
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-sm text-red-400">{error}</p>
-            <button onClick={() => setStep("login")} className="text-sm text-[#00ffff] hover:underline">
-              Try again
-            </button>
+            <button onClick={() => setStep("login")} className="text-sm text-[#00ffff] hover:underline">Try again</button>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function VscodeAuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#06070B] flex items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00ffff] border-t-transparent" />
+      </div>
+    }>
+      <VscodeAuthInner />
+    </Suspense>
   );
 }

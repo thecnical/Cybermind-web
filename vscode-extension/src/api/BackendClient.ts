@@ -48,9 +48,10 @@ export class BackendClient {
     model: string,
     apiKey: string | null,
     onToken: (token: string) => void,
-    cancellationToken?: vscode.CancellationToken
+    cancellationToken?: vscode.CancellationToken,
+    jwtToken?: string | null
   ): Promise<string> {
-    const isFree = model === 'cybermindcli' || model === 'free' || (!apiKey);
+    const isFree = (model === 'cybermindcli' || model === 'free') && !apiKey && !jwtToken;
 
     if (isFree) {
       return this.openRouterFreeChat(request, onToken, cancellationToken);
@@ -62,6 +63,9 @@ export class BackendClient {
 
     if (apiKey) {
       headers['X-API-Key'] = apiKey;
+    } else if (jwtToken) {
+      // JWT token from web OAuth login — use as Bearer
+      headers['Authorization'] = `Bearer ${jwtToken}`;
     }
 
     if (model.startsWith('elite')) {
