@@ -787,20 +787,95 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     toggleDropdown('dot-menu');
   });
 
-  // Dot menu items
+  // Dot menu items — fully implemented
   document.querySelectorAll('.dot-menu-item').forEach(function(item) {
     item.addEventListener('click', function() {
       const action = this.dataset.action;
       closeAllDropdowns();
-      if (action === 'logout') {
-        vscode.postMessage({ type: 'logout' });
-      } else if (action === 'settings') {
-        vscode.postMessage({ type: 'openSettings' });
-      } else {
-        showToast('Coming soon: ' + action, '');
+      switch (action) {
+        case 'logout':
+          vscode.postMessage({ type: 'logout' });
+          break;
+        case 'settings':
+          vscode.postMessage({ type: 'openSettings' });
+          break;
+        case 'agents':
+          // Open agent dropdown in the chat footer
+          toggleDropdown('agent-dropdown');
+          break;
+        case 'custom-api-keys':
+          vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
+          break;
+        case 'instructions':
+          showInstructionsDialog();
+          break;
+        case 'shortcuts':
+          showShortcutsDialog();
+          break;
+        case 'skills':
+        case 'tools':
+        case 'integrations':
+          vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/extensions/guide' });
+          break;
+        default:
+          break;
       }
     });
   });
+
+  // Instructions dialog
+  function showInstructionsDialog() {
+    const existing = document.getElementById('instructions-dialog');
+    if (existing) { existing.remove(); return; }
+    const dialog = document.createElement('div');
+    dialog.id = 'instructions-dialog';
+    dialog.style.cssText = 'position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px;z-index:200';
+    dialog.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Instructions for AI</div>' +
+      '<textarea id="instructions-text" style="width:100%;height:80px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;padding:8px;resize:none;outline:none" placeholder="Add custom instructions for all conversations..."></textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:8px">' +
+      '<button onclick="saveInstructions()" style="flex:1;padding:7px;background:var(--accent);color:#000;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer">Save</button>' +
+      '<button onclick="document.getElementById(\'instructions-dialog\').remove()" style="flex:1;padding:7px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>' +
+      '</div>';
+    document.getElementById('screen-chat').appendChild(dialog);
+  }
+
+  window.saveInstructions = function() {
+    const text = document.getElementById('instructions-text')?.value || '';
+    vscode.postMessage({ type: 'saveInstructions', instructions: text });
+    document.getElementById('instructions-dialog')?.remove();
+    showToast('Instructions saved', 'success');
+  };
+
+  // Shortcuts dialog
+  function showShortcutsDialog() {
+    const existing = document.getElementById('shortcuts-dialog');
+    if (existing) { existing.remove(); return; }
+    const dialog = document.createElement('div');
+    dialog.id = 'shortcuts-dialog';
+    dialog.style.cssText = 'position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px;z-index:200';
+    const shortcuts = [
+      ['Ctrl+Shift+C', 'Open Chat'],
+      ['Ctrl+Shift+S', 'Scan File'],
+      ['Ctrl+Shift+Z', 'Undo AI Change'],
+      ['Tab', 'Accept Completion'],
+      ['Enter', 'Send Message'],
+      ['Shift+Enter', 'New Line'],
+      ['@filename', 'Attach File'],
+      ['/agent', 'Switch Agent'],
+    ];
+    dialog.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+      '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">Keyboard Shortcuts</span>' +
+      '<button onclick="document.getElementById(\'shortcuts-dialog\').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">&times;</button>' +
+      '</div>' +
+      shortcuts.map(([k, v]) =>
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">' +
+        '<span style="color:var(--text-secondary)">' + v + '</span>' +
+        '<code style="background:var(--bg-input);border:1px solid var(--border);border-radius:3px;padding:1px 6px;color:var(--accent);font-size:11px">' + k + '</code>' +
+        '</div>'
+      ).join('') +
+      '<button onclick="document.getElementById(\'shortcuts-dialog\').remove()" style="width:100%;margin-top:10px;padding:7px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:5px;font-size:12px;cursor:pointer">Close</button>';
+    document.getElementById('screen-chat').appendChild(dialog);
+  }
 
   // Agent selector
   document.getElementById('btn-agent-selector').addEventListener('click', function(e) {
@@ -842,11 +917,35 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     toggleDropdown('slash-command-dropdown');
   });
 
-  // Agent cards
+  // Agent cards — work immediately with hardcoded data, update when agentList arrives
+  const BUILTIN_AGENTS = {
+    'security': { name: 'Security', icon: '\uD83D\uDD12' },
+    'code':     { name: 'Code',     icon: '</>' },
+    'unit-test':{ name: 'Unit Test',icon: '\uD83E\uDDEA' },
+    'bug-fix':  { name: 'Bug Fix',  icon: '\uD83D\uDC1B' },
+    'explain':  { name: 'Explain',  icon: '\uD83D\uDCA1' },
+    'refactor': { name: 'Refactor', icon: '\u267B\uFE0F' },
+    'docs':     { name: 'Docs',     icon: '\uD83D\uDCDD' },
+  };
+
   document.querySelectorAll('.agent-card').forEach(function(card) {
-    card.addEventListener('click', function() {
+    card.addEventListener('click', function(e) {
+      e.stopPropagation();
       const agentId = this.dataset.agent;
-      selectAgent(agentId);
+      // Use builtin data if agents array not yet populated
+      if (agents.length === 0) {
+        const builtin = BUILTIN_AGENTS[agentId];
+        if (builtin) {
+          currentAgent = agentId;
+          document.getElementById('btn-agent-selector').textContent = builtin.icon + ' ' + builtin.name + ' \u25BE';
+          vscode.postMessage({ type: 'switchAgent', agentId });
+        }
+      } else {
+        selectAgent(agentId);
+      }
+      // Visual feedback — highlight selected card
+      document.querySelectorAll('.agent-card').forEach(c => c.style.borderColor = '');
+      this.style.borderColor = 'var(--accent)';
       document.getElementById('chat-input').focus();
     });
   });
