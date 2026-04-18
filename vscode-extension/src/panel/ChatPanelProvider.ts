@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { AuthManager } from '../api/AuthManager';
 import { BackendClient } from '../api/BackendClient';
 import { McpManager } from '../api/McpManager';
+import { ImageGenerator } from '../api/ImageGenerator';
 import { SessionManager, Message, FileOpRecord } from '../session/SessionManager';
 import { RepoIndexer } from '../indexer/RepoIndexer';
 import { FileOperations } from '../operations/FileOperations';
@@ -12,6 +13,8 @@ import { SecurityScanner } from '../security/SecurityScanner';
 import { AgentRegistry } from '../agents/AgentRegistry';
 import { PlanMode, Plan } from '../agents/PlanMode';
 import { AgenticLoop } from '../agents/AgenticLoop';
+import { ArchitectAgent, Architecture } from '../agents/ArchitectAgent';
+import { FullStackBuilder } from '../agents/FullStackBuilder';
 import { generateNonce } from '../utils/nonce';
 import { logger } from '../utils/logger';
 import * as crypto from 'crypto';
@@ -24,9 +27,13 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   private currentModelId = 'cybermindcli';
   private currentMessageId: string | null = null;
   private pendingPlan: Plan | null = null;
+  private pendingArchitecture: Architecture | null = null;
   private planMode: PlanMode;
   private agenticLoop: AgenticLoop;
   private mcpManager: McpManager;
+  private architectAgent: ArchitectAgent;
+  private fullStackBuilder: FullStackBuilder;
+  private imageGenerator: ImageGenerator;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -43,6 +50,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     this.planMode = new PlanMode(backendClient, authManager, agentRegistry);
     this.agenticLoop = new AgenticLoop(backendClient, authManager, fileOps, terminalManager, repoIndexer, mcpManager);
     this.mcpManager = mcpManager || new McpManager({ get: () => undefined, update: async () => {} } as unknown as vscode.Memento);
+    this.architectAgent = new ArchitectAgent(backendClient, authManager);
+    this.fullStackBuilder = new FullStackBuilder(backendClient, authManager);
+    this.imageGenerator = new ImageGenerator();
   }
 
   resolveWebviewView(
@@ -299,12 +309,40 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     // Get agent info
     const agentDef = this.agentRegistry.getAgent(this.currentAgentId);
 
-    // Check if user wants Plan Mode (starts with /plan or contains complex multi-step task)
+    // Check if user wants Plan Mode
     const isPlanRequest = text.startsWith('/plan ') || text.startsWith('plan: ');
     const planGoal = isPlanRequest ? text.replace(/^\/plan\s+|^plan:\s+/i, '') : '';
 
+    // Check if user wants full-stack build (architect mode)
+    const isBuildRequest = text.startsWith('/build ') || text.startsWith('build: ');
+    const buildGoal = isBuildRequest ? text.replace(/^\/build\s+|^build:\s+/i, '') : '';
+
+    // Check if user wants image generation
+    const isImageRequest = text.startsWith('/image ') || text.startsWith('/img ');
+    const imagePrompt = isImageRequest ? text.replace(/^\/image\s+|^\/img\s+/i, '') : '';
+
+    if (isImageRequest && imagePrompt) {
+      await this.handleImageGeneration(imagePrompt, messageId);
+      return;
+    }
+
+    if (isBuildRequest && buildGoal) {
+      await this.handleBuildMode(buildGoal, messageId);
+      return;
+    }
+
     if (isPlanRequest && planGoal) {
       await this.handlePlanMode(planGoal, context, messageId);
+      return;
+    }
+
+    // Check if user is approving a pending architecture build
+    if (this.pendingArchitecture && (text.toLowerCase() === 'build' || text.toLowerCase() === 'build all')) {
+      await this.executePendingBuild('all', messageId);
+      return;
+    }
+    if (this.pendingArchitecture && text.toLowerCase() === 'build priority') {
+      await this.executePendingBuild('priority', messageId);
       return;
     }
 
@@ -314,10 +352,11 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    // Check if user is rejecting a pending plan
-    if (this.pendingPlan && (text.toLowerCase() === 'no' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'reject')) {
+    // Check if user is rejecting
+    if ((this.pendingPlan || this.pendingArchitecture) && (text.toLowerCase() === 'no' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'reject')) {
       this.pendingPlan = null;
-      this.postToWebview({ type: 'token', text: 'Plan cancelled. What would you like to do instead?' });
+      this.pendingArchitecture = null;
+      this.postToWebview({ type: 'token', text: 'Cancelled. What would you like to do instead?' });
       this.postToWebview({ type: 'done', messageId, fileOps: [] });
       return;
     }
@@ -360,9 +399,19 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       // Execute any MCP tool calls in the response
       const mcpResults = await this.mcpManager.executeMcpCalls(fullResponse);
       if (mcpResults) {
-        // Append MCP results to the response display
         this.postToWebview({ type: 'token', text: `\n\n${mcpResults}` });
         fullResponse += `\n\n${mcpResults}`;
+      }
+
+      // Process any image generation requests in the response
+      const imageRequests = this.imageGenerator.parseImageRequests(fullResponse);
+      if (imageRequests.length > 0) {
+        this.postToWebview({ type: 'token', text: `\n\n🎨 Generating ${imageRequests.length} image(s)...` });
+        const updatedResponse = await this.imageGenerator.processImageRequests(fullResponse);
+        if (updatedResponse !== fullResponse) {
+          fullResponse = updatedResponse;
+          this.postToWebview({ type: 'token', text: '\n✅ Images generated.' });
+        }
       }
 
       // Parse file operations from response
@@ -419,6 +468,90 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       this.postToWebview({ type: 'error', message: errMsg });
       logger.error('Send message failed', error);
     }
+  }
+
+  private async handleImageGeneration(prompt: string, messageId: string): Promise<void> {
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: `🎨 **Generating image...**\n\`${prompt}\`\n\n` });
+
+    const result = await this.imageGenerator.generateImage(prompt, { model: 'flux' });
+
+    if (result) {
+      this.postToWebview({ type: 'token', text: `✅ Image saved to \`${result.localPath}\`\n\n![${prompt}](${result.url})` });
+    } else {
+      this.postToWebview({ type: 'token', text: '❌ Image generation failed. Try again.' });
+    }
+    this.postToWebview({ type: 'done', messageId, fileOps: [] });
+  }
+
+  private async handleBuildMode(goal: string, messageId: string): Promise<void> {
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: `🏗️ **Designing architecture for:** ${goal}\n\n` });
+
+    const arch = await this.architectAgent.designArchitecture(goal, this.currentModelId);
+
+    if (!arch) {
+      this.postToWebview({ type: 'token', text: '❌ Architecture design failed. Try `/plan` instead.' });
+      this.postToWebview({ type: 'done', messageId, fileOps: [] });
+      return;
+    }
+
+    this.pendingArchitecture = arch;
+    const display = this.architectAgent.formatArchitectureDisplay(arch);
+    this.postToWebview({ type: 'token', text: display });
+    this.postToWebview({ type: 'architectureReady', fileCount: arch.files.length });
+    this.postToWebview({ type: 'done', messageId, fileOps: [] });
+  }
+
+  private async executePendingBuild(mode: 'all' | 'priority', messageId: string): Promise<void> {
+    if (!this.pendingArchitecture) return;
+    const arch = this.pendingArchitecture;
+    this.pendingArchitecture = null;
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders?.length) {
+      this.postToWebview({ type: 'error', message: 'No workspace open. Open a folder first.' });
+      return;
+    }
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    const filesToBuild = mode === 'priority'
+      ? arch.files.filter(f => f.priority === 1).length
+      : arch.files.length;
+
+    this.postToWebview({ type: 'token', text: '' });
+    this.postToWebview({ type: 'token', text: `⚡ **Building ${filesToBuild} files...**\n\n` });
+
+    const { created, failed } = await this.fullStackBuilder.buildProject(
+      arch,
+      workspaceRoot,
+      mode,
+      (file, status, lines) => {
+        const icon = status === 'generating' ? '⏳' : status === 'done' ? '✅' : '❌';
+        const lineInfo = lines ? ` (${lines} lines)` : '';
+        this.postToWebview({ type: 'token', text: `${icon} \`${file}\`${lineInfo}\n` });
+      }
+    );
+
+    this.postToWebview({ type: 'token', text: `\n---\n✅ **${created.length} files created**${failed.length > 0 ? `, ❌ ${failed.length} failed` : ''}` });
+
+    // Run setup commands
+    if (arch.commands.length > 0 && created.length > 0) {
+      this.postToWebview({ type: 'token', text: `\n\nRunning setup: \`${arch.commands[0]}\`...` });
+      const result = await this.terminalManager.executeCommand(
+        arch.commands[0],
+        (msg) => this.postToWebview(msg as Record<string, unknown>)
+      );
+      if (result.success) {
+        this.postToWebview({ type: 'token', text: '\n✅ Dependencies installed!' });
+      }
+    }
+
+    const fileOps: FileOpRecord[] = created.map(f => ({ type: 'edit' as const, path: f, timestamp: Date.now() }));
+    this.postToWebview({ type: 'done', messageId, fileOps });
+
+    // Refresh file explorer
+    vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
   }
 
   private async handlePlanMode(goal: string, context: string, messageId: string): Promise<void> {

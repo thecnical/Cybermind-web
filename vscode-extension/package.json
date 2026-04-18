@@ -128,6 +128,16 @@
         "category": "CyberMind"
       },
       {
+        "command": "cybermind.buildMode",
+        "title": "Build Mode — Design and build a full-stack app",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.generateImage",
+        "title": "Generate Image (free, no API key)",
+        "category": "CyberMind"
+      },
+      {
         "command": "cybermind.openMcpConfig",
         "title": "Configure MCP Servers",
         "category": "CyberMind"

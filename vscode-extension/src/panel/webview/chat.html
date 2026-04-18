@@ -335,7 +335,7 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
       <button class="selector-btn" id="btn-model-selector">&#9889; cybermindcli &#9660;</button>
     </div>
     <div class="input-row">
-      <textarea id="chat-input" placeholder="Ask CyberMind... (use /plan for Plan Mode, @file to attach)" rows="1"></textarea>
+      <textarea id="chat-input" placeholder="Ask CyberMind... | /plan task | /build app | /image prompt | @file" rows="1"></textarea>
       <div class="input-actions">
         <button class="btn-input-action" id="btn-at-mention" title="Attach file">@</button>
         <button class="btn-input-action" id="btn-slash-cmd" title="Select agent">/</button>
@@ -994,6 +994,31 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
     vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
   });
 
+  // Architecture build actions
+  window.buildAll = function() {
+    const bar = document.getElementById('arch-action-bar');
+    if (bar) bar.remove();
+    const input = document.getElementById('chat-input');
+    input.value = 'build all';
+    sendMessage();
+  };
+
+  window.buildPriority = function() {
+    const bar = document.getElementById('arch-action-bar');
+    if (bar) bar.remove();
+    const input = document.getElementById('chat-input');
+    input.value = 'build priority';
+    sendMessage();
+  };
+
+  window.cancelBuild = function() {
+    const bar = document.getElementById('arch-action-bar');
+    if (bar) bar.remove();
+    const input = document.getElementById('chat-input');
+    input.value = 'cancel';
+    sendMessage();
+  };
+
   // Plan mode actions
   window.approvePlan = function() {
     const bar = document.getElementById('plan-action-bar');
@@ -1154,6 +1179,23 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
           hideAgentCards();
           scrollToBottom();
         }
+        break;
+      }
+
+      case 'architectureReady': {
+        // Show build buttons for architecture
+        const archBar = document.createElement('div');
+        archBar.id = 'arch-action-bar';
+        archBar.style.cssText = 'display:flex;gap:8px;padding:10px 0;margin-top:4px;flex-wrap:wrap';
+        archBar.innerHTML =
+          '<button onclick="buildAll()" style="flex:1;min-width:120px;padding:9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">' +
+          '\u26A1 Build All (' + msg.fileCount + ' files)</button>' +
+          '<button onclick="buildPriority()" style="flex:1;min-width:120px;padding:9px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-size:12px;cursor:pointer">' +
+          '\uD83D\uDD34 Critical Only</button>' +
+          '<button onclick="cancelBuild()" style="padding:9px 14px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;font-size:12px;cursor:pointer">' +
+          '\u2715 Cancel</button>';
+        document.getElementById('messages').appendChild(archBar);
+        scrollToBottom();
         break;
       }
 

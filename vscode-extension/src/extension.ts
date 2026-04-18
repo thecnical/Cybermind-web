@@ -350,7 +350,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       })
     );
 
-    // 13. planMode — trigger plan mode from command palette
+    // 13. planMode
     context.subscriptions.push(
       vscode.commands.registerCommand('cybermind.planMode', async () => {
         const goal = await vscode.window.showInputBox({
@@ -359,6 +359,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         });
         if (goal) {
           await chatPanelProvider.sendToChat(`/plan ${goal}`, 'code');
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        }
+      })
+    );
+
+    // 14. buildMode — full-stack architect + builder
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.buildMode', async () => {
+        const goal = await vscode.window.showInputBox({
+          prompt: 'Describe the app you want to build',
+          placeHolder: 'e.g. SaaS dashboard with Next.js, Supabase, Stripe',
+        });
+        if (goal) {
+          await chatPanelProvider.sendToChat(`/build ${goal}`, 'code');
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        }
+      })
+    );
+
+    // 15. generateImage — free image generation
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.generateImage', async () => {
+        const prompt = await vscode.window.showInputBox({
+          prompt: 'Describe the image to generate',
+          placeHolder: 'e.g. modern SaaS dashboard hero image, dark theme, cyan accents',
+        });
+        if (prompt) {
+          await chatPanelProvider.sendToChat(`/image ${prompt}`, 'code');
           vscode.commands.executeCommand('workbench.view.extension.cybermind');
         }
       })

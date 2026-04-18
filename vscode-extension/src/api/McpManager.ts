@@ -29,29 +29,70 @@ export interface McpToolResult {
 const MCP_CONFIG_KEY = 'cybermind.mcpServers';
 
 export const MCP_TEMPLATES: Omit<McpServer, 'id' | 'enabled'>[] = [
+  // ── Documentation ─────────────────────────────────────────────────────────
   {
-    name: 'GitHub',
+    name: 'Context7 (Library Docs)',
     command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-github'],
-    env: { GITHUB_PERSONAL_ACCESS_TOKEN: '' },
+    args: ['-y', '@upstash/context7-mcp@latest'],
+    // Injects current library docs — fixes outdated AI knowledge
   },
-  {
-    name: 'Filesystem',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-filesystem', '${workspaceFolder}'],
-  },
+  // ── Web Search ────────────────────────────────────────────────────────────
   {
     name: 'Brave Search',
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-brave-search'],
-    env: { BRAVE_API_KEY: '' },
+    env: { BRAVE_API_KEY: '' }, // Free tier: 2000 queries/month at brave.com/search/api
   },
+  // ── Filesystem ────────────────────────────────────────────────────────────
+  {
+    name: 'Filesystem (Secure)',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-filesystem', '${workspaceFolder}'],
+    // Strict directory boundaries — safe file access
+  },
+  // ── Version Control ───────────────────────────────────────────────────────
+  {
+    name: 'GitHub',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-github'],
+    env: { GITHUB_PERSONAL_ACCESS_TOKEN: '' }, // github.com/settings/tokens
+  },
+  {
+    name: 'Git (Local)',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-git', '--repository', '${workspaceFolder}'],
+    // Local git: commit, branch, diff, log, blame
+  },
+  // ── Browser & Testing ─────────────────────────────────────────────────────
+  {
+    name: 'Playwright (Browser)',
+    command: 'npx',
+    args: ['-y', '@playwright/mcp@latest'],
+    // Browser automation: navigate, click, fill forms, verify UI
+  },
+  // ── Databases ─────────────────────────────────────────────────────────────
   {
     name: 'PostgreSQL',
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-postgres'],
-    env: { DATABASE_URL: '' },
+    env: { DATABASE_URL: '' }, // postgresql://user:pass@host:5432/db
   },
+  // ── Infrastructure ────────────────────────────────────────────────────────
+  {
+    name: 'Docker',
+    command: 'npx',
+    args: ['-y', 'docker-mcp'],
+    // Manage containers, images, networks
+  },
+  // ── Design ────────────────────────────────────────────────────────────────
+  {
+    name: 'Figma (Design)',
+    command: 'npx',
+    args: ['-y', 'figma-developer-mcp', '--figma-api-key', '${FIGMA_API_KEY}'],
+    env: { FIGMA_API_KEY: '' }, // figma.com/developers/api
+    // Reads live Figma designs — generates pixel-perfect code
+  },
+  // ── Communication ─────────────────────────────────────────────────────────
   {
     name: 'Slack',
     command: 'npx',
