@@ -42,7 +42,7 @@ export class AgenticLoop {
     plan: Plan,
     modelId: string,
     onProgress: (stepId: string, status: 'running' | 'done' | 'failed', output: string) => void,
-    postToWebview: (msg: Record<string, unknown>) => void
+    postToWebview: (msg: object) => void
   ): Promise<AgenticResult[]> {
     const results: AgenticResult[] = [];
 
@@ -72,7 +72,7 @@ export class AgenticLoop {
     step: PlanStep,
     goal: string,
     modelId: string,
-    postToWebview: (msg: Record<string, unknown>) => void
+    postToWebview: (msg: object) => void
   ): Promise<AgenticResult> {
     const apiKey = await this.authManager.getApiKey();
     const openRouterKey = await this.authManager.getOpenRouterKey();
@@ -163,7 +163,7 @@ export class AgenticLoop {
 
   private async executeCommandStep(
     step: PlanStep,
-    postToWebview: (msg: Record<string, unknown>) => void
+    postToWebview: (msg: object) => void
   ): Promise<AgenticResult> {
     if (!step.command) {
       return { stepId: step.id, success: false, output: 'No command specified', filesChanged: [] };
