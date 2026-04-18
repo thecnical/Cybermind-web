@@ -349,29 +349,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
 
-      // Handle 401 - only redirect if user has stored auth
+      // Handle 401 — API key rejected, never redirect to welcome screen
       if (errMsg.includes('401') || errMsg.includes('HTTP 401')) {
-        const apiKey = await this.authManager.getApiKey();
-        const jwtToken = await this.authManager.getToken();
-
-        if (jwtToken && !apiKey) {
-          // JWT expired — clear it but keep user in chat on free tier
-          await this.authManager.setToken('');
-          await this.authManager.setUserPlan('free');
-          this.postToWebview({
-            type: 'authState',
-            isAuthenticated: false,
-            plan: 'free',
-          });
-          // Retry with free tier instead of redirecting
-          this.postToWebview({ type: 'error', message: 'Session refreshed. Using free tier — sign in again for full access.' });
-        } else if (apiKey) {
-          // API key rejected — show error but don't redirect
-          this.postToWebview({ type: 'error', message: 'API key rejected. Please check your key in Settings.' });
-        } else {
-          // No auth at all — just show error
-          this.postToWebview({ type: 'error', message: 'Request failed. Try again or sign in for better access.' });
-        }
+        this.postToWebview({ type: 'error', message: 'API key rejected or expired. Check your key in Settings, or use Continue Free.' });
         return;
       }
 
@@ -498,7 +478,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
   private async handleLogout(): Promise<void> {
     await this.authManager.clearAll();
-    this.postToWebview({ type: 'authState', isAuthenticated: false });
+    this.postToWebview({ type: 'authState', isAuthenticated: false, plan: null });
     this.postToWebview({ type: 'showScreen', screen: 'welcome' });
   }
 

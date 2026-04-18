@@ -116,21 +116,21 @@ export class BackendClient {
     openRouterKey?: string | null
   ): Promise<string> {
     const { provider } = resolveModel(model);
-    const isFree = (provider === 'free' || model === 'cybermindcli') && !apiKey && !jwtToken;
 
-    if (isFree) {
+    // IMPORTANT: The backend /chat endpoint only accepts cp_live_ API keys.
+    // JWT tokens from web login CANNOT be used with /chat — they fail with 401.
+    // Only use /chat when we have a real API key. Otherwise use free tier.
+    const hasValidApiKey = apiKey && apiKey.startsWith('cp_live_');
+
+    if (!hasValidApiKey) {
+      // No valid API key — use free tier (OpenRouter)
       return this.openRouterFreeChat(request, onToken, cancellationToken, openRouterKey);
     }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'X-API-Key': apiKey,
     };
-
-    if (apiKey) {
-      headers['X-API-Key'] = apiKey;
-    } else if (jwtToken) {
-      headers['Authorization'] = `Bearer ${jwtToken}`;
-    }
 
     // Tell backend which provider/model to use
     headers['X-Model-Id'] = model;

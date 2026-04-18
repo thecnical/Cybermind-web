@@ -1015,7 +1015,9 @@ code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px
         break;
 
       case 'authState':
-        if (!msg.isAuthenticated) {
+        // Only redirect to welcome on explicit logout (no plan means full sign-out)
+        // If plan is set, user is on free tier — stay in chat
+        if (!msg.isAuthenticated && !msg.plan) {
           showScreen('welcome');
         }
         break;
