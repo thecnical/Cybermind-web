@@ -1,7 +1,29 @@
 const esbuild = require('esbuild');
 const path = require('path');
+const fs = require('fs');
 
 const isWatch = process.argv.includes('--watch');
+
+// Copy HTML webview files to media/ after build
+// media/ is included in .vsix; src/ is excluded
+function copyWebviewFiles() {
+  const srcDir = path.join(__dirname, 'src', 'panel', 'webview');
+  const destDir = path.join(__dirname, 'media');
+
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  const files = ['chat.html', 'settings.html'];
+  for (const file of files) {
+    const src = path.join(srcDir, file);
+    const dest = path.join(destDir, file);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      console.log(`Copied ${file} → media/${file}`);
+    }
+  }
+}
 
 const buildOptions = {
   entryPoints: ['src/extension.ts'],
@@ -21,6 +43,7 @@ const buildOptions = {
 if (isWatch) {
   esbuild.context(buildOptions).then(ctx => {
     ctx.watch();
+    copyWebviewFiles();
     console.log('Watching for changes...');
   }).catch(err => {
     console.error(err);
@@ -32,6 +55,7 @@ if (isWatch) {
       console.error('Build failed:', result.errors);
       process.exit(1);
     }
+    copyWebviewFiles();
     console.log('Build complete: dist/extension.js');
   }).catch(err => {
     console.error(err);

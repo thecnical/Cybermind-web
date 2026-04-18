@@ -115,7 +115,8 @@ export class SettingsPanelProvider {
   }
 
   private getWebviewContent(nonce: string): string {
-    const htmlPath = path.join(this.extensionUri.fsPath, 'src', 'panel', 'webview', 'settings.html');
+    // HTML is in media/ folder (included in .vsix, src/ is excluded)
+    const htmlPath = path.join(this.extensionUri.fsPath, 'media', 'settings.html');
 
     let html: string;
     try {

@@ -4,6 +4,7 @@ node_modules/**
 .vscode/**
 *.ts
 !dist/**
+!media/**
 esbuild.config.js
 tsconfig.json
 jest.config.js

@@ -4,8 +4,7 @@
   "description": "AI-powered security and coding assistant with OWASP scanning, multi-agent system, and real file editing",
   "version": "1.0.0",
   "publisher": "cybermind",
-  "icon": "media/icon.png",
-  "engines": {
+    "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
@@ -212,3 +211,4 @@
     ]
   }
 }
+

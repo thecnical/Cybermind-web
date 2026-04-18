@@ -521,14 +521,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   }
 
   private getWebviewContent(nonce: string): string {
-    const htmlPath = path.join(this.extensionUri.fsPath, 'src', 'panel', 'webview', 'chat.html');
+    // HTML is in media/ folder (included in .vsix, src/ is excluded)
+    const htmlPath = path.join(this.extensionUri.fsPath, 'media', 'chat.html');
 
     let html: string;
     try {
       html = fs.readFileSync(htmlPath, 'utf8');
     } catch {
       // Fallback minimal HTML
-      html = `<!DOCTYPE html><html><body><p>CyberMind loading...</p></body></html>`;
+      html = `<!DOCTYPE html><html><body style="background:#1a1a1a;color:#e0e0e0;font-family:sans-serif;padding:20px"><p>CyberMind loading...</p><p style="font-size:11px;color:#666">If this persists, reinstall the extension.</p></body></html>`;
     }
 
     // Replace nonce placeholder

@@ -1,0 +1,1038 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
+  <title>CyberMind AI</title>
+  <style>
+/* === INLINE STYLES (from styles.css) === */
+:root{--bg-primary:#1a1a1a;--bg-secondary:#252525;--bg-input:#2d2d2d;--bg-hover:#333333;--accent:#00ffff;--accent-dim:#00cccc;--accent-glow:rgba(0,255,255,0.15);--text-primary:#e0e0e0;--text-secondary:#999999;--text-muted:#666666;--border:#3a3a3a;--error:#ff4444;--warning:#ffaa00;--success:#00ff88;--code-bg:#1e1e1e;--user-msg-bg:#252525;--ai-msg-bg:#1e1e1e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg-primary);color:var(--text-primary);line-height:1.5}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#555}
+.screen{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.screen.hidden{display:none!important}
+#screen-welcome{align-items:center;justify-content:center;padding:24px 20px;text-align:center;gap:20px}
+.welcome-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.welcome-logo-text{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:1px}
+.welcome-headline{font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.welcome-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
+.welcome-features{list-style:none;text-align:left;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px 16px;width:100%;max-width:280px}
+.welcome-features li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:var(--text-primary)}
+.welcome-features li::before{content:'âœ“';color:var(--accent);font-weight:700;flex-shrink:0}
+.welcome-buttons{display:flex;gap:10px;width:100%;max-width:280px}
+.btn-primary{flex:1;padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary:hover{background:var(--accent-dim)}
+.btn-secondary{flex:1;padding:10px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-secondary:hover{background:var(--accent-glow)}
+.welcome-free-note{font-size:11px;color:var(--text-muted)}
+#screen-signin{padding:0}
+.signin-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.btn-back{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;display:flex;align-items:center}
+.btn-back:hover{color:var(--text-primary);background:var(--bg-hover)}
+.signin-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+.signin-form{padding:20px 16px;display:flex;flex-direction:column;gap:14px;flex:1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;color:var(--text-secondary);font-weight:500}
+.form-input{padding:9px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text-muted)}
+.btn-signin{padding:10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-signin:hover{background:var(--accent-dim)}
+.btn-signin:disabled{opacity:.5;cursor:not-allowed}
+.signin-divider{display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:11px}
+.signin-divider::before,.signin-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn-api-key-toggle{padding:8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .15s;text-align:center}
+.btn-api-key-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.error-message{padding:8px 12px;background:rgba(255,68,68,.1);border:1px solid var(--error);border-radius:6px;color:var(--error);font-size:12px;display:none}
+.error-message.visible{display:block}
+.chat-header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg-primary);flex-shrink:0;z-index:10;position:relative}
+.btn-all-chats{flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;cursor:pointer;text-align:left;transition:background .15s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.btn-all-chats:hover{background:var(--bg-hover)}
+.btn-icon{padding:6px 8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);font-size:14px;cursor:pointer;transition:all .15s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.btn-icon:hover{background:var(--bg-hover);color:var(--text-primary)}
+.conversation-area{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:12px}
+.agent-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0}
+.agent-card{padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px}
+.agent-card:hover{border-color:var(--accent);background:var(--bg-hover)}
+.agent-card-icon{font-size:18px;margin-bottom:2px}
+.agent-card-name{font-size:12px;font-weight:600;color:var(--text-primary)}
+.agent-card-desc{font-size:11px;color:var(--text-secondary);line-height:1.4}
+.messages{display:flex;flex-direction:column;gap:12px}
+.message{display:flex;flex-direction:column;gap:4px;max-width:100%}
+.message.user-message{align-items:flex-end}
+.message.ai-message{align-items:flex-start}
+.message-agent-label{font-size:11px;color:var(--accent);font-weight:600;padding:0 4px}
+.message-content{padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;max-width:100%;word-break:break-word}
+.user-message .message-content{background:var(--user-msg-bg);border:1px solid var(--border);border-bottom-right-radius:2px}
+.ai-message .message-content{background:var(--ai-msg-bg);border:1px solid var(--border);border-bottom-left-radius:2px;width:100%}
+.message-meta{font-size:10px;color:var(--text-muted);padding:0 4px}
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:8px 0}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#252525;border-bottom:1px solid var(--border)}
+.code-lang{font-size:11px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.code-actions{display:flex;gap:4px}
+.code-actions button{padding:3px 8px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.btn-copy{background:transparent;color:var(--text-secondary)}
+.btn-copy:hover{background:var(--bg-hover);color:var(--text-primary)}
+.btn-apply{background:var(--accent);color:#000;border-color:var(--accent)!important;font-weight:600}
+.btn-apply:hover{background:var(--accent-dim)}
+.btn-apply.applied{background:var(--success);border-color:var(--success)!important}
+.btn-reject{background:transparent;color:var(--error);border-color:var(--error)!important}
+.btn-reject:hover{background:rgba(255,68,68,.1)}
+.btn-reject.rejected{opacity:.5;cursor:not-allowed}
+.code-block pre{padding:12px;overflow-x:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.5;color:var(--text-primary);white-space:pre}
+.typing-indicator{display:flex;align-items:center;gap:4px;padding:10px 12px;background:var(--ai-msg-bg);border:1px solid var(--border);border-radius:8px;width:fit-content}
+.typing-indicator.hidden{display:none}
+.typing-indicator span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typing-bounce 1.2s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.2s}
+.typing-indicator span:nth-child(3){animation-delay:.4s}
+@keyframes typing-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.chat-footer{border-top:1px solid var(--border);background:var(--bg-primary);flex-shrink:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.selectors-row{display:flex;gap:6px}
+.selector-btn{padding:5px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:5px;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.selector-btn:hover{border-color:var(--accent);color:var(--accent)}
+.selector-btn.active{border-color:var(--accent);color:var(--accent)}
+.input-row{display:flex;align-items:flex-end;gap:6px}
+#chat-input{flex:1;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:none;outline:none;min-height:36px;max-height:120px;overflow-y:auto;line-height:1.5;transition:border-color .15s}
+#chat-input:focus{border-color:var(--accent)}
+#chat-input::placeholder{color:var(--text-muted)}
+.input-actions{display:flex;gap:4px;align-items:flex-end}
+.btn-input-action{padding:7px 9px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:5px;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-input-action:hover{border-color:var(--accent);color:var(--accent)}
+.btn-send{padding:7px 14px;background:var(--accent);border:none;border-radius:5px;color:#000;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;flex-shrink:0}
+.btn-send:hover{background:var(--accent-dim)}
+.btn-send:disabled{opacity:.4;cursor:not-allowed}
+.dropdown{position:absolute;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;overflow:hidden;min-width:200px;max-height:320px;overflow-y:auto}
+.dropdown.hidden{display:none}
+.dropdown-header{padding:8px 12px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.dropdown-search{padding:8px 10px;border-bottom:1px solid var(--border)}
+.dropdown-search input{width:100%;padding:6px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text-primary);font-size:12px;outline:none}
+.dropdown-search input:focus{border-color:var(--accent)}
+.dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background .1s;font-size:12px;color:var(--text-primary)}
+.dropdown-item:hover{background:var(--bg-hover)}
+.dropdown-item.active{background:var(--accent-glow);color:var(--accent)}
+.dropdown-item.selected{color:var(--accent)}
+.dropdown-item-icon{font-size:14px;flex-shrink:0}
+.dropdown-item-name{font-weight:500}
+.dropdown-item-desc{font-size:11px;color:var(--text-secondary)}
+.dropdown-section-label{padding:6px 12px 4px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.dropdown-divider{height:1px;background:var(--border);margin:4px 0}
+#sessions-dropdown{top:44px;left:10px;right:10px}
+#agent-dropdown{bottom:100px;left:10px;right:10px}
+#model-dropdown{bottom:100px;left:10px;right:10px}
+#at-mention-dropdown{bottom:100px;left:10px;right:10px}
+#slash-command-dropdown{bottom:100px;left:10px;right:10px}
+#dot-menu{top:44px;right:10px;min-width:180px}
+.dot-menu-item{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--text-primary);transition:background .1s}
+.dot-menu-item:hover{background:var(--bg-hover)}
+.dot-menu-item.danger{color:var(--error)}
+.dot-menu-item.danger:hover{background:rgba(255,68,68,.1)}
+.tier-badge{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:auto}
+.tier-free{background:rgba(0,255,136,.15);color:var(--success)}
+.tier-pro{background:rgba(0,255,255,.15);color:var(--accent)}
+.tier-elite{background:rgba(255,170,0,.15);color:var(--warning)}
+.danger-dialog{position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--error);border-radius:8px;padding:14px;z-index:200;display:none}
+.danger-dialog.visible{display:block}
+.danger-dialog-title{font-size:13px;font-weight:600;color:var(--error);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.danger-dialog-command{font-family:monospace;font-size:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:8px;color:var(--warning);margin-bottom:12px;word-break:break-all}
+.danger-dialog-buttons{display:flex;gap:8px}
+.btn-run-anyway{flex:1;padding:8px;background:var(--error);color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-cancel-cmd{flex:1;padding:8px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:5px;font-size:12px;cursor:pointer}
+.file-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-family:monospace;font-size:12px}
+.file-link:hover{color:var(--accent-dim)}
+.scan-summary{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0}
+.scan-summary-title{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-primary)}
+.scan-counts{display:flex;gap:8px;flex-wrap:wrap}
+.scan-count{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.count-critical{background:rgba(255,68,68,.2);color:var(--error)}
+.count-high{background:rgba(255,100,0,.2);color:#ff6400}
+.count-medium{background:rgba(255,170,0,.2);color:var(--warning)}
+.count-low{background:rgba(0,255,136,.15);color:var(--success)}
+.count-info{background:rgba(0,255,255,.1);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;color:var(--accent)}
+.message-content p{margin-bottom:6px}
+.message-content p:last-child{margin-bottom:0}
+.message-content strong{color:var(--text-primary);font-weight:600}
+.message-content a{color:var(--accent)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:8px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-primary);z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.visible{opacity:1}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--error);color:var(--error)}
+  </style>
+</head>
+<body>
+<!-- ===== WELCOME SCREEN ===== -->
+<div id="screen-welcome" class="screen">
+  <div class="welcome-logo">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="20,2 36,12 36,28 20,38 4,28 4,12" fill="none" stroke="#00ffff" stroke-width="2"/>
+      <path d="M22 8 L14 20 H20 L18 32 L26 20 H20 L22 8Z" fill="#00ffff"/>
+    </svg>
+    <span class="welcome-logo-text">CyberMind</span>
+  </div>
+  <div>
+    <div class="welcome-headline">AI Security &amp; Coding Assistant</div>
+    <div class="welcome-subtitle">Powered by CyberMind Backend</div>
+  </div>
+  <ul class="welcome-features">
+    <li>OWASP Security Scanning</li>
+    <li>AI Code Generation</li>
+    <li>Multi-Agent System</li>
+    <li>Real File Editing</li>
+    <li>Inline Completions</li>
+  </ul>
+  <div class="welcome-buttons">
+    <button class="btn-primary" id="btn-signup">Sign Up</button>
+    <button class="btn-secondary" id="btn-goto-signin">Sign In</button>
+  </div>
+  <div class="welcome-free-note">Free tier available — no account required</div>
+  <button class="btn-secondary" id="btn-continue-free" style="max-width:280px;width:100%;margin-top:4px;">Continue Free</button>
+</div>
+
+<!-- ===== SIGN IN SCREEN ===== -->
+<div id="screen-signin" class="screen hidden">
+  <div class="signin-header">
+    <button class="btn-back" id="btn-back-from-signin">&#8592;</button>
+    <span class="signin-title">Sign In</span>
+  </div>
+  <div class="signin-form">
+    <div id="email-password-fields">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="signin-email" placeholder="user@example.com" autocomplete="email">
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="signin-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-signin" id="btn-signin-submit" style="margin-top:14px">Sign In</button>
+      <div class="signin-divider" style="margin-top:14px">or</div>
+      <button class="btn-api-key-toggle" id="btn-use-api-key" style="margin-top:10px">Use API Key instead</button>
+    </div>
+    <div id="api-key-fields" style="display:none">
+      <div class="form-group">
+        <label class="form-label">API Key (cp_live_...)</label>
+        <input type="password" class="form-input" id="signin-apikey" placeholder="cp_live_xxxxxxxxxxxxxxxx" autocomplete="off">
+      </div>
+      <button class="btn-signin" id="btn-apikey-submit" style="margin-top:14px">Connect with API Key</button>
+      <div class="signin-divider" style="margin-top:14px">or</div>
+      <button class="btn-api-key-toggle" id="btn-use-email" style="margin-top:10px">Use Email &amp; Password instead</button>
+    </div>
+    <div class="error-message" id="signin-error"></div>
+  </div>
+</div>
+
+<!-- ===== CHAT SCREEN ===== -->
+<div id="screen-chat" class="screen hidden">
+  <!-- Header -->
+  <div class="chat-header">
+    <button class="btn-all-chats" id="btn-all-chats">&#9776; All Chats &#9660;</button>
+    <button class="btn-icon" id="btn-new-chat" title="New Chat">+</button>
+    <button class="btn-icon" id="btn-dot-menu" title="More options">&#8943;</button>
+  </div>
+
+  <!-- Dot Menu Dropdown -->
+  <div id="dot-menu" class="dropdown hidden">
+    <div class="dot-menu-item" data-action="instructions">&#128221; Instructions for AI</div>
+    <div class="dot-menu-item" data-action="agents">&#129302; Agents</div>
+    <div class="dot-menu-item" data-action="skills">&#9889; Skills</div>
+    <div class="dot-menu-item" data-action="tools">&#128295; Tools</div>
+    <div class="dot-menu-item" data-action="integrations">&#128279; Integrations</div>
+    <div class="dot-menu-item" data-action="custom-api-keys">&#128273; Custom API Keys</div>
+    <div class="dot-menu-item" data-action="settings">&#9881; Settings</div>
+    <div class="dot-menu-item" data-action="shortcuts">&#9000; Shortcuts</div>
+    <div class="dropdown-divider"></div>
+    <div class="dot-menu-item danger" data-action="logout">&#128682; Log Out</div>
+  </div>
+
+  <!-- Sessions Dropdown -->
+  <div id="sessions-dropdown" class="dropdown hidden">
+    <div class="dropdown-header">Recent Chats</div>
+    <div id="sessions-list"></div>
+  </div>
+
+  <!-- Agent Dropdown -->
+  <div id="agent-dropdown" class="dropdown hidden">
+    <div class="dropdown-search"><input type="text" id="agent-search" placeholder="Search agents..."></div>
+    <div class="dropdown-section-label">Built-in Agents</div>
+    <div id="agent-list"></div>
+    <div class="dropdown-divider"></div>
+    <div class="dropdown-section-label">Custom Agents</div>
+    <div id="custom-agent-list"></div>
+  </div>
+
+  <!-- Model Dropdown -->
+  <div id="model-dropdown" class="dropdown hidden">
+    <div class="dropdown-header">Select Model</div>
+    <div class="dropdown-section-label">Free</div>
+    <div class="dropdown-item" data-model="cybermindcli">
+      <span class="dropdown-item-icon">&#9889;</span>
+      <div><div class="dropdown-item-name">CyberMind Free</div><div class="dropdown-item-desc">Fast, free model</div></div>
+      <span class="tier-badge tier-free">FREE</span>
+    </div>
+    <div class="dropdown-divider"></div>
+    <div class="dropdown-section-label">Pro</div>
+    <div class="dropdown-item" data-model="pro-standard">
+      <span class="dropdown-item-icon">&#128640;</span>
+      <div><div class="dropdown-item-name">Pro Standard</div><div class="dropdown-item-desc">Enhanced reasoning</div></div>
+      <span class="tier-badge tier-pro">PRO</span>
+    </div>
+    <div class="dropdown-item" data-model="pro-fast">
+      <span class="dropdown-item-icon">&#9889;</span>
+      <div><div class="dropdown-item-name">Pro Fast</div><div class="dropdown-item-desc">Optimized for speed</div></div>
+      <span class="tier-badge tier-pro">PRO</span>
+    </div>
+    <div class="dropdown-divider"></div>
+    <div class="dropdown-section-label">Elite</div>
+    <div class="dropdown-item" data-model="elite-claude">
+      <span class="dropdown-item-icon">&#11088;</span>
+      <div><div class="dropdown-item-name">Elite (Claude 3.7)</div><div class="dropdown-item-desc">AWS Bedrock — max capability</div></div>
+      <span class="tier-badge tier-elite">ELITE</span>
+    </div>
+  </div>
+
+  <!-- At-mention Dropdown -->
+  <div id="at-mention-dropdown" class="dropdown hidden">
+    <div class="dropdown-search"><input type="text" id="at-mention-search" placeholder="Search files..."></div>
+    <div id="at-mention-list"></div>
+  </div>
+
+  <!-- Slash Command Dropdown -->
+  <div id="slash-command-dropdown" class="dropdown hidden">
+    <div class="dropdown-header">Select Agent</div>
+    <div id="slash-command-list"></div>
+  </div>
+
+  <!-- Conversation Area -->
+  <main class="conversation-area" id="conversation">
+    <div id="agent-cards" class="agent-cards">
+      <div class="agent-card" data-agent="security"><div class="agent-card-icon">&#128274;</div><div class="agent-card-name">Security</div><div class="agent-card-desc">OWASP scanning &amp; secrets detection</div></div>
+      <div class="agent-card" data-agent="code"><div class="agent-card-icon">&lt;/&gt;</div><div class="agent-card-name">Code</div><div class="agent-card-desc">Multi-file generation &amp; editing</div></div>
+      <div class="agent-card" data-agent="unit-test"><div class="agent-card-icon">&#129514;</div><div class="agent-card-name">Unit Test</div><div class="agent-card-desc">Generate test files</div></div>
+      <div class="agent-card" data-agent="bug-fix"><div class="agent-card-icon">&#128027;</div><div class="agent-card-name">Bug Fix</div><div class="agent-card-desc">Identify &amp; fix bugs</div></div>
+      <div class="agent-card" data-agent="explain"><div class="agent-card-icon">&#128161;</div><div class="agent-card-name">Explain</div><div class="agent-card-desc">Plain language explanation</div></div>
+      <div class="agent-card" data-agent="refactor"><div class="agent-card-icon">&#9851;</div><div class="agent-card-name">Refactor</div><div class="agent-card-desc">Improve without changing behavior</div></div>
+      <div class="agent-card" data-agent="docs"><div class="agent-card-icon">&#128221;</div><div class="agent-card-name">Docs</div><div class="agent-card-desc">Generate JSDoc/TSDoc</div></div>
+    </div>
+    <div id="messages" class="messages"></div>
+    <div id="typing-indicator" class="typing-indicator hidden"><span></span><span></span><span></span></div>
+  </main>
+
+  <!-- Dangerous Command Dialog -->
+  <div id="danger-dialog" class="danger-dialog">
+    <div class="danger-dialog-title">&#9888; Dangerous Command Detected</div>
+    <div class="danger-dialog-command" id="danger-command-text"></div>
+    <div class="danger-dialog-buttons">
+      <button class="btn-run-anyway" id="btn-run-anyway">Run Anyway</button>
+      <button class="btn-cancel-cmd" id="btn-cancel-cmd">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="chat-footer">
+    <div class="selectors-row">
+      <button class="selector-btn" id="btn-agent-selector">&#128274; Security &#9660;</button>
+      <button class="selector-btn" id="btn-model-selector">&#9889; cybermindcli &#9660;</button>
+    </div>
+    <div class="input-row">
+      <textarea id="chat-input" placeholder="Ask CyberMind..." rows="1"></textarea>
+      <div class="input-actions">
+        <button class="btn-input-action" id="btn-at-mention" title="Attach file">@</button>
+        <button class="btn-input-action" id="btn-slash-cmd" title="Select agent">/</button>
+        <button class="btn-send" id="btn-send">Send</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="toast"></div>
+<script nonce="{{NONCE}}">
+(function() {
+  'use strict';
+  const vscode = acquireVsCodeApi();
+
+  // State
+  let currentAgent = 'security';
+  let currentModel = 'cybermindcli';
+  let currentMessageId = null;
+  let isStreaming = false;
+  let streamingEl = null;
+  let attachments = [];
+  let atMentionQuery = '';
+  let pendingDangerCommandId = null;
+  let agents = [];
+
+  const AGENT_ICONS = {
+    security: '??', code: '</>', 'unit-test': '??', 'bug-fix': '??',
+    explain: '??', refactor: '??', docs: '??'
+  };
+
+  // --- Screen navigation ---
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    const el = document.getElementById('screen-' + name);
+    if (el) el.classList.remove('hidden');
+  }
+
+  // --- Toast ---
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast visible' + (type ? ' ' + type : '');
+    setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+
+  // --- Close all dropdowns ---
+  function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+  }
+
+  // --- Toggle dropdown ---
+  function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    const wasHidden = el.classList.contains('hidden');
+    closeAllDropdowns();
+    if (wasHidden) el.classList.remove('hidden');
+  }
+
+  // --- Format timestamp ---
+  function formatTime(ts) {
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // --- Escape HTML ---
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // --- Render markdown-ish content ---
+  function renderContent(text) {
+    let html = escHtml(text);
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
+      const id = 'cb-' + Math.random().toString(36).slice(2);
+      const fp = extractFilePath(code);
+      return '<div class="code-block" data-id="' + id + '" data-fp="' + escHtml(fp) + '">' +
+        '<div class="code-block-header">' +
+        '<span class="code-lang">' + escHtml(lang || 'code') + '</span>' +
+        '<div class="code-actions">' +
+        '<button class="btn-copy" onclick="copyCode(this)">Copy</button>' +
+        '<button class="btn-apply" onclick="applyCode(this)">Apply</button>' +
+        '<button class="btn-reject" onclick="rejectCode(this)">Reject</button>' +
+        '</div></div>' +
+        '<pre><code>' + code + '</code></pre></div>';
+    });
+    // Inline code
+    html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    // Bold
+    html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    // Paragraphs
+    html = '<p>' + html.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    return html;
+  }
+
+  function extractFilePath(code) {
+    const m = code.match(/^\/\/\s*(.+\.\w+)/);
+    return m ? m[1].trim() : '';
+  }
+
+  // --- Append token to streaming message ---
+  function appendToken(token) {
+    if (!streamingEl) {
+      const msgId = 'msg-' + Date.now();
+      currentMessageId = msgId;
+      const agentName = getAgentName(currentAgent);
+      const div = document.createElement('div');
+      div.className = 'message ai-message';
+      div.id = msgId;
+      div.innerHTML = '<div class="message-agent-label">' + escHtml(agentName) + '</div>' +
+        '<div class="message-content" id="' + msgId + '-content"></div>' +
+        '<div class="message-meta" id="' + msgId + '-meta">' + formatTime(Date.now()) + '</div>';
+      document.getElementById('messages').appendChild(div);
+      streamingEl = document.getElementById(msgId + '-content');
+      hideAgentCards();
+      document.getElementById('typing-indicator').classList.add('hidden');
+    }
+    if (streamingEl) {
+      streamingEl._rawText = (streamingEl._rawText || '') + token;
+      streamingEl.innerHTML = renderContent(streamingEl._rawText);
+      scrollToBottom();
+    }
+  }
+
+  function getAgentName(id) {
+    const a = agents.find(x => x.id === id);
+    return a ? a.name : id;
+  }
+
+  function hideAgentCards() {
+    const cards = document.getElementById('agent-cards');
+    if (cards) cards.style.display = 'none';
+  }
+
+  function scrollToBottom() {
+    const conv = document.getElementById('conversation');
+    conv.scrollTop = conv.scrollHeight;
+  }
+
+  // --- Add user message bubble ---
+  function addUserMessage(text) {
+    hideAgentCards();
+    const div = document.createElement('div');
+    div.className = 'message user-message';
+    div.innerHTML = '<div class="message-content">' + escHtml(text) + '</div>' +
+      '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
+    document.getElementById('messages').appendChild(div);
+    scrollToBottom();
+  }
+
+  // --- Send message ---
+  function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text || isStreaming) return;
+
+    closeAllDropdowns();
+    addUserMessage(text);
+    input.value = '';
+    input.style.height = 'auto';
+
+    isStreaming = true;
+    streamingEl = null;
+    document.getElementById('typing-indicator').classList.remove('hidden');
+    document.getElementById('btn-send').disabled = true;
+    scrollToBottom();
+
+    vscode.postMessage({
+      type: 'sendMessage',
+      text,
+      agent: currentAgent,
+      model: currentModel,
+      attachments: [...attachments],
+    });
+    attachments = [];
+  }
+
+  // --- Copy code ---
+  window.copyCode = function(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre code');
+    if (pre) {
+      navigator.clipboard.writeText(pre.textContent || '').then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+  };
+
+  // --- Apply code ---
+  window.applyCode = function(btn) {
+    const block = btn.closest('.code-block');
+    const filePath = block.dataset.fp || '';
+    const code = block.querySelector('pre code')?.textContent || '';
+    const msgId = currentMessageId || '';
+    vscode.postMessage({ type: 'applyEdit', messageId: msgId, filePath, newContent: code });
+    btn.textContent = 'Applied';
+    btn.classList.add('applied');
+    btn.disabled = true;
+  };
+
+  // --- Reject code ---
+  window.rejectCode = function(btn) {
+    const block = btn.closest('.code-block');
+    const msgId = currentMessageId || '';
+    vscode.postMessage({ type: 'rejectEdit', messageId: msgId });
+    btn.textContent = 'Rejected';
+    btn.classList.add('rejected');
+    btn.disabled = true;
+    const applyBtn = block.querySelector('.btn-apply');
+    if (applyBtn) { applyBtn.disabled = true; applyBtn.style.opacity = '0.4'; }
+  };
+
+  // --- Render sessions ---
+  function renderSessions(sessions) {
+    const list = document.getElementById('sessions-list');
+    if (!sessions || sessions.length === 0) {
+      list.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted)">No recent chats</div>';
+      return;
+    }
+    list.innerHTML = sessions.map(s =>
+      '<div class="dropdown-item" onclick="loadSession(\'' + escHtml(s.id) + '\')">' +
+      '<div><div class="dropdown-item-name">' + escHtml(s.title || 'Untitled') + '</div>' +
+      '<div class="dropdown-item-desc">' + escHtml(s.agentId) + ' · ' + new Date(s.timestamp).toLocaleDateString() + '</div></div>' +
+      '</div>'
+    ).join('');
+  }
+
+  window.loadSession = function(id) {
+    closeAllDropdowns();
+    vscode.postMessage({ type: 'loadSession', sessionId: id });
+  };
+
+  // --- Render agents in dropdown ---
+  function renderAgentDropdown(agentList) {
+    agents = agentList;
+    const builtIn = agentList.filter(a => !a.isCustom);
+    const custom = agentList.filter(a => a.isCustom);
+
+    const list = document.getElementById('agent-list');
+    list.innerHTML = builtIn.map(a =>
+      '<div class="dropdown-item' + (a.id === currentAgent ? ' active' : '') + '" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
+      '<span class="dropdown-item-icon">' + escHtml(a.icon) + '</span>' +
+      '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
+      '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
+      '</div>'
+    ).join('');
+
+    const customList = document.getElementById('custom-agent-list');
+    if (custom.length === 0) {
+      customList.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted);font-size:11px">No custom agents</div>';
+    } else {
+      customList.innerHTML = custom.map(a =>
+        '<div class="dropdown-item' + (a.id === currentAgent ? ' active' : '') + '" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
+        '<span class="dropdown-item-icon">' + escHtml(a.icon || '??') + '</span>' +
+        '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
+        '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
+        '</div>'
+      ).join('');
+    }
+
+    // Also populate slash command list
+    const slashList = document.getElementById('slash-command-list');
+    slashList.innerHTML = agentList.map(a =>
+      '<div class="dropdown-item" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
+      '<span class="dropdown-item-icon">' + escHtml(a.icon || '??') + '</span>' +
+      '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
+      '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
+      '</div>'
+    ).join('');
+  }
+
+  window.selectAgent = function(id) {
+    currentAgent = id;
+    closeAllDropdowns();
+    const agent = agents.find(a => a.id === id);
+    const label = agent ? (agent.icon + ' ' + agent.name + ' ?') : id + ' ?';
+    document.getElementById('btn-agent-selector').innerHTML = label;
+    vscode.postMessage({ type: 'switchAgent', agentId: id });
+  };
+
+  // --- Render at-mention results ---
+  function renderAtMentionResults(files) {
+    const list = document.getElementById('at-mention-list');
+    if (!files || files.length === 0) {
+      list.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted)">No files found</div>';
+      return;
+    }
+    list.innerHTML = files.map(f =>
+      '<div class="dropdown-item" onclick="insertAtMention(\'' + escHtml(f) + '\')">' +
+      '<span class="dropdown-item-icon">??</span>' +
+      '<div class="dropdown-item-name">' + escHtml(f) + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  window.insertAtMention = function(filePath) {
+    const input = document.getElementById('chat-input');
+    const val = input.value;
+    const atIdx = val.lastIndexOf('@');
+    if (atIdx >= 0) {
+      input.value = val.slice(0, atIdx) + '@' + filePath + ' ';
+    } else {
+      input.value += '@' + filePath + ' ';
+    }
+    attachments.push(filePath);
+    closeAllDropdowns();
+    input.focus();
+  };
+
+  // --- Load session into UI ---
+  function loadSessionIntoUI(session) {
+    currentAgent = session.agentId || 'code';
+    currentModel = session.modelId || 'cybermindcli';
+
+    // Update selectors
+    const agent = agents.find(a => a.id === currentAgent);
+    if (agent) {
+      document.getElementById('btn-agent-selector').innerHTML = agent.icon + ' ' + agent.name + ' ?';
+    }
+    document.getElementById('btn-model-selector').textContent = currentModel + ' ?';
+
+    // Clear messages
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = '';
+    hideAgentCards();
+
+    // Render messages
+    for (const msg of session.messages || []) {
+      if (msg.role === 'user') {
+        const div = document.createElement('div');
+        div.className = 'message user-message';
+        div.innerHTML = '<div class="message-content">' + escHtml(msg.content) + '</div>' +
+          '<div class="message-meta">' + formatTime(msg.timestamp) + '</div>';
+        msgs.appendChild(div);
+      } else {
+        const agentName = getAgentName(msg.agentId || currentAgent);
+        const div = document.createElement('div');
+        div.className = 'message ai-message';
+        div.innerHTML = '<div class="message-agent-label">' + escHtml(agentName) + '</div>' +
+          '<div class="message-content">' + renderContent(msg.content) + '</div>' +
+          '<div class="message-meta">' + formatTime(msg.timestamp) + '</div>';
+        msgs.appendChild(div);
+      }
+    }
+    scrollToBottom();
+  }
+
+  // --- Dangerous command dialog ---
+  function showDangerDialog(commandId, command) {
+    pendingDangerCommandId = commandId;
+    document.getElementById('danger-command-text').textContent = command;
+    document.getElementById('danger-dialog').classList.add('visible');
+  }
+
+  document.getElementById('btn-run-anyway').addEventListener('click', function() {
+    if (pendingDangerCommandId) {
+      vscode.postMessage({ type: 'confirmDangerousCommand', commandId: pendingDangerCommandId, confirmed: true });
+      pendingDangerCommandId = null;
+    }
+    document.getElementById('danger-dialog').classList.remove('visible');
+  });
+
+  document.getElementById('btn-cancel-cmd').addEventListener('click', function() {
+    if (pendingDangerCommandId) {
+      vscode.postMessage({ type: 'confirmDangerousCommand', commandId: pendingDangerCommandId, confirmed: false });
+      pendingDangerCommandId = null;
+    }
+    document.getElementById('danger-dialog').classList.remove('visible');
+  });
+
+  // --- Event listeners ---
+
+  // Send button
+  document.getElementById('btn-send').addEventListener('click', sendMessage);
+
+  // Chat input keyboard
+  document.getElementById('chat-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    } else if (e.key === 'Escape') {
+      closeAllDropdowns();
+    }
+  });
+
+  // Auto-resize textarea
+  document.getElementById('chat-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+
+    // At-mention detection
+    const val = this.value;
+    const atIdx = val.lastIndexOf('@');
+    if (atIdx >= 0 && atIdx === val.length - 1 - (val.length - 1 - atIdx)) {
+      const query = val.slice(atIdx + 1);
+      if (!query.includes(' ')) {
+        atMentionQuery = query;
+        vscode.postMessage({ type: 'atMentionQuery', query });
+        document.getElementById('at-mention-dropdown').classList.remove('hidden');
+        document.getElementById('at-mention-search').value = query;
+      }
+    }
+
+    // Slash command detection
+    const slashIdx = val.lastIndexOf('/');
+    if (slashIdx >= 0 && slashIdx === val.length - 1) {
+      document.getElementById('slash-command-dropdown').classList.remove('hidden');
+    }
+  });
+
+  // At-mention search input
+  document.getElementById('at-mention-search').addEventListener('input', function() {
+    vscode.postMessage({ type: 'atMentionQuery', query: this.value });
+  });
+
+  // Agent search
+  document.getElementById('agent-search').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#agent-list .dropdown-item, #custom-agent-list .dropdown-item').forEach(item => {
+      const name = item.querySelector('.dropdown-item-name')?.textContent?.toLowerCase() || '';
+      item.style.display = name.includes(q) ? '' : 'none';
+    });
+  });
+
+  // Header buttons
+  document.getElementById('btn-all-chats').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDropdown('sessions-dropdown');
+  });
+
+  document.getElementById('btn-new-chat').addEventListener('click', function() {
+    closeAllDropdowns();
+    vscode.postMessage({ type: 'newChat' });
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('agent-cards').style.display = '';
+    streamingEl = null;
+    isStreaming = false;
+    document.getElementById('btn-send').disabled = false;
+    document.getElementById('typing-indicator').classList.add('hidden');
+  });
+
+  document.getElementById('btn-dot-menu').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDropdown('dot-menu');
+  });
+
+  // Dot menu items
+  document.querySelectorAll('.dot-menu-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      const action = this.dataset.action;
+      closeAllDropdowns();
+      if (action === 'logout') {
+        vscode.postMessage({ type: 'logout' });
+      } else if (action === 'settings') {
+        vscode.postMessage({ type: 'openSettings' });
+      } else {
+        showToast('Coming soon: ' + action, '');
+      }
+    });
+  });
+
+  // Agent selector
+  document.getElementById('btn-agent-selector').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDropdown('agent-dropdown');
+  });
+
+  // Model selector
+  document.getElementById('btn-model-selector').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDropdown('model-dropdown');
+  });
+
+  // Model dropdown items
+  document.querySelectorAll('#model-dropdown .dropdown-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      const modelId = this.dataset.model;
+      currentModel = modelId;
+      closeAllDropdowns();
+      const name = this.querySelector('.dropdown-item-name')?.textContent || modelId;
+      document.getElementById('btn-model-selector').textContent = name + ' ?';
+      vscode.postMessage({ type: 'switchModel', modelId });
+    });
+  });
+
+  // At-mention button
+  document.getElementById('btn-at-mention').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const input = document.getElementById('chat-input');
+    input.value += '@';
+    input.focus();
+    vscode.postMessage({ type: 'atMentionQuery', query: '' });
+    document.getElementById('at-mention-dropdown').classList.remove('hidden');
+  });
+
+  // Slash command button
+  document.getElementById('btn-slash-cmd').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDropdown('slash-command-dropdown');
+  });
+
+  // Agent cards
+  document.querySelectorAll('.agent-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      const agentId = this.dataset.agent;
+      selectAgent(agentId);
+      document.getElementById('chat-input').focus();
+    });
+  });
+
+  // Welcome screen buttons
+  document.getElementById('btn-signup').addEventListener('click', function() {
+    // Open signup in browser
+    vscode.postMessage({ type: 'openExternal', url: 'https://cybermind-backend-8yrt.onrender.com/signup' });
+    showScreen('signin');
+  });
+
+  document.getElementById('btn-goto-signin').addEventListener('click', function() {
+    showScreen('signin');
+  });
+
+  document.getElementById('btn-continue-free').addEventListener('click', function() {
+    vscode.postMessage({ type: 'signInWithApiKey', apiKey: '' });
+    showScreen('chat');
+  });
+
+  // Sign in screen
+  document.getElementById('btn-back-from-signin').addEventListener('click', function() {
+    showScreen('welcome');
+  });
+
+  document.getElementById('btn-signin-submit').addEventListener('click', function() {
+    const email = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
+    const errEl = document.getElementById('signin-error');
+    if (!email || !password) {
+      errEl.textContent = 'Please enter email and password.';
+      errEl.classList.add('visible');
+      return;
+    }
+    errEl.classList.remove('visible');
+    this.disabled = true;
+    this.textContent = 'Signing in...';
+    vscode.postMessage({ type: 'signIn', email, password });
+  });
+
+  document.getElementById('btn-apikey-submit').addEventListener('click', function() {
+    const apiKey = document.getElementById('signin-apikey').value.trim();
+    const errEl = document.getElementById('signin-error');
+    if (!apiKey) {
+      errEl.textContent = 'Please enter your API key.';
+      errEl.classList.add('visible');
+      return;
+    }
+    errEl.classList.remove('visible');
+    this.disabled = true;
+    this.textContent = 'Connecting...';
+    vscode.postMessage({ type: 'signInWithApiKey', apiKey });
+  });
+
+  document.getElementById('btn-use-api-key').addEventListener('click', function() {
+    document.getElementById('email-password-fields').style.display = 'none';
+    document.getElementById('api-key-fields').style.display = '';
+    document.getElementById('signin-error').classList.remove('visible');
+  });
+
+  document.getElementById('btn-use-email').addEventListener('click', function() {
+    document.getElementById('api-key-fields').style.display = 'none';
+    document.getElementById('email-password-fields').style.display = '';
+    document.getElementById('signin-error').classList.remove('visible');
+  });
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown') && !e.target.closest('[id^="btn-"]')) {
+      closeAllDropdowns();
+    }
+  });
+
+  // Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAllDropdowns();
+  });
+
+  // --- Message handler from extension host ---
+  window.addEventListener('message', function(event) {
+    const msg = event.data;
+    switch (msg.type) {
+      case 'showScreen':
+        showScreen(msg.screen);
+        break;
+
+      case 'authState':
+        if (!msg.isAuthenticated) {
+          showScreen('welcome');
+        }
+        break;
+
+      case 'token':
+        if (msg.text) appendToken(msg.text);
+        break;
+
+      case 'done':
+        isStreaming = false;
+        streamingEl = null;
+        document.getElementById('btn-send').disabled = false;
+        document.getElementById('typing-indicator').classList.add('hidden');
+        break;
+
+      case 'error': {
+        isStreaming = false;
+        streamingEl = null;
+        document.getElementById('btn-send').disabled = false;
+        document.getElementById('typing-indicator').classList.add('hidden');
+
+        // Show error in signin screen if present
+        const errEl = document.getElementById('signin-error');
+        if (errEl && !document.getElementById('screen-signin').classList.contains('hidden')) {
+          errEl.textContent = msg.message;
+          errEl.classList.add('visible');
+          // Re-enable submit buttons
+          const submitBtn = document.getElementById('btn-signin-submit');
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Sign In'; }
+          const apikeyBtn = document.getElementById('btn-apikey-submit');
+          if (apikeyBtn) { apikeyBtn.disabled = false; apikeyBtn.textContent = 'Connect with API Key'; }
+        } else {
+          showToast(msg.message, 'error');
+        }
+        break;
+      }
+
+      case 'sessions':
+        renderSessions(msg.sessions);
+        break;
+
+      case 'agentList':
+        renderAgentDropdown(msg.agents);
+        break;
+
+      case 'atMentionResults':
+        renderAtMentionResults(msg.files);
+        break;
+
+      case 'indexStatus':
+        // Could update a status indicator
+        break;
+
+      case 'sessionLoaded':
+        loadSessionIntoUI(msg.session);
+        break;
+
+      case 'dangerousCommandConfirm':
+        showDangerDialog(msg.commandId, msg.command);
+        break;
+
+      case 'scanResults': {
+        const summary = msg.summary;
+        if (summary && summary.total > 0) {
+          const div = document.createElement('div');
+          div.className = 'message ai-message';
+          div.innerHTML = '<div class="message-agent-label">Security Scanner</div>' +
+            '<div class="message-content">' +
+            '<div class="scan-summary">' +
+            '<div class="scan-summary-title">?? Security Scan Complete</div>' +
+            '<div class="scan-counts">' +
+            (summary.critical ? '<span class="scan-count count-critical">' + summary.critical + ' Critical</span>' : '') +
+            (summary.high ? '<span class="scan-count count-high">' + summary.high + ' High</span>' : '') +
+            (summary.medium ? '<span class="scan-count count-medium">' + summary.medium + ' Medium</span>' : '') +
+            (summary.low ? '<span class="scan-count count-low">' + summary.low + ' Low</span>' : '') +
+            (summary.info ? '<span class="scan-count count-info">' + summary.info + ' Info</span>' : '') +
+            '</div></div></div>' +
+            '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
+          document.getElementById('messages').appendChild(div);
+          hideAgentCards();
+          scrollToBottom();
+        }
+        break;
+      }
+
+      case 'prefillMessage': {
+        const input = document.getElementById('chat-input');
+        input.value = msg.text || '';
+        if (msg.agentId) selectAgent(msg.agentId);
+        input.focus();
+        break;
+      }
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
