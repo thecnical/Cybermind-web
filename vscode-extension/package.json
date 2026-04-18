@@ -1,0 +1,214 @@
+{
+  "name": "cybermind-vscode",
+  "displayName": "CyberMind AI",
+  "description": "AI-powered security and coding assistant with OWASP scanning, multi-agent system, and real file editing",
+  "version": "1.0.0",
+  "publisher": "cybermind",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "security",
+    "owasp",
+    "code generation",
+    "assistant",
+    "cybermind"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cybermind",
+          "title": "CyberMind AI",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "cybermind": [
+        {
+          "type": "webview",
+          "id": "cybermind.chatView",
+          "name": "CyberMind Chat",
+          "retainContextWhenHidden": true
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "cybermind.openChat",
+        "title": "Open Chat",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.openSettings",
+        "title": "Open Settings",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.scanFile",
+        "title": "Scan File for Vulnerabilities",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.scanWorkspace",
+        "title": "Scan Workspace for Vulnerabilities",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.explainCode",
+        "title": "Explain Code",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.fixBug",
+        "title": "Fix Bug",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.refactorCode",
+        "title": "Refactor Code",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.generateTests",
+        "title": "Generate Tests",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.generateDocs",
+        "title": "Generate Documentation",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.logout",
+        "title": "Log Out",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.undoLastChange",
+        "title": "Undo Last AI Change",
+        "category": "CyberMind"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "cybermind.submenu",
+          "group": "cybermind"
+        }
+      ],
+      "cybermind.submenu": [
+        {
+          "command": "cybermind.explainCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "cybermind.fixBug",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "cybermind.refactorCode",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "cybermind.generateTests",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "cybermind.scanFile"
+        },
+        {
+          "command": "cybermind.generateDocs",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "cybermind.submenu",
+        "label": "CyberMind"
+      }
+    ],
+    "configuration": {
+      "title": "CyberMind",
+      "properties": {
+        "cybermind.inlineCompletions.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline AI code completions (ghost text)"
+        },
+        "cybermind.activeModel": {
+          "type": "string",
+          "default": "cybermindcli",
+          "description": "Active AI model for chat and completions"
+        },
+        "cybermind.activeAgent": {
+          "type": "string",
+          "default": "code",
+          "description": "Active agent for chat"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "cybermind.openChat",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c"
+      },
+      {
+        "command": "cybermind.scanFile",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s"
+      },
+      {
+        "command": "cybermind.undoLastChange",
+        "key": "ctrl+shift+z",
+        "mac": "cmd+shift+z"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "build": "node esbuild.config.js",
+    "build:watch": "node esbuild.config.js --watch",
+    "prepackage": "node esbuild.config.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.19.0",
+    "typescript": "^5.3.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "fast-check": "^3.14.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^vscode$": "<rootDir>/src/__mocks__/vscode.ts"
+    },
+    "testMatch": [
+      "**/*.test.ts"
+    ]
+  }
+}

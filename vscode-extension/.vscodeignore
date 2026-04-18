@@ -1,0 +1,17 @@
+src/**
+out/**
+node_modules/**
+.vscode/**
+*.ts
+!dist/**
+esbuild.config.js
+tsconfig.json
+jest.config.js
+**/*.test.ts
+**/*.test.js
+**/__mocks__/**
+**/__tests__/**
+.gitignore
+.eslintrc*
+.prettierrc*
+CHANGELOG.md

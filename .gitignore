@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+vscode-extension/node_modules/
+vscode-extension/dist/
+vscode-extension/.git/
 .pnp
 .pnp.js
 
