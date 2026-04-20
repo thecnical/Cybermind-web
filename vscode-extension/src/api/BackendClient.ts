@@ -153,12 +153,50 @@ export class BackendClient {
     cancellationToken?: vscode.CancellationToken,
     openRouterKey?: string | null
   ): Promise<string> {
+    // Try CyberMind backend free endpoint first (HuggingFace)
+    // Backend expects {prompt: "..."} not {message: "..."}
+    const freeRequest = {
+      prompt: request.message,
+      messages: [],
+    };
+
     try {
-      return await this._doRequest('/free/chat', { 'Content-Type': 'application/json' }, request, onToken, cancellationToken);
-    } catch {
-      logger.warn('CyberMind free endpoint failed, falling back to OpenRouter');
-      return this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
-    }
+      this.abortController = new AbortController();
+      const signal = this.abortController.signal;
+
+      let cancelDisposable: vscode.Disposable | undefined;
+      if (cancellationToken) {
+        cancelDisposable = cancellationToken.onCancellationRequested(() => {
+          this.abortController?.abort();
+        });
+      }
+
+      try {
+        const response = await fetch(`${this.baseUrl}/free/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(freeRequest),
+          signal,
+        });
+
+        if (response.ok) {
+          const data = await response.json() as { success?: boolean; response?: string; error?: string };
+          if (data.success && data.response && data.response.trim().length > 10) {
+            onToken(data.response);
+            return data.response;
+          }
+        }
+      } catch (err) {
+        logger.warn(`CyberMind /free/chat failed: ${String(err)}`);
+      } finally {
+        cancelDisposable?.dispose();
+        this.abortController = null;
+      }
+    } catch { /* ignore */ }
+
+    // Fallback to OpenRouter free models
+    logger.info('Falling back to OpenRouter free models');
+    return this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
   }
 
   async freeChat(
