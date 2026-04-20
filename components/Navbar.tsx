@@ -30,6 +30,7 @@ const navLinks: NavItem[] = [
   { href: "/extensions", label: "VSCode Extension" },
   { href: "/model", label: "AI Model" },
   { href: "/features", label: "Features" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
 ];
 
