@@ -15,6 +15,7 @@ export type ProfileCardData = {
   websiteUrl?: string;
   skills?: string[];
   accent?: "cyan" | "purple";
+  isAI?: boolean;
 };
 
 // ─── Large hero card for Creator / CEO ───────────────────────────────────────
@@ -167,13 +168,26 @@ export default function CometProfileCard({ profile }: { profile: ProfileCardData
         </div>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Zap size={12} className="flex-shrink-0 text-[var(--accent-cyan)]" />
-            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--accent-cyan)]">
-              {profile.role}
-            </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {profile.isAI ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[#00d4ff]/40 bg-[rgba(0,212,255,0.12)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-[#00d4ff]">
+                🤖 AI Assistant
+              </span>
+            ) : (
+              <>
+                <Zap size={12} className="flex-shrink-0 text-[var(--accent-cyan)]" />
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--accent-cyan)]">
+                  {profile.role}
+                </p>
+              </>
+            )}
           </div>
           <h3 className="mt-1 truncate text-base font-semibold text-white">{profile.name}</h3>
+          {profile.isAI && (
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] mt-0.5">
+              {profile.role}
+            </p>
+          )}
         </div>
       </div>
 

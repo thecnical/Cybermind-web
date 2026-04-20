@@ -135,6 +135,15 @@ export const techTeamProfiles = [
     avatarUrl: "/team/Khamshiq.jpeg",
     githubUrl: "",
   },
+  {
+    name: "Kiro (AI)",
+    role: "AI Code Partner & Bug Fixer",
+    summary:
+      "AI coding assistant that worked alongside Chandan throughout the entire CyberMind build. Contributed to full-stack development across the Go CLI, Node.js backend, Next.js web platform, and VSCode extension. Key contributions include: OMEGA agentic hacking system, Abhimanyu exploit engine, multi-provider AI routing (11 providers), admin panel with real-time Supabase, Instamojo payment integration, VSCode extension with 11 agents, security hardening, and hundreds of bug fixes across the entire codebase.",
+    avatarUrl: "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Kiro&backgroundColor=0d1117&eyes=bulging&mouth=smile01&baseColor=00d4ff",
+    githubUrl: "",
+    isAI: true,
+  },
 ];
 
 // ─── Contributors tooltip (shown in Project Topics section) ───────────────────
@@ -168,5 +177,10 @@ export const contributorTooltipPeople = [
     name: "Khamshiq Tadikonda",
     role: "Cybersecurity Researcher",
     avatar: "/team/Khamshiq.jpeg",
+  },
+  {
+    name: "Kiro (AI)",
+    role: "AI Code Partner & Bug Fixer",
+    avatar: "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Kiro&backgroundColor=0d1117&eyes=bulging&mouth=smile01&baseColor=00d4ff",
   },
 ];
