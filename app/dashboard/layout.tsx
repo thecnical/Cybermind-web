@@ -12,6 +12,7 @@ import {
   Settings,
   UserPlus,
   X,
+  Crosshair,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import CyberMindLogo from "@/components/CyberMindLogo";
@@ -25,6 +26,7 @@ const PLAN_LIMITS: Record<string, number> = {
 
 const navItems = [
   { href: "/dashboard",          label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/attacks",  label: "Attack Targets", icon: Crosshair },
   { href: "/dashboard/api-keys", label: "API Keys",  icon: KeyRound },
   { href: "/dashboard/billing",  label: "Billing",   icon: CreditCard },
   { href: "/dashboard/invite",   label: "Invite",    icon: UserPlus },

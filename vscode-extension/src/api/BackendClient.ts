@@ -33,14 +33,15 @@ export interface UserInfo {
 }
 
 // OpenRouter free models — tried in order, first working one wins
-// These are all :free models that require NO API key
+// These are :free models — they work WITHOUT an API key but are rate-limited
+// With a free OpenRouter key (sk-or-...) they work much better
 const OPENROUTER_FREE_MODELS = [
-  'deepseek/deepseek-r1:free',
   'meta-llama/llama-3.3-70b-instruct:free',
+  'deepseek/deepseek-r1:free',
   'google/gemma-3-27b-it:free',
-  'qwen/qwen3-coder:free',
   'mistralai/mistral-7b-instruct:free',
   'microsoft/phi-3-mini-128k-instruct:free',
+  'qwen/qwen3-coder:free',
 ];
 
 function resolveModel(modelId: string): { provider: string; model: string } {
@@ -118,7 +119,7 @@ export class BackendClient {
     const hasValidApiKey = apiKey && apiKey.startsWith('cp_live_');
 
     if (!hasValidApiKey) {
-      return this.openRouterFreeChat(request, onToken, cancellationToken, openRouterKey);
+      return this.freeChat(request, onToken, cancellationToken, openRouterKey);
     }
 
     const headers: Record<string, string> = {
@@ -140,68 +141,117 @@ export class BackendClient {
   }
 
   /**
-   * Free chat — tries OpenRouter directly first (most reliable),
-   * then falls back to CyberMind backend /free/chat (HuggingFace).
+   * Free chat — tries in this order:
+   * 1. CyberMind backend /free/chat (HuggingFace cybermindcli model — our own fine-tuned model)
+   * 2. OpenRouter free models (if user has OR key, or as anonymous fallback)
+   * 3. Error with helpful message
    *
-   * OpenRouter free models work without any API key.
-   * The key insight: go to OpenRouter FIRST, not as fallback.
+   * The backend /free/chat is tried FIRST because:
+   * - It uses our own cybermindcli model (security-trained, no filters)
+   * - It's proxied through our backend (no CORS issues)
+   * - OpenRouter anonymous requests are heavily rate-limited
    */
-  async openRouterFreeChat(
+  async freeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken,
     openRouterKey?: string | null
   ): Promise<string> {
-    // Try OpenRouter free models first — they're more reliable than HuggingFace
+    // Strategy 1: CyberMind backend /free/chat (our cybermindcli model via HuggingFace)
     try {
+      logger.info('Trying CyberMind backend /free/chat...');
+      const result = await this._backendFreeChat(request, cancellationToken);
+      if (result && result.trim().length > 5) {
+        onToken(result);
+        return result;
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') throw err;
+      logger.warn(`Backend /free/chat failed: ${String(err)}`);
+    }
+
+    // Strategy 2: OpenRouter (with key if available, or anonymous)
+    // Only try if user has an OR key OR as last resort
+    try {
+      logger.info('Trying OpenRouter...');
       const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
       if (result && result.trim().length > 5) {
         return result;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`OpenRouter failed: ${String(err)}, trying CyberMind backend`);
-    }
-
-    // Fallback: CyberMind backend /free/chat (HuggingFace)
-    try {
-      const freeRequest = { prompt: request.message, messages: [] };
-      const response = await fetch(`${this.baseUrl}/free/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(freeRequest),
-        signal: AbortSignal.timeout(45000),
-      });
-
-      if (response.ok) {
-        const data = await response.json() as { success?: boolean; response?: string };
-        if (data.success && data.response && data.response.trim().length > 5) {
-          onToken(data.response);
-          return data.response;
-        }
-      }
-    } catch (err) {
-      logger.warn(`CyberMind /free/chat also failed: ${String(err)}`);
+      logger.warn(`OpenRouter failed: ${String(err)}`);
     }
 
     throw new Error(
-      'All AI providers are currently unavailable.\n\n' +
-      'Options:\n' +
-      '1. Sign in with your CyberMind account (Sign in with CyberMind button)\n' +
-      '2. Add an API key from dashboard/api-keys\n' +
-      '3. Add an OpenRouter key in Settings (free at openrouter.ai)\n' +
-      '4. Try again in a few minutes (free models may be overloaded)'
+      'AI is temporarily unavailable.\n\n' +
+      'Options to fix this:\n' +
+      '1. Sign in with your CyberMind account (click "Sign in with CyberMind")\n' +
+      '2. Add a CyberMind API key from cybermindcli1.vercel.app/dashboard/api-keys\n' +
+      '3. Add a free OpenRouter key at openrouter.ai (free signup) in Settings\n' +
+      '4. Try again in 30 seconds (free models may be loading)'
     );
   }
 
-  async freeChat(
+  /**
+   * Call CyberMind backend /free/chat — uses our cybermindcli HuggingFace model
+   * This is the primary free path — no API key needed, proxied through our backend
+   */
+  private async _backendFreeChat(
     request: ChatRequest,
-    onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken
   ): Promise<string> {
-    return this.openRouterFreeChat(request, onToken, cancellationToken);
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
+    let cancelDisposable: vscode.Disposable | undefined;
+    if (cancellationToken) {
+      cancelDisposable = cancellationToken.onCancellationRequested(() => {
+        this.abortController?.abort();
+      });
+    }
+
+    try {
+      const systemNote = request.system ? `\n\nRole: ${request.agent}` : '';
+      const contextNote = request.context ? `\n\nContext:\n${request.context.slice(0, 3000)}` : '';
+      const fullPrompt = request.message + systemNote + contextNote;
+
+      const response = await fetch(`${this.baseUrl}/free/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: fullPrompt.slice(0, 2000),
+          messages: [],
+        }),
+        signal,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`Backend /free/chat HTTP ${response.status}: ${errText.slice(0, 100)}`);
+      }
+
+      const data = await response.json() as {
+        success?: boolean;
+        response?: string;
+        error?: string;
+      };
+
+      if (!data.success || !data.response) {
+        throw new Error(data.error || 'Empty response from backend');
+      }
+
+      return data.response.trim();
+    } finally {
+      cancelDisposable?.dispose();
+      this.abortController = null;
+    }
   }
 
+  /**
+   * OpenRouter chat — tries free models in sequence
+   * Works best with a free OR key (sk-or-...) but also works anonymously (rate-limited)
+   */
   private async _openRouterChat(
     request: ChatRequest,
     onToken: (token: string) => void,
@@ -221,7 +271,7 @@ export class BackendClient {
     try {
       const systemContent = request.system ||
         `You are CyberMind AI, an expert security and coding assistant. Agent: ${request.agent}.`;
-      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context.slice(0, 8000)}` : '';
+      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context.slice(0, 6000)}` : '';
 
       const messages = [
         { role: 'system', content: systemContent },
@@ -233,7 +283,8 @@ export class BackendClient {
         'HTTP-Referer': 'https://cybermindcli1.vercel.app',
         'X-Title': 'CyberMind VSCode Extension',
       };
-      // Only add auth if we have a key — free models work without it
+
+      // Add auth if we have a key — dramatically improves rate limits
       if (openRouterKey && openRouterKey.startsWith('sk-or-')) {
         headers['Authorization'] = `Bearer ${openRouterKey}`;
       }
@@ -256,6 +307,16 @@ export class BackendClient {
 
           if (response.status === 429) {
             logger.warn(`OpenRouter ${model}: rate limited, trying next`);
+            continue;
+          }
+
+          if (response.status === 401 || response.status === 403) {
+            // Auth error — skip remaining models if no key (all will fail the same way)
+            if (!openRouterKey) {
+              logger.warn(`OpenRouter: auth required for free models, skipping`);
+              break;
+            }
+            logger.warn(`OpenRouter ${model}: auth error ${response.status}`);
             continue;
           }
 
@@ -320,6 +381,18 @@ export class BackendClient {
       cancelDisposable?.dispose();
       this.abortController = null;
     }
+  }
+
+  /**
+   * openRouterFreeChat — kept for backward compatibility
+   */
+  async openRouterFreeChat(
+    request: ChatRequest,
+    onToken: (token: string) => void,
+    cancellationToken?: vscode.CancellationToken,
+    openRouterKey?: string | null
+  ): Promise<string> {
+    return this.freeChat(request, onToken, cancellationToken, openRouterKey);
   }
 
   private async _doRequest(
@@ -422,7 +495,13 @@ export class BackendClient {
       throw new Error('Unable to reach authentication server. Check your connection.');
     }
 
-    const data = await response.json().catch(() => ({})) as { success?: boolean; token?: string; plan?: string; email?: string; error?: string };
+    const data = await response.json().catch(() => ({})) as {
+      success?: boolean;
+      token?: string;
+      plan?: string;
+      email?: string;
+      error?: string;
+    };
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Login failed. Check your email and password.');
