@@ -51,7 +51,7 @@ Be precise. Fix only what caused the failure.`;
  * 4. Repeat up to maxIterations times
  */
 export class AgenticLoop {
-  private readonly maxIterations = 3;
+  private readonly maxIterations = 5; // increased from 3
 
   constructor(
     private readonly backendClient: BackendClient,
@@ -372,26 +372,79 @@ export class AgenticLoop {
   /**
    * Extract file content from AI response.
    * Tries multiple patterns to handle different model output formats.
+   * Handles: filepath: blocks, language fences, raw code, JSON responses.
    */
   private extractFileContent(response: string, expectedPath: string): string | null {
     // Pattern 1: ```filepath:path/to/file.ts\n...\n```
     const fpMatch = response.match(/```(?:filepath:([^\n]+))?\n([\s\S]*?)```/);
-    if (fpMatch) return fpMatch[2];
+    if (fpMatch?.[2]?.trim()) return fpMatch[2];
 
-    // Pattern 2: ```typescript\n...\n``` or ```js\n...\n```
-    const langMatch = response.match(/```(?:typescript|javascript|ts|js|python|py|go|rust|java|css|html|json|yaml|sh|bash)\n([\s\S]*?)```/);
-    if (langMatch) return langMatch[1];
+    // Pattern 2: // path/to/file.ts\n```lang\n...\n```
+    const pathCommentMatch = response.match(/\/\/\s*[^\n]+\n```[^\n]*\n([\s\S]*?)```/);
+    if (pathCommentMatch?.[1]?.trim()) return pathCommentMatch[1];
 
-    // Pattern 3: Any code fence
+    // Pattern 3: ```typescript\n...\n``` or any language fence
+    const langMatch = response.match(/```(?:typescript|javascript|ts|js|tsx|jsx|python|py|go|rust|java|css|scss|html|json|yaml|yml|sh|bash|zsh|sql|graphql|prisma|toml|env)\n([\s\S]*?)```/);
+    if (langMatch?.[1]?.trim()) return langMatch[1];
+
+    // Pattern 4: Any code fence
     const anyFence = response.match(/```[^\n]*\n([\s\S]*?)```/);
-    if (anyFence) return anyFence[1];
+    if (anyFence?.[1]?.trim()) return anyFence[1];
 
-    // Pattern 4: If response looks like raw code (starts with import/const/function/class/etc.)
-    const codeStart = /^(import|export|const|let|var|function|class|interface|type|package|from|#!)/m;
-    if (codeStart.test(response.trim())) {
-      return response.trim();
+    // Pattern 5: If response looks like raw code
+    const codeStart = /^(import|export|const|let|var|function|class|interface|type|package|from|#!|<!DOCTYPE|<html|{|\[)/m;
+    const trimmed = response.trim();
+    if (codeStart.test(trimmed) && trimmed.length > 20) {
+      return trimmed;
     }
 
+    // Pattern 6: Extract from JSON response with "content" or "code" field
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.content) return parsed.content;
+      if (parsed.code) return parsed.code;
+      if (parsed.file) return parsed.file;
+    } catch { /* not JSON */ }
+
     return null;
+  }
+
+  /**
+   * Run tests after file changes to verify correctness.
+   * Detects test framework from workspace and runs appropriate command.
+   */
+  async runTests(
+    postToWebview: (msg: object) => void
+  ): Promise<{ passed: boolean; output: string }> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders?.length) return { passed: false, output: 'No workspace open' };
+
+    const root = workspaceFolders[0].uri.fsPath;
+
+    // Detect test framework
+    let testCommand = '';
+    try {
+      const pkg = JSON.parse(
+        require('fs').readFileSync(path.join(root, 'package.json'), 'utf8')
+      );
+      const scripts = pkg.scripts || {};
+      const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+
+      if (scripts.test) {
+        testCommand = 'npm test -- --run 2>&1 | head -100';
+      } else if (deps['vitest']) {
+        testCommand = 'npx vitest run 2>&1 | head -100';
+      } else if (deps['jest']) {
+        testCommand = 'npx jest --passWithNoTests 2>&1 | head -100';
+      } else if (deps['@playwright/test']) {
+        testCommand = 'npx playwright test 2>&1 | head -100';
+      }
+    } catch { /* no package.json */ }
+
+    if (!testCommand) return { passed: true, output: 'No test framework detected' };
+
+    postToWebview({ type: 'token', text: `\n🧪 Running tests: \`${testCommand}\`...\n` });
+    const result = await this.terminalManager.executeCommand(testCommand, postToWebview);
+    return { passed: result.success, output: result.output };
   }
 }

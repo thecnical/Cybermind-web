@@ -7,6 +7,10 @@ import {
   EXPLAIN_PROMPT,
   REFACTOR_PROMPT,
   DOCS_PROMPT,
+  PLAYWRIGHT_PROMPT,
+  GIT_PROMPT,
+  REVIEW_PROMPT,
+  FULLSTACK_PROMPT,
 } from './agents';
 
 export interface Agent {
@@ -75,6 +79,38 @@ const BUILT_IN_AGENTS: Agent[] = [
     icon: '📝',
     description: 'Generate JSDoc/TSDoc documentation',
     systemPrompt: DOCS_PROMPT,
+    isCustom: false,
+  },
+  {
+    id: 'playwright',
+    name: 'Playwright',
+    icon: '🎭',
+    description: 'Write E2E browser tests with Playwright',
+    systemPrompt: PLAYWRIGHT_PROMPT,
+    isCustom: false,
+  },
+  {
+    id: 'git',
+    name: 'Git',
+    icon: '🌿',
+    description: 'Commit messages, PR descriptions, branching strategy',
+    systemPrompt: GIT_PROMPT,
+    isCustom: false,
+  },
+  {
+    id: 'review',
+    name: 'Review',
+    icon: '👁️',
+    description: 'Thorough code review with security, performance, maintainability',
+    systemPrompt: REVIEW_PROMPT,
+    isCustom: false,
+  },
+  {
+    id: 'fullstack',
+    name: 'Full-Stack',
+    icon: '🚀',
+    description: 'Build complete features: Next.js, Supabase, Stripe, TypeScript',
+    systemPrompt: FULLSTACK_PROMPT,
     isCustom: false,
   },
 ];

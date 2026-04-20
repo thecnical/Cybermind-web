@@ -1,1250 +1,461 @@
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
-  <title>CyberMind AI</title>
-  <style>
-/* === INLINE STYLES (from styles.css) === */
-:root{--bg-primary:#1a1a1a;--bg-secondary:#252525;--bg-input:#2d2d2d;--bg-hover:#333333;--accent:#00ffff;--accent-dim:#00cccc;--accent-glow:rgba(0,255,255,0.15);--text-primary:#e0e0e0;--text-secondary:#999999;--text-muted:#666666;--border:#3a3a3a;--error:#ff4444;--warning:#ffaa00;--success:#00ff88;--code-bg:#1e1e1e;--user-msg-bg:#252525;--ai-msg-bg:#1e1e1e}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
+<title>CyberMind AI</title>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --border:#30363d;--error:#f85149;--warn:#d29922;--ok:#3fb950;
+  --radius:8px;--radius2:12px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg-primary);color:var(--text-primary);line-height:1.5}
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#555}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:13px;color:var(--text);line-height:1.5}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ── Screens ── */
 .screen{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .screen.hidden{display:none!important}
-#screen-welcome{align-items:center;justify-content:center;padding:24px 20px;text-align:center;gap:20px}
-.welcome-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
-.welcome-logo-text{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:1px}
-.welcome-headline{font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
-.welcome-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
-.welcome-features{list-style:none;text-align:left;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px 16px;width:100%;max-width:280px}
-.welcome-features li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:var(--text-primary)}
-.welcome-features li::before{content:'✓';color:var(--accent);font-weight:700;flex-shrink:0}
-.welcome-buttons{display:flex;gap:10px;width:100%;max-width:280px}
-.btn-primary{flex:1;padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn-primary:hover{background:var(--accent-dim)}
-.btn-secondary{flex:1;padding:10px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn-secondary:hover{background:var(--accent-glow)}
-.welcome-free-note{font-size:11px;color:var(--text-muted)}
-#screen-signin{padding:0}
-.signin-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
-.btn-back{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;display:flex;align-items:center}
-.btn-back:hover{color:var(--text-primary);background:var(--bg-hover)}
-.signin-title{font-size:15px;font-weight:600;color:var(--text-primary)}
-.signin-form{padding:20px 16px;display:flex;flex-direction:column;gap:14px;flex:1}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-label{font-size:12px;color:var(--text-secondary);font-weight:500}
-.form-input{padding:9px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;outline:none;transition:border-color .15s}
+
+/* ── Welcome ── */
+#screen-welcome{align-items:center;justify-content:center;padding:20px;gap:16px;background:var(--bg)}
+.logo-row{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px}
+.logo-text{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:.5px}
+.welcome-title{font-size:15px;font-weight:600;color:var(--text);text-align:center}
+.welcome-sub{font-size:12px;color:var(--text2);text-align:center}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:280px}
+.feature-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.feature-item span:first-child{font-size:14px}
+.btn-stack{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
+.btn-primary{padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;width:100%}
+.btn-primary:hover{opacity:.85}
+.btn-outline{padding:9px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;width:100%}
+.btn-outline:hover{background:rgba(0,212,255,.08)}
+.btn-ghost{padding:8px 16px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;transition:all .15s;width:100%}
+.btn-ghost:hover{color:var(--text);border-color:var(--text3)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:4px}
+.status-dot.offline{background:var(--error)}
+.status-dot.checking{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Sign-in ── */
+#screen-signin{background:var(--bg)}
+.signin-header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.btn-back{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;line-height:1}
+.btn-back:hover{color:var(--text);background:var(--bg3)}
+.signin-title{font-size:14px;font-weight:600;color:var(--text)}
+.signin-body{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto}
+.form-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.form-input{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
 .form-input:focus{border-color:var(--accent)}
-.form-input::placeholder{color:var(--text-muted)}
-.btn-signin{padding:10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn-signin:hover{background:var(--accent-dim)}
-.btn-signin:disabled{opacity:.5;cursor:not-allowed}
-.signin-divider{display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:11px}
-.signin-divider::before,.signin-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.btn-api-key-toggle{padding:8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .15s;text-align:center}
-.btn-api-key-toggle:hover{border-color:var(--accent);color:var(--accent)}
-.error-message{padding:8px 12px;background:rgba(255,68,68,.1);border:1px solid var(--error);border-radius:6px;color:var(--error);font-size:12px;display:none}
-.error-message.visible{display:block}
-.chat-header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg-primary);flex-shrink:0;z-index:10;position:relative}
-.btn-all-chats{flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;cursor:pointer;text-align:left;transition:background .15s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.btn-all-chats:hover{background:var(--bg-hover)}
-.btn-icon{padding:6px 8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);font-size:14px;cursor:pointer;transition:all .15s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.btn-icon:hover{background:var(--bg-hover);color:var(--text-primary)}
-.conversation-area{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:12px}
-.agent-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0}
-.agent-card{padding:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px}
-.agent-card:hover{border-color:var(--accent);background:var(--bg-hover)}
-.agent-card-icon{font-size:18px;margin-bottom:2px}
-.agent-card-name{font-size:12px;font-weight:600;color:var(--text-primary)}
-.agent-card-desc{font-size:11px;color:var(--text-secondary);line-height:1.4}
-.messages{display:flex;flex-direction:column;gap:12px}
-.message{display:flex;flex-direction:column;gap:4px;max-width:100%}
-.message.user-message{align-items:flex-end}
-.message.ai-message{align-items:flex-start}
-.message-agent-label{font-size:11px;color:var(--accent);font-weight:600;padding:0 4px}
-.message-content{padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;max-width:100%;word-break:break-word}
-.user-message .message-content{background:var(--user-msg-bg);border:1px solid var(--border);border-bottom-right-radius:2px}
-.ai-message .message-content{background:var(--ai-msg-bg);border:1px solid var(--border);border-bottom-left-radius:2px;width:100%}
-.message-meta{font-size:10px;color:var(--text-muted);padding:0 4px}
-.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:8px 0}
-.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#252525;border-bottom:1px solid var(--border)}
-.code-lang{font-size:11px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.form-input::placeholder{color:var(--text3)}
+.divider{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:11px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.error-msg{padding:8px 10px;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:var(--radius);color:var(--error);font-size:12px;display:none}
+.error-msg.show{display:block}
+
+/* ── Chat ── */
+#screen-chat{background:var(--bg)}
+.chat-header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;min-height:44px}
+.header-left{flex:1;min-width:0}
+.session-btn{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px;cursor:pointer;transition:background .15s;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.session-btn:hover{background:var(--bg3)}
+.session-btn svg{flex-shrink:0;opacity:.6}
+.header-actions{display:flex;gap:4px}
+.icon-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);cursor:pointer;transition:all .15s;font-size:14px;flex-shrink:0}
+.icon-btn:hover{background:var(--bg3);color:var(--text)}
+.icon-btn.active{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:var(--accent)}
+
+/* ── Conversation ── */
+.conversation{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+
+/* ── Agent cards ── */
+.agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px 0}
+.agent-card{padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:3px}
+.agent-card:hover{border-color:var(--accent);background:rgba(0,212,255,.04)}
+.agent-card.selected{border-color:var(--accent);background:rgba(0,212,255,.06)}
+.agent-icon{font-size:16px;margin-bottom:2px}
+.agent-name{font-size:12px;font-weight:600;color:var(--text)}
+.agent-desc{font-size:10px;color:var(--text2);line-height:1.3}
+
+/* ── Messages ── */
+.msg{display:flex;flex-direction:column;gap:3px;max-width:100%}
+.msg.user{align-items:flex-end}
+.msg.ai{align-items:flex-start}
+.msg-label{font-size:10px;color:var(--accent);font-weight:600;padding:0 2px}
+.msg-bubble{padding:9px 12px;border-radius:var(--radius2);font-size:13px;line-height:1.6;max-width:100%;word-break:break-word}
+.msg.user .msg-bubble{background:var(--bg3);border:1px solid var(--border);border-bottom-right-radius:3px;color:var(--text)}
+.msg.ai .msg-bubble{background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:3px;color:var(--text);width:100%}
+.msg-meta{font-size:10px;color:var(--text3);padding:0 2px}
+
+/* ── Code blocks ── */
+.code-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:6px 0}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.code-lang{font-size:10px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .code-actions{display:flex;gap:4px}
-.code-actions button{padding:3px 8px;font-size:11px;border-radius:4px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
-.btn-copy{background:transparent;color:var(--text-secondary)}
-.btn-copy:hover{background:var(--bg-hover);color:var(--text-primary)}
-.btn-apply{background:var(--accent);color:#000;border-color:var(--accent)!important;font-weight:600}
-.btn-apply:hover{background:var(--accent-dim)}
-.btn-apply.applied{background:var(--success);border-color:var(--success)!important}
-.btn-reject{background:transparent;color:var(--error);border-color:var(--error)!important}
-.btn-reject:hover{background:rgba(255,68,68,.1)}
-.btn-reject.rejected{opacity:.5;cursor:not-allowed}
-.code-block pre{padding:12px;overflow-x:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.5;color:var(--text-primary);white-space:pre}
-.typing-indicator{display:flex;align-items:center;gap:4px;padding:10px 12px;background:var(--ai-msg-bg);border:1px solid var(--border);border-radius:8px;width:fit-content}
-.typing-indicator.hidden{display:none}
-.typing-indicator span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typing-bounce 1.2s infinite}
-.typing-indicator span:nth-child(2){animation-delay:.2s}
-.typing-indicator span:nth-child(3){animation-delay:.4s}
-@keyframes typing-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
-.chat-footer{border-top:1px solid var(--border);background:var(--bg-primary);flex-shrink:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.selectors-row{display:flex;gap:6px}
-.selector-btn{padding:5px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:5px;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
-.selector-btn:hover{border-color:var(--accent);color:var(--accent)}
-.selector-btn.active{border-color:var(--accent);color:var(--accent)}
+.code-btn{padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.code-btn.copy{background:transparent;color:var(--text2)}
+.code-btn.copy:hover{background:var(--bg4);color:var(--text)}
+.code-btn.apply{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.code-btn.apply:hover{opacity:.85}
+.code-btn.apply.done{background:var(--ok);border-color:var(--ok)}
+.code-btn.reject{background:transparent;color:var(--error);border-color:rgba(248,81,73,.3)}
+.code-btn.reject:hover{background:rgba(248,81,73,.1)}
+.code-pre{padding:10px;overflow-x:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.5;color:var(--text);white-space:pre}
+
+/* ── Typing indicator ── */
+.typing{display:flex;align-items:center;gap:4px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);border-bottom-left-radius:3px;width:fit-content}
+.typing.hidden{display:none}
+.typing span{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* ── Footer ── */
+.chat-footer{border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.selectors{display:flex;gap:5px;flex-wrap:wrap}
+.selector{padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.selector:hover{border-color:var(--accent);color:var(--accent)}
+.selector.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.06)}
 .input-row{display:flex;align-items:flex-end;gap:6px}
-#chat-input{flex:1;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:none;outline:none;min-height:36px;max-height:120px;overflow-y:auto;line-height:1.5;transition:border-color .15s}
+#chat-input{flex:1;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:inherit;resize:none;outline:none;min-height:36px;max-height:120px;overflow-y:auto;line-height:1.5;transition:border-color .15s}
 #chat-input:focus{border-color:var(--accent)}
-#chat-input::placeholder{color:var(--text-muted)}
-.input-actions{display:flex;gap:4px;align-items:flex-end}
-.btn-input-action{padding:7px 9px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:5px;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s;flex-shrink:0}
-.btn-input-action:hover{border-color:var(--accent);color:var(--accent)}
-.btn-send{padding:7px 14px;background:var(--accent);border:none;border-radius:5px;color:#000;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;flex-shrink:0}
-.btn-send:hover{background:var(--accent-dim)}
-.btn-send:disabled{opacity:.4;cursor:not-allowed}
-.dropdown{position:absolute;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;overflow:hidden;min-width:200px;max-height:320px;overflow-y:auto}
+#chat-input::placeholder{color:var(--text3)}
+.input-btns{display:flex;gap:4px;align-items:flex-end}
+.input-action{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.input-action:hover{border-color:var(--accent);color:var(--accent)}
+.send-btn{padding:7px 14px;background:var(--accent);border:none;border-radius:var(--radius);color:#000;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;flex-shrink:0;height:30px}
+.send-btn:hover{opacity:.85}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Dropdowns ── */
+.dropdown{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:100;overflow:hidden;min-width:200px;max-height:300px;overflow-y:auto}
 .dropdown.hidden{display:none}
-.dropdown-header{padding:8px 12px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-.dropdown-search{padding:8px 10px;border-bottom:1px solid var(--border)}
-.dropdown-search input{width:100%;padding:6px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text-primary);font-size:12px;outline:none}
-.dropdown-search input:focus{border-color:var(--accent)}
-.dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background .1s;font-size:12px;color:var(--text-primary)}
-.dropdown-item:hover{background:var(--bg-hover)}
-.dropdown-item.active{background:var(--accent-glow);color:var(--accent)}
-.dropdown-item.selected{color:var(--accent)}
-.dropdown-item-icon{font-size:14px;flex-shrink:0}
-.dropdown-item-name{font-weight:500}
-.dropdown-item-desc{font-size:11px;color:var(--text-secondary)}
-.dropdown-section-label{padding:6px 12px 4px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
-.dropdown-divider{height:1px;background:var(--border);margin:4px 0}
-#sessions-dropdown{top:44px;left:10px;right:10px}
-#agent-dropdown{bottom:100px;left:10px;right:10px}
-#model-dropdown{bottom:100px;left:10px;right:10px}
-#at-mention-dropdown{bottom:100px;left:10px;right:10px}
-#slash-command-dropdown{bottom:100px;left:10px;right:10px}
+.dd-header{padding:7px 12px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.dd-search{padding:6px 8px;border-bottom:1px solid var(--border)}
+.dd-search input{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;outline:none}
+.dd-search input:focus{border-color:var(--accent)}
+.dd-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;transition:background .1s;font-size:12px;color:var(--text)}
+.dd-item:hover{background:var(--bg3)}
+.dd-item.active{background:rgba(0,212,255,.08);color:var(--accent)}
+.dd-item-icon{font-size:14px;flex-shrink:0}
+.dd-item-name{font-weight:500}
+.dd-item-desc{font-size:10px;color:var(--text2)}
+.dd-section{padding:4px 12px 2px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.dd-divider{height:1px;background:var(--border);margin:3px 0}
+.tier-badge{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:auto}
+.tier-free{background:rgba(59,251,80,.15);color:var(--ok)}
+.tier-pro{background:rgba(0,212,255,.15);color:var(--accent)}
+.tier-elite{background:rgba(210,153,34,.15);color:var(--warn)}
+
+/* ── Dot menu ── */
 #dot-menu{top:44px;right:10px;min-width:180px}
-.dot-menu-item{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--text-primary);transition:background .1s}
-.dot-menu-item:hover{background:var(--bg-hover)}
-.dot-menu-item.danger{color:var(--error)}
-.dot-menu-item.danger:hover{background:rgba(255,68,68,.1)}
-.tier-badge{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:auto}
-.tier-free{background:rgba(0,255,136,.15);color:var(--success)}
-.tier-pro{background:rgba(0,255,255,.15);color:var(--accent)}
-.tier-elite{background:rgba(255,170,0,.15);color:var(--warning)}
-.danger-dialog{position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--error);border-radius:8px;padding:14px;z-index:200;display:none}
-.danger-dialog.visible{display:block}
-.danger-dialog-title{font-size:13px;font-weight:600;color:var(--error);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.danger-dialog-command{font-family:monospace;font-size:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:8px;color:var(--warning);margin-bottom:12px;word-break:break-all}
-.danger-dialog-buttons{display:flex;gap:8px}
-.btn-run-anyway{flex:1;padding:8px;background:var(--error);color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-cancel-cmd{flex:1;padding:8px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:5px;font-size:12px;cursor:pointer}
-.file-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-family:monospace;font-size:12px}
-.file-link:hover{color:var(--accent-dim)}
-.scan-summary{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0}
-.scan-summary-title{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-primary)}
-.scan-counts{display:flex;gap:8px;flex-wrap:wrap}
-.scan-count{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.count-critical{background:rgba(255,68,68,.2);color:var(--error)}
-.count-high{background:rgba(255,100,0,.2);color:#ff6400}
-.count-medium{background:rgba(255,170,0,.2);color:var(--warning)}
-.count-low{background:rgba(0,255,136,.15);color:var(--success)}
-.count-info{background:rgba(0,255,255,.1);color:var(--accent)}
-code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;color:var(--accent)}
-.message-content p{margin-bottom:6px}
-.message-content p:last-child{margin-bottom:0}
-.message-content strong{color:var(--text-primary);font-weight:600}
-.message-content a{color:var(--accent)}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:8px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-primary);z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none}
-.toast.visible{opacity:1}
-.toast.success{border-color:var(--success);color:var(--success)}
-.toast.error{border-color:var(--error);color:var(--error)}
-  </style>
+.dot-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
+.dot-item:hover{background:var(--bg3)}
+.dot-item.danger{color:var(--error)}
+.dot-item.danger:hover{background:rgba(248,81,73,.08)}
+
+/* ── Sessions dropdown ── */
+#sessions-dd{top:44px;left:10px;right:10px}
+#agent-dd{bottom:90px;left:10px;right:10px}
+#model-dd{bottom:90px;left:10px;right:10px}
+#at-dd{bottom:90px;left:10px;right:10px}
+#slash-dd{bottom:90px;left:10px;right:10px}
+
+/* ── Danger dialog ── */
+.danger-dialog{position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg2);border:1px solid rgba(248,81,73,.4);border-radius:var(--radius2);padding:14px;z-index:200;display:none}
+.danger-dialog.show{display:block}
+.danger-title{font-size:13px;font-weight:600;color:var(--error);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.danger-cmd{font-family:monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px;color:var(--warn);margin-bottom:10px;word-break:break-all}
+.danger-btns{display:flex;gap:8px}
+.btn-run{flex:1;padding:7px;background:var(--error);color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-cancel-cmd{flex:1;padding:7px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:5px;font-size:12px;cursor:pointer}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text);z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.ok{border-color:rgba(59,251,80,.4);color:var(--ok)}
+.toast.err{border-color:rgba(248,81,73,.4);color:var(--error)}
+
+/* ── Scan summary ── */
+.scan-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin:6px 0}
+.scan-title{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.scan-counts{display:flex;gap:6px;flex-wrap:wrap}
+.sc{padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600}
+.sc-crit{background:rgba(248,81,73,.2);color:var(--error)}
+.sc-high{background:rgba(255,100,0,.2);color:#ff6400}
+.sc-med{background:rgba(210,153,34,.2);color:var(--warn)}
+.sc-low{background:rgba(59,251,80,.15);color:var(--ok)}
+.sc-info{background:rgba(0,212,255,.1);color:var(--accent)}
+
+/* ── Inline code ── */
+code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:11px;background:var(--bg3);padding:1px 4px;border-radius:3px;color:var(--accent)}
+.msg-bubble p{margin-bottom:5px}
+.msg-bubble p:last-child{margin-bottom:0}
+.msg-bubble strong{color:var(--text);font-weight:600}
+.msg-bubble a{color:var(--accent)}
+.msg-bubble ul,.msg-bubble ol{padding-left:16px;margin:4px 0}
+.msg-bubble li{margin-bottom:2px}
+
+/* ── Backend status bar ── */
+.status-bar{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3)}
+.status-bar .dot{width:5px;height:5px;border-radius:50%;background:var(--ok)}
+.status-bar .dot.warn{background:var(--warn);animation:pulse 1s infinite}
+.status-bar .dot.err{background:var(--error)}
+.wake-btn{margin-left:auto;padding:1px 7px;background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:4px;color:var(--warn);font-size:10px;cursor:pointer;transition:all .15s}
+.wake-btn:hover{background:rgba(210,153,34,.25)}
+
+/* ── File link ── */
+.file-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-family:monospace;font-size:11px}
+.file-link:hover{color:var(--accent2)}
+
+/* ── Prompt enhanced badge ── */
+.enhanced-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:4px;font-size:10px;color:#a78bfa;margin-bottom:4px}
+</style>
 </head>
 <body>
+
 <!-- ===== WELCOME SCREEN ===== -->
 <div id="screen-welcome" class="screen">
-  <div class="welcome-logo">
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="20,2 36,12 36,28 20,38 4,28 4,12" fill="none" stroke="#00ffff" stroke-width="2"/>
-      <path d="M22 8 L14 20 H20 L18 32 L26 20 H20 L22 8Z" fill="#00ffff"/>
+  <div class="logo-row">
+    <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+      <polygon points="20,2 36,12 36,28 20,38 4,28 4,12" fill="none" stroke="#00d4ff" stroke-width="2"/>
+      <path d="M22 8 L14 20 H20 L18 32 L26 20 H20 L22 8Z" fill="#00d4ff"/>
     </svg>
-    <span class="welcome-logo-text">CyberMind</span>
+    <span class="logo-text">CyberMind</span>
   </div>
-  <div>
-    <div class="welcome-headline">AI Security &amp; Coding Assistant</div>
-    <div class="welcome-subtitle">Powered by CyberMind Backend</div>
+  <div class="welcome-title">AI Security &amp; Coding Assistant</div>
+  <div class="welcome-sub">11 AI providers · 11 agents · Agentic mode</div>
+  <div class="feature-grid">
+    <div class="feature-item"><span>🔒</span>OWASP Security</div>
+    <div class="feature-item"><span>🤖</span>Agentic Loop</div>
+    <div class="feature-item"><span>🎭</span>Playwright Tests</div>
+    <div class="feature-item"><span>🏗️</span>Full-Stack Build</div>
+    <div class="feature-item"><span>🔌</span>MCP Servers</div>
+    <div class="feature-item"><span>⚡</span>11 AI Providers</div>
   </div>
-  <ul class="welcome-features">
-    <li>OWASP Security Scanning</li>
-    <li>AI Code Generation</li>
-    <li>Multi-Agent System</li>
-    <li>Real File Editing</li>
-    <li>Inline Completions</li>
-  </ul>
-  <!-- Primary: web OAuth login -->
-  <button class="btn-primary" id="btn-web-signin" style="max-width:280px;width:100%;margin-top:4px;">
-    &#9889; Sign in with CyberMind
-  </button>
-  <!-- Secondary: API key -->
-  <button class="btn-secondary" id="btn-goto-apikey" style="max-width:280px;width:100%;margin-top:8px;">
-    Use API Key
-  </button>
-  <div class="welcome-free-note" style="margin-top:8px">Free tier available · no account required</div>
-  <button class="btn-secondary" id="btn-continue-free" style="max-width:280px;width:100%;margin-top:4px;font-size:11px;padding:7px;">Continue Free (OpenRouter)</button>
+  <div class="btn-stack">
+    <button class="btn-primary" id="btn-web-signin">⚡ Sign in with CyberMind</button>
+    <button class="btn-outline" id="btn-goto-apikey">Use API Key</button>
+    <button class="btn-ghost" id="btn-continue-free">Continue Free (OpenRouter)</button>
+  </div>
+  <div style="font-size:10px;color:var(--text3);margin-top:4px">Free tier · No account required</div>
 </div>
 
 <!-- ===== API KEY SCREEN ===== -->
 <div id="screen-signin" class="screen hidden">
   <div class="signin-header">
-    <button class="btn-back" id="btn-back-from-signin">&#8592;</button>
+    <button class="btn-back" id="btn-back">&#8592;</button>
     <span class="signin-title">Connect with API Key</span>
   </div>
-  <div class="signin-form">
-    <div id="api-key-fields">
-      <div class="form-group">
-        <label class="form-label">API Key</label>
-        <input type="password" class="form-input" id="signin-apikey" placeholder="cp_live_xxxxxxxxxxxxxxxx" autocomplete="off">
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
-          Get your key at <span style="color:var(--accent);cursor:pointer" id="link-get-key">cybermindcli1.vercel.app/dashboard/api-keys</span>
-        </div>
+  <div class="signin-body">
+    <div>
+      <label class="form-label">API Key</label>
+      <input type="password" class="form-input" id="signin-apikey" placeholder="cp_live_xxxxxxxxxxxxxxxx" autocomplete="off">
+      <div style="margin-top:5px;font-size:11px;color:var(--text3)">
+        Get your key at <span style="color:var(--accent);cursor:pointer" id="link-get-key">cybermindcli1.vercel.app/dashboard/api-keys</span>
       </div>
-      <button class="btn-signin" id="btn-apikey-submit" style="margin-top:14px">Connect with API Key</button>
-      <div class="signin-divider" style="margin-top:14px">or</div>
-      <button class="btn-api-key-toggle" id="btn-web-signin-from-apikey" style="margin-top:10px">&#9889; Sign in with CyberMind (browser)</button>
     </div>
-      <div class="signin-divider" style="margin-top:14px">or</div>
-      <button class="btn-api-key-toggle" id="btn-web-signin-from-apikey2" style="margin-top:10px;display:none">placeholder</button>
-    </div>
-    <div class="error-message" id="signin-error"></div>
+    <div class="error-msg" id="signin-error"></div>
+    <button class="btn-primary" id="btn-apikey-submit">Connect with API Key</button>
+    <div class="divider">or</div>
+    <button class="btn-outline" id="btn-web-signin2">⚡ Sign in with CyberMind (browser)</button>
   </div>
 </div>
 
 <!-- ===== CHAT SCREEN ===== -->
 <div id="screen-chat" class="screen hidden">
+  <!-- Backend status bar -->
+  <div class="status-bar" id="status-bar">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-text">Checking backend...</span>
+    <button class="wake-btn hidden" id="wake-btn">Wake Backend</button>
+  </div>
+
   <!-- Header -->
   <div class="chat-header">
-    <button class="btn-all-chats" id="btn-all-chats">&#9776; All Chats &#9660;</button>
-    <button class="btn-icon" id="btn-new-chat" title="New Chat">+</button>
-    <button class="btn-icon" id="btn-dot-menu" title="More options">&#8943;</button>
+    <div class="header-left">
+      <button class="session-btn" id="btn-sessions">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 012.5 1h11A1.5 1.5 0 0115 2.5v8A1.5 1.5 0 0113.5 12H9.06l-2.73 2.45A.5.5 0 015.5 14v-2H2.5A1.5 1.5 0 011 10.5v-8z"/></svg>
+        <span id="session-title">All Chats</span>
+        <span style="opacity:.5;font-size:10px">▾</span>
+      </button>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-new-chat" title="New Chat">+</button>
+      <button class="icon-btn" id="btn-dot-menu" title="More">&#8943;</button>
+    </div>
   </div>
 
-  <!-- Dot Menu Dropdown -->
+  <!-- Dot menu -->
   <div id="dot-menu" class="dropdown hidden">
-    <div class="dot-menu-item" data-action="instructions">&#128221; Instructions for AI</div>
-    <div class="dot-menu-item" data-action="agents">&#129302; Agents</div>
-    <div class="dot-menu-item" data-action="skills">&#9889; Skills</div>
-    <div class="dot-menu-item" data-action="tools">&#128295; Tools</div>
-    <div class="dot-menu-item" data-action="integrations">&#128279; Integrations</div>
-    <div class="dot-menu-item" data-action="custom-api-keys">&#128273; Custom API Keys</div>
-    <div class="dot-menu-item" data-action="settings">&#9881; Settings</div>
-    <div class="dot-menu-item" data-action="shortcuts">&#9000; Shortcuts</div>
-    <div class="dropdown-divider"></div>
-    <div class="dot-menu-item danger" data-action="logout">&#128682; Log Out</div>
+    <div class="dot-item" data-action="agents">🤖 Agents</div>
+    <div class="dot-item" data-action="mcp">🔌 MCP Servers</div>
+    <div class="dot-item" data-action="keys">🔑 API Keys</div>
+    <div class="dot-item" data-action="settings">⚙️ Settings</div>
+    <div class="dot-item" data-action="shortcuts">⌨️ Shortcuts</div>
+    <div class="dd-divider"></div>
+    <div class="dot-item danger" data-action="logout">🚪 Log Out</div>
   </div>
 
-  <!-- Sessions Dropdown -->
-  <div id="sessions-dropdown" class="dropdown hidden">
-    <div class="dropdown-header">Recent Chats</div>
+  <!-- Sessions dropdown -->
+  <div id="sessions-dd" class="dropdown hidden">
+    <div class="dd-header">Recent Chats</div>
     <div id="sessions-list"></div>
   </div>
 
-  <!-- Agent Dropdown -->
-  <div id="agent-dropdown" class="dropdown hidden">
-    <div class="dropdown-search"><input type="text" id="agent-search" placeholder="Search agents..."></div>
-    <div class="dropdown-section-label">Built-in Agents</div>
+  <!-- Agent dropdown -->
+  <div id="agent-dd" class="dropdown hidden">
+    <div class="dd-search"><input type="text" id="agent-search" placeholder="Search agents..."></div>
+    <div class="dd-section">Built-in</div>
     <div id="agent-list"></div>
-    <div class="dropdown-divider"></div>
-    <div class="dropdown-section-label">Custom Agents</div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">Custom</div>
     <div id="custom-agent-list"></div>
   </div>
 
-  <!-- Model Dropdown -->
-  <div id="model-dropdown" class="dropdown hidden">
-    <div class="dropdown-header">Select Model</div>
-    <div class="dropdown-section-label">Free</div>
-    <div class="dropdown-item" data-model="cybermindcli">
-      <span class="dropdown-item-icon">&#9889;</span>
-      <div><div class="dropdown-item-name">CyberMind Free</div><div class="dropdown-item-desc">Fast, free model</div></div>
-      <span class="tier-badge tier-free">FREE</span>
-    </div>
-    <div class="dropdown-divider"></div>
-    <div class="dropdown-section-label">Pro</div>
-    <div class="dropdown-item" data-model="pro-standard">
-      <span class="dropdown-item-icon">&#128640;</span>
-      <div><div class="dropdown-item-name">Pro Standard</div><div class="dropdown-item-desc">Enhanced reasoning</div></div>
-      <span class="tier-badge tier-pro">PRO</span>
-    </div>
-    <div class="dropdown-item" data-model="pro-fast">
-      <span class="dropdown-item-icon">&#9889;</span>
-      <div><div class="dropdown-item-name">Pro Fast</div><div class="dropdown-item-desc">Optimized for speed</div></div>
-      <span class="tier-badge tier-pro">PRO</span>
-    </div>
-    <div class="dropdown-divider"></div>
-    <div class="dropdown-section-label">Elite</div>
-    <div class="dropdown-item" data-model="elite-claude">
-      <span class="dropdown-item-icon">&#11088;</span>
-      <div><div class="dropdown-item-name">Elite (Claude 3.7)</div><div class="dropdown-item-desc">AWS Bedrock · max capability</div></div>
-      <span class="tier-badge tier-elite">ELITE</span>
-    </div>
+  <!-- Model dropdown -->
+  <div id="model-dd" class="dropdown hidden">
+    <div class="dd-header">Select Model</div>
+    <div class="dd-section">Free</div>
+    <div class="dd-item" data-model="cybermindcli"><span class="dd-item-icon">⚡</span><div><div class="dd-item-name">CyberMind Free</div><div class="dd-item-desc">cybermindcli · HuggingFace</div></div><span class="tier-badge tier-free">FREE</span></div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">Groq (Fast)</div>
+    <div class="dd-item" data-model="groq-llama-3.3-70b"><span class="dd-item-icon">🚀</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">Groq · 500 tok/s</div></div><span class="tier-badge tier-pro">PRO</span></div>
+    <div class="dd-item" data-model="groq-kimi-k2"><span class="dd-item-icon">🧠</span><div><div class="dd-item-name">Kimi K2</div><div class="dd-item-desc">Groq · 1T MoE</div></div><span class="tier-badge tier-pro">PRO</span></div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">Cerebras (Ultra-fast)</div>
+    <div class="dd-item" data-model="cerebras-llama3.3-70b"><span class="dd-item-icon">⚡</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">Cerebras · 2000 tok/s</div></div><span class="tier-badge tier-pro">PRO</span></div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">NVIDIA NIM</div>
+    <div class="dd-item" data-model="nv-kimi-k2-thinking"><span class="dd-item-icon">🔬</span><div><div class="dd-item-name">Kimi K2 Thinking</div><div class="dd-item-desc">NVIDIA · 256K context</div></div><span class="tier-badge tier-pro">PRO</span></div>
+    <div class="dd-item" data-model="nv-minimax-m2.7"><span class="dd-item-icon">🏗️</span><div><div class="dd-item-name">MiniMax M2.7</div><div class="dd-item-desc">NVIDIA · 230B agentic</div></div><span class="tier-badge tier-pro">PRO</span></div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">OpenRouter Free</div>
+    <div class="dd-item" data-model="or-llama-3.3-70b"><span class="dd-item-icon">🦙</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">OpenRouter · free</div></div><span class="tier-badge tier-free">FREE</span></div>
+    <div class="dd-item" data-model="or-qwen3-coder"><span class="dd-item-icon">💻</span><div><div class="dd-item-name">Qwen3 Coder</div><div class="dd-item-desc">OpenRouter · free</div></div><span class="tier-badge tier-free">FREE</span></div>
+    <div class="dd-divider"></div>
+    <div class="dd-section">Elite (Bedrock)</div>
+    <div class="dd-item" data-model="elite-claude-3-7"><span class="dd-item-icon">⭐</span><div><div class="dd-item-name">Claude 3.7 Sonnet</div><div class="dd-item-desc">AWS Bedrock · best</div></div><span class="tier-badge tier-elite">ELITE</span></div>
+    <div class="dd-item" data-model="elite-nova-pro"><span class="dd-item-icon">🌟</span><div><div class="dd-item-name">Amazon Nova Pro</div><div class="dd-item-desc">AWS Bedrock · multimodal</div></div><span class="tier-badge tier-elite">ELITE</span></div>
   </div>
 
-  <!-- At-mention Dropdown -->
-  <div id="at-mention-dropdown" class="dropdown hidden">
-    <div class="dropdown-search"><input type="text" id="at-mention-search" placeholder="Search files..."></div>
-    <div id="at-mention-list"></div>
+  <!-- At-mention dropdown -->
+  <div id="at-dd" class="dropdown hidden">
+    <div class="dd-search"><input type="text" id="at-search" placeholder="Search files..."></div>
+    <div id="at-list"></div>
   </div>
 
-  <!-- Slash Command Dropdown -->
-  <div id="slash-command-dropdown" class="dropdown hidden">
-    <div class="dropdown-header">Select Agent</div>
-    <div id="slash-command-list"></div>
+  <!-- Slash command dropdown -->
+  <div id="slash-dd" class="dropdown hidden">
+    <div class="dd-header">Commands</div>
+    <div id="slash-list"></div>
   </div>
 
-  <!-- Conversation Area -->
-  <main class="conversation-area" id="conversation">
-    <div id="agent-cards" class="agent-cards">
-      <div class="agent-card" data-agent="security"><div class="agent-card-icon">&#128274;</div><div class="agent-card-name">Security</div><div class="agent-card-desc">OWASP scanning &amp; secrets detection</div></div>
-      <div class="agent-card" data-agent="code"><div class="agent-card-icon">&lt;/&gt;</div><div class="agent-card-name">Code</div><div class="agent-card-desc">Multi-file generation &amp; editing</div></div>
-      <div class="agent-card" data-agent="unit-test"><div class="agent-card-icon">&#129514;</div><div class="agent-card-name">Unit Test</div><div class="agent-card-desc">Generate test files</div></div>
-      <div class="agent-card" data-agent="bug-fix"><div class="agent-card-icon">&#128027;</div><div class="agent-card-name">Bug Fix</div><div class="agent-card-desc">Identify &amp; fix bugs</div></div>
-      <div class="agent-card" data-agent="explain"><div class="agent-card-icon">&#128161;</div><div class="agent-card-name">Explain</div><div class="agent-card-desc">Plain language explanation</div></div>
-      <div class="agent-card" data-agent="refactor"><div class="agent-card-icon">&#9851;</div><div class="agent-card-name">Refactor</div><div class="agent-card-desc">Improve without changing behavior</div></div>
-      <div class="agent-card" data-agent="docs"><div class="agent-card-icon">&#128221;</div><div class="agent-card-name">Docs</div><div class="agent-card-desc">Generate JSDoc/TSDoc</div></div>
-    </div>
-    <div id="messages" class="messages"></div>
-    <div id="typing-indicator" class="typing-indicator hidden"><span></span><span></span><span></span></div>
+  <!-- Conversation -->
+  <main class="conversation" id="conversation">
+    <!-- Agent cards shown on new chat -->
+    <div id="agent-cards" class="agent-grid"></div>
+    <div id="messages"></div>
+    <div id="typing" class="typing hidden"><span></span><span></span><span></span></div>
   </main>
 
-  <!-- Dangerous Command Dialog -->
+  <!-- Danger dialog -->
   <div id="danger-dialog" class="danger-dialog">
-    <div class="danger-dialog-title">&#9888; Dangerous Command Detected</div>
-    <div class="danger-dialog-command" id="danger-command-text"></div>
-    <div class="danger-dialog-buttons">
-      <button class="btn-run-anyway" id="btn-run-anyway">Run Anyway</button>
+    <div class="danger-title">⚠️ Dangerous Command</div>
+    <div class="danger-cmd" id="danger-cmd-text"></div>
+    <div class="danger-btns">
+      <button class="btn-run" id="btn-run-anyway">Run Anyway</button>
       <button class="btn-cancel-cmd" id="btn-cancel-cmd">Cancel</button>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="chat-footer">
-    <div class="selectors-row">
-      <button class="selector-btn" id="btn-agent-selector">&#128274; Security &#9660;</button>
-      <button class="selector-btn" id="btn-model-selector">&#9889; cybermindcli &#9660;</button>
+    <div class="selectors">
+      <button class="selector active" id="btn-agent-sel">🔒 Security ▾</button>
+      <button class="selector" id="btn-model-sel">⚡ CyberMind ▾</button>
     </div>
     <div class="input-row">
-      <textarea id="chat-input" placeholder="Ask anything... /build app | /plan task | /image prompt | /debug error | @file" rows="1"></textarea>
-      <div class="input-actions">
-        <button class="btn-input-action" id="btn-at-mention" title="Attach file">@</button>
-        <button class="btn-input-action" id="btn-slash-cmd" title="Select agent">/</button>
-        <button class="btn-send" id="btn-send">Send</button>
+      <textarea id="chat-input" placeholder="/plan task · /build app · /image prompt · /debug error · @file · /test · /review" rows="1"></textarea>
+      <div class="input-btns">
+        <button class="input-action" id="btn-at" title="Attach file">@</button>
+        <button class="input-action" id="btn-slash" title="Commands">/</button>
+        <button class="send-btn" id="btn-send">Send</button>
       </div>
     </div>
   </footer>
 </div>
 
-<!-- Toast notification -->
+<!-- Toast -->
 <div id="toast" class="toast"></div>
+
 <script nonce="{{NONCE}}">
-(function() {
-  'use strict';
-  const vscode = acquireVsCodeApi();
-
-  // State
-  let currentAgent = 'security';
-  let currentModel = 'cybermindcli';
-  let currentMessageId = null;
-  let isStreaming = false;
-  let streamingEl = null;
-  let attachments = [];
-  let atMentionQuery = '';
-  let pendingDangerCommandId = null;
-  let agents = [];
-
-  const AGENT_ICONS = {
-    security: '\uD83D\uDD12', code: '<\/>', 'unit-test': '\uD83E\uDDEA', 'bug-fix': '\uD83D\uDC1B',
-    explain: '\uD83D\uDCA1', refactor: '\u267B\uFE0F', docs: '\uD83D\uDCDD'
-  };
-
-  // --- Screen navigation ---
-  function showScreen(name) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-    const el = document.getElementById('screen-' + name);
-    if (el) el.classList.remove('hidden');
-  }
-
-  // --- Toast ---
-  function showToast(msg, type) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast visible' + (type ? ' ' + type : '');
-    setTimeout(() => { t.className = 'toast'; }, 3000);
-  }
-
-  // --- Close all dropdowns ---
-  function closeAllDropdowns() {
-    document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
-  }
-
-  // --- Toggle dropdown ---
-  function toggleDropdown(id) {
-    const el = document.getElementById(id);
-    const wasHidden = el.classList.contains('hidden');
-    closeAllDropdowns();
-    if (wasHidden) el.classList.remove('hidden');
-  }
-
-  // --- Format timestamp ---
-  function formatTime(ts) {
-    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  // --- Escape HTML ---
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // --- Render markdown-ish content ---
-  function renderContent(text) {
-    let html = escHtml(text);
-    // Code blocks
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
-      const id = 'cb-' + Math.random().toString(36).slice(2);
-      const fp = extractFilePath(code);
-      return '<div class="code-block" data-id="' + id + '" data-fp="' + escHtml(fp) + '">' +
-        '<div class="code-block-header">' +
-        '<span class="code-lang">' + escHtml(lang || 'code') + '</span>' +
-        '<div class="code-actions">' +
-        '<button class="btn-copy" onclick="copyCode(this)">Copy</button>' +
-        '<button class="btn-apply" onclick="applyCode(this)">Apply</button>' +
-        '<button class="btn-reject" onclick="rejectCode(this)">Reject</button>' +
-        '</div></div>' +
-        '<pre><code>' + code + '</code></pre></div>';
-    });
-    // Inline code
-    html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
-    // Bold
-    html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-    // Italic
-    html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
-    // Paragraphs
-    html = '<p>' + html.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
-    html = html.replace(/<p>\s*<\/p>/g, '');
-    return html;
-  }
-
-  function extractFilePath(code) {
-    const m = code.match(/^\/\/\s*(.+\.\w+)/);
-    return m ? m[1].trim() : '';
-  }
-
-  // --- Append token to streaming message ---
-  function appendToken(token) {
-    if (!streamingEl) {
-      const msgId = 'msg-' + Date.now();
-      currentMessageId = msgId;
-      const agentName = getAgentName(currentAgent);
-      const div = document.createElement('div');
-      div.className = 'message ai-message';
-      div.id = msgId;
-      div.innerHTML = '<div class="message-agent-label">' + escHtml(agentName) + '</div>' +
-        '<div class="message-content" id="' + msgId + '-content"></div>' +
-        '<div class="message-meta" id="' + msgId + '-meta">' + formatTime(Date.now()) + '</div>';
-      document.getElementById('messages').appendChild(div);
-      streamingEl = document.getElementById(msgId + '-content');
-      hideAgentCards();
-      document.getElementById('typing-indicator').classList.add('hidden');
-    }
-    if (streamingEl) {
-      streamingEl._rawText = (streamingEl._rawText || '') + token;
-      streamingEl.innerHTML = renderContent(streamingEl._rawText);
-      scrollToBottom();
-    }
-  }
-
-  function getAgentName(id) {
-    const a = agents.find(x => x.id === id);
-    return a ? a.name : id;
-  }
-
-  function hideAgentCards() {
-    const cards = document.getElementById('agent-cards');
-    if (cards) cards.style.display = 'none';
-  }
-
-  function scrollToBottom() {
-    const conv = document.getElementById('conversation');
-    conv.scrollTop = conv.scrollHeight;
-  }
-
-  // --- Add user message bubble ---
-  function addUserMessage(text) {
-    hideAgentCards();
-    const div = document.createElement('div');
-    div.className = 'message user-message';
-    div.innerHTML = '<div class="message-content">' + escHtml(text) + '</div>' +
-      '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
-    document.getElementById('messages').appendChild(div);
-    scrollToBottom();
-  }
-
-  // --- Send message ---
-  function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const text = input.value.trim();
-    if (!text || isStreaming) return;
-
-    closeAllDropdowns();
-    addUserMessage(text);
-    input.value = '';
-    input.style.height = 'auto';
-
-    isStreaming = true;
-    streamingEl = null;
-    document.getElementById('typing-indicator').classList.remove('hidden');
-    document.getElementById('btn-send').disabled = true;
-    scrollToBottom();
-
-    vscode.postMessage({
-      type: 'sendMessage',
-      text,
-      agent: currentAgent,
-      model: currentModel,
-      attachments: [...attachments],
-    });
-    attachments = [];
-  }
-
-  // --- Copy code ---
-  window.copyCode = function(btn) {
-    const pre = btn.closest('.code-block').querySelector('pre code');
-    if (pre) {
-      navigator.clipboard.writeText(pre.textContent || '').then(() => {
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-      });
-    }
-  };
-
-  // --- Apply code ---
-  window.applyCode = function(btn) {
-    const block = btn.closest('.code-block');
-    const filePath = block.dataset.fp || '';
-    const code = block.querySelector('pre code')?.textContent || '';
-    const msgId = currentMessageId || '';
-    vscode.postMessage({ type: 'applyEdit', messageId: msgId, filePath, newContent: code });
-    btn.textContent = 'Applied';
-    btn.classList.add('applied');
-    btn.disabled = true;
-  };
-
-  // --- Reject code ---
-  window.rejectCode = function(btn) {
-    const block = btn.closest('.code-block');
-    const msgId = currentMessageId || '';
-    vscode.postMessage({ type: 'rejectEdit', messageId: msgId });
-    btn.textContent = 'Rejected';
-    btn.classList.add('rejected');
-    btn.disabled = true;
-    const applyBtn = block.querySelector('.btn-apply');
-    if (applyBtn) { applyBtn.disabled = true; applyBtn.style.opacity = '0.4'; }
-  };
-
-  // --- Render sessions ---
-  function renderSessions(sessions) {
-    const list = document.getElementById('sessions-list');
-    if (!sessions || sessions.length === 0) {
-      list.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted)">No recent chats</div>';
-      return;
-    }
-    list.innerHTML = sessions.map(s =>
-      '<div class="dropdown-item" onclick="loadSession(\'' + escHtml(s.id) + '\')">' +
-      '<div><div class="dropdown-item-name">' + escHtml(s.title || 'Untitled') + '</div>' +
-      '<div class="dropdown-item-desc">' + escHtml(s.agentId) + ' · ' + new Date(s.timestamp).toLocaleDateString() + '</div></div>' +
-      '</div>'
-    ).join('');
-  }
-
-  window.loadSession = function(id) {
-    closeAllDropdowns();
-    vscode.postMessage({ type: 'loadSession', sessionId: id });
-  };
-
-  // --- Render agents in dropdown ---
-  function renderAgentDropdown(agentList) {
-    agents = agentList;
-    const builtIn = agentList.filter(a => !a.isCustom);
-    const custom = agentList.filter(a => a.isCustom);
-
-    const list = document.getElementById('agent-list');
-    list.innerHTML = builtIn.map(a =>
-      '<div class="dropdown-item' + (a.id === currentAgent ? ' active' : '') + '" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
-      '<span class="dropdown-item-icon">' + escHtml(a.icon) + '</span>' +
-      '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
-      '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
-      '</div>'
-    ).join('');
-
-    const customList = document.getElementById('custom-agent-list');
-    if (custom.length === 0) {
-      customList.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted);font-size:11px">No custom agents</div>';
-    } else {
-      customList.innerHTML = custom.map(a =>
-        '<div class="dropdown-item' + (a.id === currentAgent ? ' active' : '') + '" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
-        '<span class="dropdown-item-icon">' + escHtml(a.icon || '🤖') + '</span>' +
-        '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
-        '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
-        '</div>'
-      ).join('');
-    }
-
-    // Also populate slash command list
-    const slashList = document.getElementById('slash-command-list');
-    slashList.innerHTML = agentList.map(a =>
-      '<div class="dropdown-item" onclick="selectAgent(\'' + escHtml(a.id) + '\')">' +
-      '<span class="dropdown-item-icon">' + escHtml(a.icon || '🤖') + '</span>' +
-      '<div><div class="dropdown-item-name">' + escHtml(a.name) + '</div>' +
-      '<div class="dropdown-item-desc">' + escHtml(a.description) + '</div></div>' +
-      '</div>'
-    ).join('');
-  }
-
-  window.selectAgent = function(id) {
-    currentAgent = id;
-    closeAllDropdowns();
-    const agent = agents.find(a => a.id === id);
-    const icon = agent ? agent.icon : '';
-    const name = agent ? agent.name : id;
-    document.getElementById('btn-agent-selector').textContent = icon + ' ' + name + ' \u25BE';
-    vscode.postMessage({ type: 'switchAgent', agentId: id });
-  };
-
-  // --- Render at-mention results ---
-  function renderAtMentionResults(files) {
-    const list = document.getElementById('at-mention-list');
-    if (!files || files.length === 0) {
-      list.innerHTML = '<div class="dropdown-item" style="color:var(--text-muted)">No files found</div>';
-      return;
-    }
-    list.innerHTML = files.map(f =>
-      '<div class="dropdown-item" onclick="insertAtMention(\'' + escHtml(f) + '\')">' +
-      '<span class="dropdown-item-icon">📄</span>' +
-      '<div class="dropdown-item-name">' + escHtml(f) + '</div>' +
-      '</div>'
-    ).join('');
-  }
-
-  window.insertAtMention = function(filePath) {
-    const input = document.getElementById('chat-input');
-    const val = input.value;
-    const atIdx = val.lastIndexOf('@');
-    if (atIdx >= 0) {
-      input.value = val.slice(0, atIdx) + '@' + filePath + ' ';
-    } else {
-      input.value += '@' + filePath + ' ';
-    }
-    attachments.push(filePath);
-    closeAllDropdowns();
-    input.focus();
-  };
-
-  // --- Load session into UI ---
-  function loadSessionIntoUI(session) {
-    currentAgent = session.agentId || 'code';
-    currentModel = session.modelId || 'cybermindcli';
-
-    // Update selectors
-    const agent = agents.find(a => a.id === currentAgent);
-    if (agent) {
-      document.getElementById('btn-agent-selector').innerHTML = agent.icon + ' ' + agent.name + ' ▾';
-    }
-    document.getElementById('btn-model-selector').textContent = currentModel + ' ▾';
-
-    // Clear messages
-    const msgs = document.getElementById('messages');
-    msgs.innerHTML = '';
-    hideAgentCards();
-
-    // Render messages
-    for (const msg of session.messages || []) {
-      if (msg.role === 'user') {
-        const div = document.createElement('div');
-        div.className = 'message user-message';
-        div.innerHTML = '<div class="message-content">' + escHtml(msg.content) + '</div>' +
-          '<div class="message-meta">' + formatTime(msg.timestamp) + '</div>';
-        msgs.appendChild(div);
-      } else {
-        const agentName = getAgentName(msg.agentId || currentAgent);
-        const div = document.createElement('div');
-        div.className = 'message ai-message';
-        div.innerHTML = '<div class="message-agent-label">' + escHtml(agentName) + '</div>' +
-          '<div class="message-content">' + renderContent(msg.content) + '</div>' +
-          '<div class="message-meta">' + formatTime(msg.timestamp) + '</div>';
-        msgs.appendChild(div);
-      }
-    }
-    scrollToBottom();
-  }
-
-  // --- Dangerous command dialog ---
-  function showDangerDialog(commandId, command) {
-    pendingDangerCommandId = commandId;
-    document.getElementById('danger-command-text').textContent = command;
-    document.getElementById('danger-dialog').classList.add('visible');
-  }
-
-  document.getElementById('btn-run-anyway').addEventListener('click', function() {
-    if (pendingDangerCommandId) {
-      vscode.postMessage({ type: 'confirmDangerousCommand', commandId: pendingDangerCommandId, confirmed: true });
-      pendingDangerCommandId = null;
-    }
-    document.getElementById('danger-dialog').classList.remove('visible');
-  });
-
-  document.getElementById('btn-cancel-cmd').addEventListener('click', function() {
-    if (pendingDangerCommandId) {
-      vscode.postMessage({ type: 'confirmDangerousCommand', commandId: pendingDangerCommandId, confirmed: false });
-      pendingDangerCommandId = null;
-    }
-    document.getElementById('danger-dialog').classList.remove('visible');
-  });
-
-  // --- Event listeners ---
-
-  // Send button
-  document.getElementById('btn-send').addEventListener('click', sendMessage);
-
-  // Chat input keyboard
-  document.getElementById('chat-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    } else if (e.key === 'Escape') {
-      closeAllDropdowns();
-    }
-  });
-
-  // Auto-resize textarea
-  document.getElementById('chat-input').addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-
-    // At-mention detection
-    const val = this.value;
-    const atIdx = val.lastIndexOf('@');
-    if (atIdx >= 0 && atIdx === val.length - 1 - (val.length - 1 - atIdx)) {
-      const query = val.slice(atIdx + 1);
-      if (!query.includes(' ')) {
-        atMentionQuery = query;
-        vscode.postMessage({ type: 'atMentionQuery', query });
-        document.getElementById('at-mention-dropdown').classList.remove('hidden');
-        document.getElementById('at-mention-search').value = query;
-      }
-    }
-
-    // Slash command detection
-    const slashIdx = val.lastIndexOf('/');
-    if (slashIdx >= 0 && slashIdx === val.length - 1) {
-      document.getElementById('slash-command-dropdown').classList.remove('hidden');
-    }
-  });
-
-  // At-mention search input
-  document.getElementById('at-mention-search').addEventListener('input', function() {
-    vscode.postMessage({ type: 'atMentionQuery', query: this.value });
-  });
-
-  // Agent search
-  document.getElementById('agent-search').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('#agent-list .dropdown-item, #custom-agent-list .dropdown-item').forEach(item => {
-      const name = item.querySelector('.dropdown-item-name')?.textContent?.toLowerCase() || '';
-      item.style.display = name.includes(q) ? '' : 'none';
-    });
-  });
-
-  // Header buttons
-  document.getElementById('btn-all-chats').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleDropdown('sessions-dropdown');
-  });
-
-  document.getElementById('btn-new-chat').addEventListener('click', function() {
-    closeAllDropdowns();
-    vscode.postMessage({ type: 'newChat' });
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('agent-cards').style.display = '';
-    streamingEl = null;
-    isStreaming = false;
-    document.getElementById('btn-send').disabled = false;
-    document.getElementById('typing-indicator').classList.add('hidden');
-  });
-
-  document.getElementById('btn-dot-menu').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleDropdown('dot-menu');
-  });
-
-  // Dot menu items — fully implemented
-  document.querySelectorAll('.dot-menu-item').forEach(function(item) {
-    item.addEventListener('click', function() {
-      const action = this.dataset.action;
-      closeAllDropdowns();
-      switch (action) {
-        case 'logout':
-          vscode.postMessage({ type: 'logout' });
-          break;
-        case 'settings':
-          vscode.postMessage({ type: 'openSettings' });
-          break;
-        case 'agents':
-          // Open agent dropdown in the chat footer
-          toggleDropdown('agent-dropdown');
-          break;
-        case 'custom-api-keys':
-          vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
-          break;
-        case 'instructions':
-          showInstructionsDialog();
-          break;
-        case 'shortcuts':
-          showShortcutsDialog();
-          break;
-        case 'skills':
-        case 'tools':
-        case 'integrations':
-          vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/extensions/guide' });
-          break;
-        default:
-          break;
-      }
-    });
-  });
-
-  // Instructions dialog
-  function showInstructionsDialog() {
-    const existing = document.getElementById('instructions-dialog');
-    if (existing) { existing.remove(); return; }
-    const dialog = document.createElement('div');
-    dialog.id = 'instructions-dialog';
-    dialog.style.cssText = 'position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px;z-index:200';
-    dialog.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Instructions for AI</div>' +
-      '<textarea id="instructions-text" style="width:100%;height:80px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;padding:8px;resize:none;outline:none" placeholder="Add custom instructions for all conversations..."></textarea>' +
-      '<div style="display:flex;gap:8px;margin-top:8px">' +
-      '<button onclick="saveInstructions()" style="flex:1;padding:7px;background:var(--accent);color:#000;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer">Save</button>' +
-      '<button onclick="document.getElementById(\'instructions-dialog\').remove()" style="flex:1;padding:7px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>' +
-      '</div>';
-    document.getElementById('screen-chat').appendChild(dialog);
-  }
-
-  window.saveInstructions = function() {
-    const text = document.getElementById('instructions-text')?.value || '';
-    vscode.postMessage({ type: 'saveInstructions', instructions: text });
-    document.getElementById('instructions-dialog')?.remove();
-    showToast('Instructions saved', 'success');
-  };
-
-  // Shortcuts dialog
-  function showShortcutsDialog() {
-    const existing = document.getElementById('shortcuts-dialog');
-    if (existing) { existing.remove(); return; }
-    const dialog = document.createElement('div');
-    dialog.id = 'shortcuts-dialog';
-    dialog.style.cssText = 'position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:14px;z-index:200';
-    const shortcuts = [
-      ['Ctrl+Shift+C', 'Open Chat'],
-      ['Ctrl+Shift+S', 'Scan File'],
-      ['Ctrl+Shift+Z', 'Undo AI Change'],
-      ['Tab', 'Accept Completion'],
-      ['Enter', 'Send Message'],
-      ['Shift+Enter', 'New Line'],
-      ['@filename', 'Attach File'],
-      ['/agent', 'Switch Agent'],
-    ];
-    dialog.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
-      '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">Keyboard Shortcuts</span>' +
-      '<button onclick="document.getElementById(\'shortcuts-dialog\').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">&times;</button>' +
-      '</div>' +
-      shortcuts.map(([k, v]) =>
-        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">' +
-        '<span style="color:var(--text-secondary)">' + v + '</span>' +
-        '<code style="background:var(--bg-input);border:1px solid var(--border);border-radius:3px;padding:1px 6px;color:var(--accent);font-size:11px">' + k + '</code>' +
-        '</div>'
-      ).join('') +
-      '<button onclick="document.getElementById(\'shortcuts-dialog\').remove()" style="width:100%;margin-top:10px;padding:7px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:5px;font-size:12px;cursor:pointer">Close</button>';
-    document.getElementById('screen-chat').appendChild(dialog);
-  }
-
-  // Agent selector
-  document.getElementById('btn-agent-selector').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleDropdown('agent-dropdown');
-  });
-
-  // Model selector
-  document.getElementById('btn-model-selector').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleDropdown('model-dropdown');
-  });
-
-  // Model dropdown items
-  document.querySelectorAll('#model-dropdown .dropdown-item').forEach(function(item) {
-    item.addEventListener('click', function() {
-      const modelId = this.dataset.model;
-      currentModel = modelId;
-      closeAllDropdowns();
-      const name = this.querySelector('.dropdown-item-name')?.textContent || modelId;
-      document.getElementById('btn-model-selector').textContent = name + ' ▾';
-      vscode.postMessage({ type: 'switchModel', modelId });
-    });
-  });
-
-  // At-mention button
-  document.getElementById('btn-at-mention').addEventListener('click', function(e) {
-    e.stopPropagation();
-    const input = document.getElementById('chat-input');
-    input.value += '@';
-    input.focus();
-    vscode.postMessage({ type: 'atMentionQuery', query: '' });
-    document.getElementById('at-mention-dropdown').classList.remove('hidden');
-  });
-
-  // Slash command button
-  document.getElementById('btn-slash-cmd').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleDropdown('slash-command-dropdown');
-  });
-
-  // Agent cards — work immediately with hardcoded data, update when agentList arrives
-  const BUILTIN_AGENTS = {
-    'security': { name: 'Security', icon: '\uD83D\uDD12' },
-    'code':     { name: 'Code',     icon: '</>' },
-    'unit-test':{ name: 'Unit Test',icon: '\uD83E\uDDEA' },
-    'bug-fix':  { name: 'Bug Fix',  icon: '\uD83D\uDC1B' },
-    'explain':  { name: 'Explain',  icon: '\uD83D\uDCA1' },
-    'refactor': { name: 'Refactor', icon: '\u267B\uFE0F' },
-    'docs':     { name: 'Docs',     icon: '\uD83D\uDCDD' },
-  };
-
-  document.querySelectorAll('.agent-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const agentId = this.dataset.agent;
-      // Use builtin data if agents array not yet populated
-      if (agents.length === 0) {
-        const builtin = BUILTIN_AGENTS[agentId];
-        if (builtin) {
-          currentAgent = agentId;
-          document.getElementById('btn-agent-selector').textContent = builtin.icon + ' ' + builtin.name + ' \u25BE';
-          vscode.postMessage({ type: 'switchAgent', agentId });
-        }
-      } else {
-        selectAgent(agentId);
-      }
-      // Visual feedback — highlight selected card
-      document.querySelectorAll('.agent-card').forEach(c => c.style.borderColor = '');
-      this.style.borderColor = 'var(--accent)';
-      document.getElementById('chat-input').focus();
-    });
-  });
-
-  // Welcome screen buttons
-  document.getElementById('btn-web-signin').addEventListener('click', function() {
-    // Open browser OAuth flow — extension handles the vscode:// URI callback
-    vscode.postMessage({ type: 'webSignIn' });
-    showToast('Opening browser for sign-in...', '');
-  });
-
-  document.getElementById('btn-goto-apikey').addEventListener('click', function() {
-    showScreen('signin');
-  });
-
-  document.getElementById('btn-continue-free').addEventListener('click', function() {
-    showScreen('chat');
-    vscode.postMessage({ type: 'continueAsFree' });
-  });
-
-  // API key screen
-  document.getElementById('btn-back-from-signin').addEventListener('click', function() {
-    showScreen('welcome');
-  });
-
-  document.getElementById('btn-apikey-submit').addEventListener('click', function() {
-    const apiKey = document.getElementById('signin-apikey').value.trim();
-    const errEl = document.getElementById('signin-error');
-    if (!apiKey) {
-      errEl.textContent = 'Please enter your API key.';
-      errEl.classList.add('visible');
-      return;
-    }
-    errEl.classList.remove('visible');
-    this.disabled = true;
-    this.textContent = 'Connecting...';
-    vscode.postMessage({ type: 'signInWithApiKey', apiKey });
-  });
-
-  document.getElementById('btn-web-signin-from-apikey').addEventListener('click', function() {
-    vscode.postMessage({ type: 'webSignIn' });
-    showToast('Opening browser for sign-in...', '');
-  });
-
-  document.getElementById('link-get-key').addEventListener('click', function() {
-    vscode.postMessage({ type: 'openExternal', url: 'https://cybermindcli1.vercel.app/dashboard/api-keys' });
-  });
-
-  // Architecture build actions
-  window.buildAll = function() {
-    const bar = document.getElementById('arch-action-bar');
-    if (bar) bar.remove();
-    const input = document.getElementById('chat-input');
-    input.value = 'build all';
-    sendMessage();
-  };
-
-  window.buildPriority = function() {
-    const bar = document.getElementById('arch-action-bar');
-    if (bar) bar.remove();
-    const input = document.getElementById('chat-input');
-    input.value = 'build priority';
-    sendMessage();
-  };
-
-  window.cancelBuild = function() {
-    const bar = document.getElementById('arch-action-bar');
-    if (bar) bar.remove();
-    const input = document.getElementById('chat-input');
-    input.value = 'cancel';
-    sendMessage();
-  };
-
-  // Plan mode actions
-  window.approvePlan = function() {
-    const bar = document.getElementById('plan-action-bar');
-    if (bar) bar.remove();
-    const input = document.getElementById('chat-input');
-    input.value = 'execute';
-    sendMessage();
-  };
-
-  window.rejectPlan = function() {
-    const bar = document.getElementById('plan-action-bar');
-    if (bar) bar.remove();
-    const input = document.getElementById('chat-input');
-    input.value = 'cancel';
-    sendMessage();
-  };
-
-  // Close dropdowns on outside click
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.dropdown') && !e.target.closest('[id^="btn-"]')) {
-      closeAllDropdowns();
-    }
-  });
-
-  // Escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeAllDropdowns();
-  });
-
-  // --- Message handler from extension host ---
-  window.addEventListener('message', function(event) {
-    const msg = event.data;
-    switch (msg.type) {
-      case 'showScreen':
-        showScreen(msg.screen);
-        break;
-
-      case 'authState':
-        // Only redirect to welcome on explicit logout (no plan means full sign-out)
-        // If plan is set, user is on free tier — stay in chat
-        if (!msg.isAuthenticated && !msg.plan) {
-          showScreen('welcome');
-        }
-        break;
-
-      case 'token':
-        if (msg.text) appendToken(msg.text);
-        break;
-
-      case 'done':
-        isStreaming = false;
-        streamingEl = null;
-        document.getElementById('btn-send').disabled = false;
-        document.getElementById('typing-indicator').classList.add('hidden');
-        break;
-
-      case 'error': {
-        isStreaming = false;
-        streamingEl = null;
-        document.getElementById('btn-send').disabled = false;
-        document.getElementById('typing-indicator').classList.add('hidden');
-
-        // Show error in signin screen if present
-        const errEl = document.getElementById('signin-error');
-        if (errEl && !document.getElementById('screen-signin').classList.contains('hidden')) {
-          errEl.textContent = msg.message;
-          errEl.classList.add('visible');
-          // Re-enable submit buttons
-          const submitBtn = document.getElementById('btn-signin-submit');
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Sign In'; }
-          const apikeyBtn = document.getElementById('btn-apikey-submit');
-          if (apikeyBtn) { apikeyBtn.disabled = false; apikeyBtn.textContent = 'Connect with API Key'; }
-        } else {
-          showToast(msg.message, 'error');
-        }
-        break;
-      }
-
-      case 'sessions':
-        renderSessions(msg.sessions);
-        break;
-
-      case 'agentList':
-        renderAgentDropdown(msg.agents);
-        break;
-
-      case 'promptEnhanced': {
-        // Show a subtle indicator that prompt was enhanced
-        showToast('\u2728 Prompt enhanced for better results', 'success');
-        break;
-      }
-
-      case 'insight': {
-        // Show workspace insight as a notification bubble
-        const ins = msg.insight;
-        if (ins && ins.severity === 'error') {
-          showToast('\u26A0\uFE0F ' + ins.message, 'error');
-        }
-        break;
-      }
-
-      case 'currentModel': {
-        if (msg.modelId) {
-          currentModel = msg.modelId;
-          // Find a friendly name for the model
-          const modelNames = {
-            'cybermindcli': 'CyberMind Free',
-            'elite-claude-3-7': 'Claude 3.7',
-            'groq-llama-3.3-70b': 'Llama 3.3 70B',
-            'or-minimax-m2.5': 'MiniMax M2.5',
-            'or-deepseek-chat': 'DeepSeek Chat',
-          };
-          const name = modelNames[msg.modelId] || msg.modelId;
-          document.getElementById('btn-model-selector').textContent = name + ' \u25BE';
-        }
-        break;
-      }
-
-      case 'atMentionResults':
-        renderAtMentionResults(msg.files);
-        break;
-
-      case 'indexStatus':
-        // Could update a status indicator
-        break;
-
-      case 'sessionLoaded':
-        loadSessionIntoUI(msg.session);
-        break;
-
-      case 'welcome': {
-        // Show welcome message in chat when user first signs in
-        const name = msg.name || 'there';
-        const plan = msg.plan || 'free';
-        const planEmoji = plan === 'elite' ? '\u2B50' : plan === 'pro' ? '\uD83D\uDE80' : '\u26A1';
-        const div = document.createElement('div');
-        div.className = 'message ai-message';
-        div.innerHTML = '<div class="message-agent-label">CyberMind</div>' +
-          '<div class="message-content">' +
-          '<strong>Welcome, ' + escHtml(name) + '! ' + planEmoji + '</strong><br><br>' +
-          'You\'re on the <strong>' + escHtml(plan.toUpperCase()) + '</strong> plan.<br><br>' +
-          'Select an agent below and start typing. Use <code>@filename</code> to attach files as context.' +
-          '</div>' +
-          '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
-        document.getElementById('messages').appendChild(div);
-        // DON'T hide agent cards — user needs to select one
-        scrollToBottom();
-        break;
-      }
-
-      case 'dangerousCommandConfirm':
-        showDangerDialog(msg.commandId, msg.command);
-        break;
-
-      case 'scanResults': {
-        const summary = msg.summary;
-        if (summary && summary.total > 0) {
-          const div = document.createElement('div');
-          div.className = 'message ai-message';
-          div.innerHTML = '<div class="message-agent-label">Security Scanner</div>' +
-            '<div class="message-content">' +
-            '<div class="scan-summary">' +
-            '<div class="scan-summary-title">\uD83D\uDD0D Security Scan Complete</div>' +
-            '<div class="scan-counts">' +
-            (summary.critical ? '<span class="scan-count count-critical">' + summary.critical + ' Critical</span>' : '') +
-            (summary.high ? '<span class="scan-count count-high">' + summary.high + ' High</span>' : '') +
-            (summary.medium ? '<span class="scan-count count-medium">' + summary.medium + ' Medium</span>' : '') +
-            (summary.low ? '<span class="scan-count count-low">' + summary.low + ' Low</span>' : '') +
-            (summary.info ? '<span class="scan-count count-info">' + summary.info + ' Info</span>' : '') +
-            '</div></div></div>' +
-            '<div class="message-meta">' + formatTime(Date.now()) + '</div>';
-          document.getElementById('messages').appendChild(div);
-          hideAgentCards();
-          scrollToBottom();
-        }
-        break;
-      }
-
-      case 'architectureReady': {
-        // Show build buttons for architecture
-        const archBar = document.createElement('div');
-        archBar.id = 'arch-action-bar';
-        archBar.style.cssText = 'display:flex;gap:8px;padding:10px 0;margin-top:4px;flex-wrap:wrap';
-        archBar.innerHTML =
-          '<button onclick="buildAll()" style="flex:1;min-width:120px;padding:9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">' +
-          '\u26A1 Build All (' + msg.fileCount + ' files)</button>' +
-          '<button onclick="buildPriority()" style="flex:1;min-width:120px;padding:9px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-size:12px;cursor:pointer">' +
-          '\uD83D\uDD34 Critical Only</button>' +
-          '<button onclick="cancelBuild()" style="padding:9px 14px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;font-size:12px;cursor:pointer">' +
-          '\u2715 Cancel</button>';
-        document.getElementById('messages').appendChild(archBar);
-        scrollToBottom();
-        break;
-      }
-
-      case 'planReady': {
-        // Show approve/reject buttons for the plan
-        const planBar = document.createElement('div');
-        planBar.id = 'plan-action-bar';
-        planBar.style.cssText = 'display:flex;gap:8px;padding:10px 0;margin-top:4px';
-        planBar.innerHTML =
-          '<button onclick="approvePlan()" style="flex:1;padding:9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">' +
-          '\u26A1 Execute Plan</button>' +
-          '<button onclick="rejectPlan()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;font-size:12px;cursor:pointer">' +
-          '\u2715 Cancel</button>';
-        document.getElementById('messages').appendChild(planBar);
-        scrollToBottom();
-        break;
-      }
-
-      case 'planStepUpdate': {
-        // Update step status in the plan display (future enhancement)
-        break;
-      }
-
-      case 'prefillMessage': {
-        const input = document.getElementById('chat-input');
-        input.value = msg.text || '';
-        if (msg.agentId) selectAgent(msg.agentId);
-        input.focus();
-        break;
-      }
-    }
-  });
-
-})();
-</script>
-</body>
-</html>
+(function(){"use strict";const vscode=acquireVsCodeApi();
+let currentAgent="security",currentModel="cybermindcli",isStreaming=false,streamEl=null,attachments=[],agents=[],pendingDangerId=null;
+const SLASH_CMDS=[{cmd:"/plan",desc:"Generate + execute a step-by-step plan"},{cmd:"/build",desc:"Design + build a full-stack project"},{cmd:"/image",desc:"Generate an image with AI"},{cmd:"/debug",desc:"Auto-debug an error"},{cmd:"/fix",desc:"Fix a bug in selected code"},{cmd:"/test",desc:"Generate Playwright tests"},{cmd:"/review",desc:"Code review with security + quality"},{cmd:"/commit",desc:"Generate a git commit message"},{cmd:"/scan",desc:"Security scan the workspace"}];
+function showScreen(n){document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden"));const el=document.getElementById("screen-"+n);if(el)el.classList.remove("hidden");}
+function toast(msg,type){const t=document.getElementById("toast");t.textContent=msg;t.className="toast show"+(type?" "+type:"");setTimeout(()=>{t.className="toast";},3000);}
+function closeAll(){document.querySelectorAll(".dropdown").forEach(d=>d.classList.add("hidden"));}
+function toggleDD(id){const el=document.getElementById(id);const was=el.classList.contains("hidden");closeAll();if(was)el.classList.remove("hidden");}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});}
+function renderMd(text){let h=esc(text);h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{const id="cb-"+Math.random().toString(36).slice(2);return `<div class="code-wrap" data-id="${id}"><div class="code-header"><span class="code-lang">${esc(lang||"code")}</span><div class="code-actions"><button class="code-btn copy" onclick="copyCode(this)">Copy</button><button class="code-btn apply" onclick="applyCode(this)">Apply</button><button class="code-btn reject" onclick="rejectCode(this)">Reject</button></div></div><pre class="code-pre"><code>${code}</code></pre></div>`;});h=h.replace(/`([^`\n]+)`/g,"<code>$1</code>");h=h.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");h=h.replace(/\*([^*\n]+)\*/g,"<em>$1</em>");h="<p>"+h.replace(/\n\n+/g,"</p><p>").replace(/\n/g,"<br>")+"</p>";h=h.replace(/<p>\s*<\/p>/g,"");return h;}
+function scrollBottom(){const c=document.getElementById("conversation");c.scrollTop=c.scrollHeight;}
+function hideCards(){const c=document.getElementById("agent-cards");if(c)c.style.display="none";}
+function appendToken(tok){if(!streamEl){const id="msg-"+Date.now();const agName=agents.find(a=>a.id===currentAgent)?.name||currentAgent;const div=document.createElement("div");div.className="msg ai";div.id=id;div.innerHTML=`<div class="msg-label">${esc(agName)}</div><div class="msg-bubble" id="${id}-b"></div><div class="msg-meta" id="${id}-m">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(div);streamEl=document.getElementById(id+"-b");hideCards();document.getElementById("typing").classList.add("hidden");}if(streamEl){streamEl._raw=(streamEl._raw||"")+tok;streamEl.innerHTML=renderMd(streamEl._raw);scrollBottom();}}
+function addUserMsg(text){hideCards();const div=document.createElement("div");div.className="msg user";div.innerHTML=`<div class="msg-bubble">${esc(text)}</div><div class="msg-meta">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(div);scrollBottom();}
+function sendMsg(){const inp=document.getElementById("chat-input");const text=inp.value.trim();if(!text||isStreaming)return;closeAll();addUserMsg(text);inp.value="";inp.style.height="auto";isStreaming=true;streamEl=null;document.getElementById("typing").classList.remove("hidden");document.getElementById("btn-send").disabled=true;scrollBottom();vscode.postMessage({type:"sendMessage",text,agent:currentAgent,model:currentModel,attachments:[...attachments]});attachments=[];}
+window.copyCode=function(btn){const pre=btn.closest(".code-wrap").querySelector("pre code");if(pre){navigator.clipboard.writeText(pre.textContent||"").then(()=>{btn.textContent="Copied!";setTimeout(()=>{btn.textContent="Copy";},2000);});}};
+window.applyCode=function(btn){const wrap=btn.closest(".code-wrap");const fp=wrap.dataset.fp||"";const code=wrap.querySelector("pre code")?.textContent||"";vscode.postMessage({type:"applyEdit",messageId:currentMsgId||"",filePath:fp,newContent:code});btn.textContent="Applied";btn.classList.add("done");btn.disabled=true;};
+window.rejectCode=function(btn){const wrap=btn.closest(".code-wrap");vscode.postMessage({type:"rejectEdit",messageId:currentMsgId||""});btn.textContent="Rejected";btn.disabled=true;const ab=wrap.querySelector(".apply");if(ab){ab.disabled=true;ab.style.opacity=".4";}};
+let currentMsgId=null;
+function renderAgents(list){agents=list;const bi=list.filter(a=>!a.isCustom),cu=list.filter(a=>a.isCustom);const al=document.getElementById("agent-list");al.innerHTML=bi.map(a=>`<div class="dd-item${a.id===currentAgent?" active":""}" onclick="selAgent(${JSON.stringify(a.id)})"><span class="dd-item-icon">${esc(a.icon)}</span><div><div class="dd-item-name">${esc(a.name)}</div><div class="dd-item-desc">${esc(a.description)}</div></div></div>`).join("");const cl=document.getElementById("custom-agent-list");cl.innerHTML=cu.length===0?`<div class="dd-item" style="color:var(--text3);font-size:11px">No custom agents</div>`:cu.map(a=>`<div class="dd-item${a.id===currentAgent?" active":""}" onclick="selAgent(${JSON.stringify(a.id)})"><span class="dd-item-icon">${esc(a.icon||"🤖")}</span><div><div class="dd-item-name">${esc(a.name)}</div><div class="dd-item-desc">${esc(a.description)}</div></div></div>`).join("");const sl=document.getElementById("slash-list");sl.innerHTML=SLASH_CMDS.map(c=>`<div class="dd-item" onclick="insertSlash(${JSON.stringify(c.cmd)})"><div><div class="dd-item-name">${esc(c.cmd)}</div><div class="dd-item-desc">${esc(c.desc)}</div></div></div>`).join("");renderAgentCards(list);}
+function renderAgentCards(list){const grid=document.getElementById("agent-cards");grid.innerHTML=list.filter(a=>!a.isCustom).slice(0,8).map(a=>`<div class="agent-card${a.id===currentAgent?" selected":""}" onclick="selAgent(${JSON.stringify(a.id)})"><div class="agent-icon">${esc(a.icon)}</div><div class="agent-name">${esc(a.name)}</div><div class="agent-desc">${esc(a.description)}</div></div>`).join("");}
+window.selAgent=function(id){currentAgent=id;closeAll();const a=agents.find(x=>x.id===id);if(a){document.getElementById("btn-agent-sel").textContent=a.icon+" "+a.name+" ▾";}vscode.postMessage({type:"switchAgent",agentId:id});document.querySelectorAll(".agent-card").forEach(c=>{c.classList.toggle("selected",c.onclick?.toString().includes(JSON.stringify(id)));});document.getElementById("chat-input").focus();};
+window.insertSlash=function(cmd){const inp=document.getElementById("chat-input");inp.value=cmd+" ";closeAll();inp.focus();};
+function renderSessions(sessions){const list=document.getElementById("sessions-list");if(!sessions||sessions.length===0){list.innerHTML=`<div class="dd-item" style="color:var(--text3)">No recent chats</div>`;return;}list.innerHTML=sessions.map(s=>`<div class="dd-item" onclick="loadSess(${JSON.stringify(s.id)})"><div><div class="dd-item-name">${esc(s.title||"Untitled")}</div><div class="dd-item-desc">${esc(s.agentId)} · ${new Date(s.timestamp).toLocaleDateString()}</div></div></div>`).join("");}
+window.loadSess=function(id){closeAll();vscode.postMessage({type:"loadSession",sessionId:id});};
+function renderAtResults(files){const list=document.getElementById("at-list");if(!files||files.length===0){list.innerHTML=`<div class="dd-item" style="color:var(--text3)">No files found</div>`;return;}list.innerHTML=files.map(f=>`<div class="dd-item" onclick="insertAt(${JSON.stringify(f)})"><span class="dd-item-icon">📄</span><div class="dd-item-name">${esc(f)}</div></div>`).join("");}
+window.insertAt=function(fp){const inp=document.getElementById("chat-input");const v=inp.value;const ai=v.lastIndexOf("@");if(ai>=0)inp.value=v.slice(0,ai)+"@"+fp+" ";else inp.value+="@"+fp+" ";attachments.push(fp);closeAll();inp.focus();};
+function loadSessionUI(session){currentAgent=session.agentId||"code";currentModel=session.modelId||"cybermindcli";const msgs=document.getElementById("messages");msgs.innerHTML="";hideCards();for(const m of session.messages||[]){if(m.role==="user"){const d=document.createElement("div");d.className="msg user";d.innerHTML=`<div class="msg-bubble">${esc(m.content)}</div><div class="msg-meta">${fmtTime(m.timestamp)}</div>`;msgs.appendChild(d);}else{const agName=agents.find(a=>a.id===m.agentId)?.name||m.agentId||"AI";const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">${esc(agName)}</div><div class="msg-bubble">${renderMd(m.content)}</div><div class="msg-meta">${fmtTime(m.timestamp)}</div>`;msgs.appendChild(d);}}scrollBottom();}
+function updateBackendStatus(healthy){const dot=document.getElementById("status-dot");const txt=document.getElementById("status-text");const wb=document.getElementById("wake-btn");if(healthy===true){dot.className="dot";txt.textContent="Backend online";wb.classList.add("hidden");}else if(healthy===false){dot.className="dot err";txt.textContent="Backend offline";wb.classList.remove("hidden");}else{dot.className="dot warn";txt.textContent="Checking backend...";wb.classList.add("hidden");}}
+document.getElementById("btn-send").addEventListener("click",sendMsg);
+document.getElementById("chat-input").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}else if(e.key==="Escape")closeAll();});
+document.getElementById("chat-input").addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,120)+"px";const v=this.value;const ai=v.lastIndexOf("@");if(ai>=0&&ai===v.length-1-(v.length-1-ai)){const q=v.slice(ai+1);if(!q.includes(" ")){vscode.postMessage({type:"atMentionQuery",query:q});document.getElementById("at-dd").classList.remove("hidden");}}const si=v.lastIndexOf("/");if(si>=0&&si===v.length-1){document.getElementById("slash-dd").classList.remove("hidden");}});
+document.getElementById("at-search").addEventListener("input",function(){vscode.postMessage({type:"atMentionQuery",query:this.value});});
+document.getElementById("agent-search").addEventListener("input",function(){const q=this.value.toLowerCase();document.querySelectorAll("#agent-list .dd-item,#custom-agent-list .dd-item").forEach(item=>{const n=item.querySelector(".dd-item-name")?.textContent?.toLowerCase()||"";item.style.display=n.includes(q)?"":"none";});});
+document.getElementById("btn-sessions").addEventListener("click",e=>{e.stopPropagation();toggleDD("sessions-dd");});
+document.getElementById("btn-new-chat").addEventListener("click",()=>{closeAll();vscode.postMessage({type:"newChat"});document.getElementById("messages").innerHTML="";document.getElementById("agent-cards").style.display="";streamEl=null;isStreaming=false;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");});
+document.getElementById("btn-dot-menu").addEventListener("click",e=>{e.stopPropagation();toggleDD("dot-menu");});
+document.querySelectorAll(".dot-item").forEach(item=>{item.addEventListener("click",()=>{const a=item.dataset.action;closeAll();switch(a){case"logout":vscode.postMessage({type:"logout"});break;case"settings":vscode.postMessage({type:"openSettings"});break;case"keys":vscode.postMessage({type:"openExternal",url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});break;case"mcp":vscode.postMessage({type:"openMcpConfig"});break;case"shortcuts":showShortcuts();break;case"agents":toggleDD("agent-dd");break;}});});
+function showShortcuts(){toast("Ctrl+Shift+C: Open Chat | Ctrl+Shift+S: Scan | Tab: Accept completion","");} 
+document.getElementById("btn-agent-sel").addEventListener("click",e=>{e.stopPropagation();toggleDD("agent-dd");});
+document.getElementById("btn-model-sel").addEventListener("click",e=>{e.stopPropagation();toggleDD("model-dd");});
+document.querySelectorAll("#model-dd .dd-item").forEach(item=>{item.addEventListener("click",()=>{const m=item.dataset.model;currentModel=m;closeAll();const n=item.querySelector(".dd-item-name")?.textContent||m;document.getElementById("btn-model-sel").textContent=n+" ▾";vscode.postMessage({type:"switchModel",modelId:m});});});
+document.getElementById("btn-at").addEventListener("click",e=>{e.stopPropagation();const inp=document.getElementById("chat-input");inp.value+="@";inp.focus();vscode.postMessage({type:"atMentionQuery",query:""});document.getElementById("at-dd").classList.remove("hidden");});
+document.getElementById("btn-slash").addEventListener("click",e=>{e.stopPropagation();toggleDD("slash-dd");});
+document.getElementById("btn-web-signin").addEventListener("click",()=>{vscode.postMessage({type:"webSignIn"});toast("Opening browser for sign-in...");});
+document.getElementById("btn-goto-apikey").addEventListener("click",()=>showScreen("signin"));
+document.getElementById("btn-continue-free").addEventListener("click",()=>{showScreen("chat");vscode.postMessage({type:"continueAsFree"});});
+document.getElementById("btn-back").addEventListener("click",()=>showScreen("welcome"));
+document.getElementById("btn-apikey-submit").addEventListener("click",()=>{const k=document.getElementById("signin-apikey").value.trim();const e=document.getElementById("signin-error");if(!k){e.textContent="Please enter your API key.";e.classList.add("show");return;}e.classList.remove("show");const btn=document.getElementById("btn-apikey-submit");btn.disabled=true;btn.textContent="Connecting...";vscode.postMessage({type:"signInWithApiKey",apiKey:k});});
+document.getElementById("btn-web-signin2").addEventListener("click",()=>{vscode.postMessage({type:"webSignIn"});toast("Opening browser...");});
+document.getElementById("link-get-key").addEventListener("click",()=>{vscode.postMessage({type:"openExternal",url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});});
+document.getElementById("btn-run-anyway").addEventListener("click",()=>{if(pendingDangerId){vscode.postMessage({type:"confirmDangerousCommand",commandId:pendingDangerId,confirmed:true});pendingDangerId=null;}document.getElementById("danger-dialog").classList.remove("show");});
+document.getElementById("btn-cancel-cmd").addEventListener("click",()=>{if(pendingDangerId){vscode.postMessage({type:"confirmDangerousCommand",commandId:pendingDangerId,confirmed:false});pendingDangerId=null;}document.getElementById("danger-dialog").classList.remove("show");});
+document.getElementById("wake-btn").addEventListener("click",()=>{updateBackendStatus(null);vscode.postMessage({type:"wakeBackend"});});
+document.addEventListener("click",e=>{if(!e.target.closest(".dropdown")&&!e.target.closest("[id^=btn-]")&&!e.target.closest(".icon-btn")&&!e.target.closest(".selector"))closeAll();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
+window.addEventListener("message",event=>{const msg=event.data;switch(msg.type){case"showScreen":showScreen(msg.screen);break;case"authState":if(!msg.isAuthenticated&&!msg.plan)showScreen("welcome");break;case"token":if(msg.text)appendToken(msg.text);break;case"done":isStreaming=false;streamEl=null;currentMsgId=msg.messageId;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");break;case"error":{isStreaming=false;streamEl=null;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");const errEl=document.getElementById("signin-error");if(errEl&&!document.getElementById("screen-signin").classList.contains("hidden")){errEl.textContent=msg.message;errEl.classList.add("show");const sb=document.getElementById("btn-apikey-submit");if(sb){sb.disabled=false;sb.textContent="Connect with API Key";}}else{const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-bubble" style="border-color:rgba(248,81,73,.3);background:rgba(248,81,73,.05);color:var(--error)">⚠️ ${esc(msg.message)}</div>`;document.getElementById("messages").appendChild(d);scrollBottom();}break;}case"sessions":renderSessions(msg.sessions);break;case"agentList":renderAgents(msg.agents);break;case"currentModel":{if(msg.modelId){currentModel=msg.modelId;const item=document.querySelector(`#model-dd .dd-item[data-model="${msg.modelId}"]`);const n=item?.querySelector(".dd-item-name")?.textContent||msg.modelId;document.getElementById("btn-model-sel").textContent=n+" ▾";}break;}case"atMentionResults":renderAtResults(msg.files);break;case"sessionLoaded":loadSessionUI(msg.session);break;case"welcome":{const name=msg.name||"there";const plan=msg.plan||"free";const pi=plan==="elite"?"⭐":plan==="pro"?"🚀":"⚡";const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">CyberMind</div><div class="msg-bubble"><strong>Welcome, ${esc(name)}! ${pi}</strong><br><br>You are on the <strong>${esc(plan.toUpperCase())}</strong> plan.<br><br>Select an agent below or type a message. Use <code>@filename</code> to attach files, <code>/plan</code> to plan tasks, <code>/build</code> to build projects.</div><div class="msg-meta">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(d);scrollBottom();break;}case"dangerousCommandConfirm":pendingDangerId=msg.commandId;document.getElementById("danger-cmd-text").textContent=msg.command;document.getElementById("danger-dialog").classList.add("show");break;case"scanResults":{const s=msg.summary;if(s&&s.total>0){const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">Security Scanner</div><div class="msg-bubble"><div class="scan-box"><div class="scan-title">🔍 Security Scan Complete</div><div class="scan-counts">${s.critical?`<span class="sc sc-crit">${s.critical} Critical</span>`:""} ${s.high?`<span class="sc sc-high">${s.high} High</span>`:""} ${s.medium?`<span class="sc sc-med">${s.medium} Medium</span>`:""} ${s.low?`<span class="sc sc-low">${s.low} Low</span>`:""} ${s.info?`<span class="sc sc-info">${s.info} Info</span>`:""}</div></div></div>`;document.getElementById("messages").appendChild(d);hideCards();scrollBottom();}break;}case"backendStatus":updateBackendStatus(msg.healthy);break;case"promptEnhanced":toast("✨ Prompt enhanced","ok");break;case"showToast":toast(msg.message,msg.toastType||"");break;case"indexStatus":break;}});
+})();</script>
+</body></html>

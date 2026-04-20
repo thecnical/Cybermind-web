@@ -117,6 +117,11 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         isIndexing: status.isIndexing,
       });
     }).catch(err => logger.warn('Repo index build failed', String(err)));
+
+    // Check backend health and report to UI
+    this.backendClient.checkHealth().then(ok => {
+      this.postToWebview({ type: 'backendStatus', healthy: ok });
+    });
   }
 
   private async initializePanel(): Promise<void> {
@@ -261,6 +266,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
           message.confirmed as boolean
         );
         break;
+      case 'wakeBackend':
+        // Ping backend to wake it up (Render free tier sleeps)
+        this.backendClient.checkHealth().then(ok => {
+          this.postToWebview({ type: 'backendStatus', healthy: ok });
+          if (ok) {
+            this.postToWebview({ type: 'showToast', message: '✅ Backend is awake!', toastType: 'ok' });
+          }
+        });
+        break;
       default:
         logger.warn(`Unknown message type: ${message.type}`);
     }
@@ -374,6 +388,20 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     const isDebugRequest = processedText.startsWith('/debug ') || processedText.startsWith('/fix ');
     const debugError = isDebugRequest ? processedText.replace(/^\/debug\s+|^\/fix\s+/i, '') : '';
 
+    // Check if user wants Playwright test generation
+    const isTestRequest = processedText.startsWith('/test ') || processedText === '/test';
+    const testTarget = isTestRequest ? processedText.replace(/^\/test\s*/i, '') : '';
+
+    // Check if user wants code review
+    const isReviewRequest = processedText.startsWith('/review ') || processedText === '/review';
+    const reviewTarget = isReviewRequest ? processedText.replace(/^\/review\s*/i, '') : '';
+
+    // Check if user wants git commit message
+    const isCommitRequest = processedText.startsWith('/commit ') || processedText === '/commit';
+
+    // Check if user wants security scan
+    const isScanRequest = processedText === '/scan' || processedText.startsWith('/scan ');
+
     if (isImageRequest && imagePrompt) {
       await this.handleImageGeneration(imagePrompt, messageId);
       return;
@@ -381,6 +409,46 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     if (isDebugRequest && debugError) {
       await this.handleAutoDebug(debugError, messageId);
+      return;
+    }
+
+    if (isTestRequest) {
+      // Switch to playwright agent and generate tests
+      this.currentAgentId = 'playwright';
+      const testPrompt = testTarget
+        ? `Generate Playwright tests for: ${testTarget}`
+        : `Generate Playwright tests for the active file`;
+      processedText = testPrompt;
+    }
+
+    if (isReviewRequest) {
+      // Switch to review agent
+      this.currentAgentId = 'review';
+      processedText = reviewTarget
+        ? `Review this code: ${reviewTarget}`
+        : `Review the active file for security, performance, and maintainability`;
+    }
+
+    if (isCommitRequest) {
+      // Switch to git agent and generate commit message
+      this.currentAgentId = 'git';
+      processedText = 'Generate a conventional commit message for the current changes. Look at the context to understand what changed.';
+    }
+
+    if (isScanRequest) {
+      // Run security scan
+      this.postToWebview({ type: 'token', text: '' });
+      this.postToWebview({ type: 'token', text: '🔒 **Running security scan...**\n\n' });
+      const activeEditor = vscode.window.activeTextEditor;
+      if (activeEditor) {
+        const findings = await this.securityScanner.scanFile(activeEditor.document.uri);
+        const summary = this.securityScanner.getSummary(findings);
+        this.postToWebview({ type: 'scanResults', findings, summary });
+        this.postToWebview({ type: 'token', text: `Scan complete: ${summary.total} issues found.` });
+      } else {
+        this.postToWebview({ type: 'token', text: 'No active file to scan. Open a file first.' });
+      }
+      this.postToWebview({ type: 'done', messageId, fileOps: [] });
       return;
     }
 

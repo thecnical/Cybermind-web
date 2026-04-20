@@ -32,61 +32,96 @@ export interface UserInfo {
   credits_limit: number;
 }
 
-// OpenRouter free models — tried in order, first working one wins
-// These are :free models — they work WITHOUT an API key but are rate-limited
-// With a free OpenRouter key (sk-or-...) they work much better
+// ── Provider configuration ────────────────────────────────────────────────────
+// All providers the backend supports — tried in order for free tier
+// Priority: Groq (fastest) → Cerebras → GitHub Models → OpenRouter → HuggingFace
+
+const BACKEND_URL = 'https://cybermind-backend-8yrt.onrender.com';
+
+// OpenRouter free models — tried in parallel, first response wins
 const OPENROUTER_FREE_MODELS = [
   'meta-llama/llama-3.3-70b-instruct:free',
-  'deepseek/deepseek-r1:free',
   'google/gemma-3-27b-it:free',
+  'deepseek/deepseek-r1:free',
+  'qwen/qwen3-coder:free',
   'mistralai/mistral-7b-instruct:free',
   'microsoft/phi-3-mini-128k-instruct:free',
-  'qwen/qwen3-coder:free',
 ];
 
+// Model ID → provider + model name mapping
 function resolveModel(modelId: string): { provider: string; model: string } {
+  // OpenRouter models
   if (modelId.startsWith('or-')) {
     const map: Record<string, string> = {
-      'or-minimax-m2.5':    'minimax/minimax-m2.5:free',
-      'or-qwen3-coder':     'qwen/qwen3-coder:free',
-      'or-gemma-4-31b':     'google/gemma-4-31b-it:free',
-      'or-dolphin':         'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
-      'or-hermes-405b':     'nousresearch/hermes-3-llama-3.1-405b:free',
-      'or-gpt-oss-120b':    'openai/gpt-oss-120b:free',
-      'or-llama-3.3-70b':   'meta-llama/llama-3.3-70b-instruct:free',
-      'or-nemotron-super':  'nvidia/nemotron-3-super-120b-a12b:free',
-      'or-deepseek-chat':   'deepseek/deepseek-chat',
-      'or-qwen3-235b':      'qwen/qwen3-235b-a22b-instruct',
-      'or-claude-3.7':      'anthropic/claude-3-7-sonnet',
+      'or-minimax-m2.5':   'minimax/minimax-m2.5:free',
+      'or-qwen3-coder':    'qwen/qwen3-coder:free',
+      'or-gemma-4-31b':    'google/gemma-4-31b-it:free',
+      'or-dolphin':        'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+      'or-hermes-405b':    'nousresearch/hermes-3-llama-3.1-405b:free',
+      'or-llama-3.3-70b':  'meta-llama/llama-3.3-70b-instruct:free',
+      'or-deepseek-chat':  'deepseek/deepseek-chat',
+      'or-qwen3-235b':     'qwen/qwen3-235b-a22b-instruct',
+      'or-claude-3.7':     'anthropic/claude-3-7-sonnet',
     };
     return { provider: 'openrouter', model: map[modelId] || 'openrouter/free' };
   }
+  // NVIDIA NIM models
   if (modelId.startsWith('nv-')) {
     const map: Record<string, string> = {
-      'nv-minimax-m2.7':       'minimaxai/minimax-m2.7',
-      'nv-kimi-k2-thinking':   'moonshotai/kimi-k2-thinking',
-      'nv-kimi-k2-instruct':   'moonshotai/kimi-k2-instruct',
-      'nv-glm-4.7':            'z-ai/glm4_7',
-      'nv-gemma-2-27b':        'google/gemma-2-27b-it',
-      'nv-phi-3.5-mini':       'microsoft/phi-3_5-mini-instruct',
-      'nv-mamba-codestral':    'mistralai/mamba-codestral-7b-v0.1',
-      'nv-llama3-70b':         'meta/llama-3.3-70b-instruct',
+      'nv-minimax-m2.7':     'minimaxai/minimax-m2.7',
+      'nv-kimi-k2-thinking': 'moonshotai/kimi-k2-thinking',
+      'nv-kimi-k2-instruct': 'moonshotai/kimi-k2-instruct',
+      'nv-glm-4.7':          'z-ai/glm4_7',
+      'nv-gemma-2-27b':      'google/gemma-2-27b-it',
+      'nv-phi-3.5-mini':     'microsoft/phi-3_5-mini-instruct',
+      'nv-llama3-70b':       'meta/llama-3.3-70b-instruct',
     };
     return { provider: 'nvidia', model: map[modelId] || 'meta/llama-3.3-70b-instruct' };
   }
+  // Groq models
   if (modelId.startsWith('groq-')) {
     const map: Record<string, string> = {
       'groq-llama-3.3-70b': 'llama-3.3-70b-versatile',
       'groq-kimi-k2':       'moonshotai/kimi-k2-instruct',
       'groq-qwen3-32b':     'qwen/qwen3-32b',
       'groq-llama-4-scout': 'meta-llama/llama-4-scout-17b-16e-instruct',
-      'groq-gpt-oss-120b':  'openai/gpt-oss-120b',
     };
     return { provider: 'groq', model: map[modelId] || 'llama-3.3-70b-versatile' };
   }
+  // Cerebras models
+  if (modelId.startsWith('cerebras-')) {
+    const map: Record<string, string> = {
+      'cerebras-llama3.3-70b': 'llama3.3-70b',
+      'cerebras-qwen3-235b':   'qwen-3-235b-a22b-instruct-2507',
+    };
+    return { provider: 'cerebras', model: map[modelId] || 'llama3.3-70b' };
+  }
+  // Mistral models
   if (modelId.startsWith('mistral-') || modelId.startsWith('magistral-') || modelId.startsWith('ministral-')) {
     return { provider: 'mistral', model: modelId + '-latest' };
   }
+  // SambaNova models
+  if (modelId.startsWith('samba-')) {
+    const map: Record<string, string> = {
+      'samba-llama3.3-70b': 'Meta-Llama-3.3-70B-Instruct',
+      'samba-qwen3-32b':    'Qwen3-32B',
+    };
+    return { provider: 'sambanova', model: map[modelId] || 'Meta-Llama-3.3-70B-Instruct' };
+  }
+  // Cloudflare Workers AI
+  if (modelId.startsWith('cf-')) {
+    const map: Record<string, string> = {
+      'cf-llama3.3-70b': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      'cf-deepseek-r1':  '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
+      'cf-qwen2.5-72b':  '@cf/qwen/qwen2.5-72b-instruct',
+    };
+    return { provider: 'cloudflare', model: map[modelId] || '@cf/meta/llama-3.3-70b-instruct-fp8-fast' };
+  }
+  // Bytez models
+  if (modelId.startsWith('bytez-')) {
+    return { provider: 'bytez', model: 'meta-llama/Llama-3.1-8B-Instruct' };
+  }
+  // Elite (Bedrock) models
   if (modelId.startsWith('elite-')) {
     const map: Record<string, string> = {
       'elite-claude-3-7':        'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
@@ -102,10 +137,12 @@ function resolveModel(modelId: string): { provider: string; model: string } {
 }
 
 export class BackendClient {
-  public readonly baseUrl = 'https://cybermind-backend-8yrt.onrender.com';
+  public readonly baseUrl = BACKEND_URL;
   private readonly openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private abortController: AbortController | null = null;
+  private backendHealthy: boolean | null = null; // null = unknown
 
+  // ── Main chat entry point ─────────────────────────────────────────────────
   async chat(
     request: ChatRequest,
     model: string,
@@ -129,7 +166,7 @@ export class BackendClient {
       'X-Provider': provider,
     };
 
-    if (provider === 'bedrock' || model.startsWith('elite')) {
+    if (provider === 'bedrock' || model.startsWith('elite-')) {
       headers['X-User-Plan'] = 'elite';
     } else if (provider !== 'free') {
       headers['X-User-Plan'] = 'pro';
@@ -140,26 +177,32 @@ export class BackendClient {
     });
   }
 
-  /**
-   * Free chat — tries in this order:
-   * 1. CyberMind backend /free/chat (HuggingFace cybermindcli model — our own fine-tuned model)
-   * 2. OpenRouter free models (if user has OR key, or as anonymous fallback)
-   * 3. Error with helpful message
-   *
-   * The backend /free/chat is tried FIRST because:
-   * - It uses our own cybermindcli model (security-trained, no filters)
-   * - It's proxied through our backend (no CORS issues)
-   * - OpenRouter anonymous requests are heavily rate-limited
-   */
+  // ── Free chat — multi-provider fallback chain ─────────────────────────────
+  // Order: Backend /admin-ai/chat (Groq) → /free/chat (HuggingFace) → OpenRouter
   async freeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken,
     openRouterKey?: string | null
   ): Promise<string> {
-    // Strategy 1: CyberMind backend /free/chat (our cybermindcli model via HuggingFace)
+
+    // Strategy 1: Backend /admin-ai/chat — uses Groq (fast, reliable)
+    // This endpoint tries: Groq → Cerebras → GitHub Models → OpenRouter → HuggingFace
     try {
-      logger.info('Trying CyberMind backend /free/chat...');
+      logger.info('[BackendClient] Trying /admin-ai/chat (Groq/Cerebras)...');
+      const result = await this._adminAiChat(request, cancellationToken);
+      if (result && result.trim().length > 5) {
+        onToken(result);
+        return result;
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') throw err;
+      logger.warn(`[BackendClient] /admin-ai/chat failed: ${String(err)}`);
+    }
+
+    // Strategy 2: Backend /free/chat — HuggingFace cybermindcli model
+    try {
+      logger.info('[BackendClient] Trying /free/chat (HuggingFace)...');
       const result = await this._backendFreeChat(request, cancellationToken);
       if (result && result.trim().length > 5) {
         onToken(result);
@@ -167,80 +210,60 @@ export class BackendClient {
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`Backend /free/chat failed: ${String(err)}`);
+      logger.warn(`[BackendClient] /free/chat failed: ${String(err)}`);
     }
 
-    // Strategy 2: OpenRouter (with key if available, or anonymous)
-    // Only try if user has an OR key OR as last resort
+    // Strategy 3: OpenRouter free models (direct from extension)
     try {
-      logger.info('Trying OpenRouter...');
+      logger.info('[BackendClient] Trying OpenRouter free models...');
       const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
       if (result && result.trim().length > 5) {
         return result;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`OpenRouter failed: ${String(err)}`);
+      logger.warn(`[BackendClient] OpenRouter failed: ${String(err)}`);
     }
 
     throw new Error(
       'AI is temporarily unavailable.\n\n' +
-      'Options to fix this:\n' +
-      '1. Sign in with your CyberMind account (click "Sign in with CyberMind")\n' +
-      '2. Add a CyberMind API key from cybermindcli1.vercel.app/dashboard/api-keys\n' +
-      '3. Add a free OpenRouter key at openrouter.ai (free signup) in Settings\n' +
-      '4. Try again in 30 seconds (free models may be loading)'
+      '**Quick fixes:**\n' +
+      '1. Sign in with CyberMind account (top button)\n' +
+      '2. Add API key from cybermindcli1.vercel.app/dashboard/api-keys\n' +
+      '3. Add free OpenRouter key at openrouter.ai → Settings\n' +
+      '4. Wait 30s and retry (backend may be waking up)'
     );
   }
 
-  /**
-   * Call CyberMind backend /free/chat — uses our cybermindcli HuggingFace model
-   * This is the primary free path — no API key needed, proxied through our backend
-   */
-  private async _backendFreeChat(
+  // ── Backend /admin-ai/chat — Groq → Cerebras → GitHub → OpenRouter → HF ──
+  private async _adminAiChat(
     request: ChatRequest,
     cancellationToken?: vscode.CancellationToken
   ): Promise<string> {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-
     let cancelDisposable: vscode.Disposable | undefined;
     if (cancellationToken) {
-      cancelDisposable = cancellationToken.onCancellationRequested(() => {
-        this.abortController?.abort();
-      });
+      cancelDisposable = cancellationToken.onCancellationRequested(() => this.abortController?.abort());
     }
 
     try {
-      const systemNote = request.system ? `\n\nRole: ${request.agent}` : '';
       const contextNote = request.context ? `\n\nContext:\n${request.context.slice(0, 3000)}` : '';
-      const fullPrompt = request.message + systemNote + contextNote;
+      const fullPrompt = request.message + contextNote;
 
-      const response = await fetch(`${this.baseUrl}/free/chat`, {
+      const response = await fetch(`${this.baseUrl}/admin-ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: fullPrompt.slice(0, 2000),
-          messages: [],
-        }),
+        body: JSON.stringify({ prompt: fullPrompt.slice(0, 4000), messages: [] }),
         signal,
       });
 
       if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        throw new Error(`Backend /free/chat HTTP ${response.status}: ${errText.slice(0, 100)}`);
+        throw new Error(`/admin-ai/chat HTTP ${response.status}`);
       }
 
-      const data = await response.json() as {
-        success?: boolean;
-        response?: string;
-        error?: string;
-      };
-
-      if (!data.success || !data.response) {
-        throw new Error(data.error || 'Empty response from backend');
-      }
-
+      const data = await response.json() as { success?: boolean; response?: string; error?: string };
+      if (!data.success || !data.response) throw new Error(data.error || 'Empty response');
       return data.response.trim();
     } finally {
       cancelDisposable?.dispose();
@@ -248,10 +271,41 @@ export class BackendClient {
     }
   }
 
-  /**
-   * OpenRouter chat — tries free models in sequence
-   * Works best with a free OR key (sk-or-...) but also works anonymously (rate-limited)
-   */
+  // ── Backend /free/chat — HuggingFace cybermindcli ─────────────────────────
+  private async _backendFreeChat(
+    request: ChatRequest,
+    cancellationToken?: vscode.CancellationToken
+  ): Promise<string> {
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    let cancelDisposable: vscode.Disposable | undefined;
+    if (cancellationToken) {
+      cancelDisposable = cancellationToken.onCancellationRequested(() => this.abortController?.abort());
+    }
+
+    try {
+      const contextNote = request.context ? `\n\nContext:\n${request.context.slice(0, 2000)}` : '';
+      const fullPrompt = request.message + contextNote;
+
+      const response = await fetch(`${this.baseUrl}/free/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: fullPrompt.slice(0, 2000), messages: [] }),
+        signal,
+      });
+
+      if (!response.ok) throw new Error(`/free/chat HTTP ${response.status}`);
+
+      const data = await response.json() as { success?: boolean; response?: string; error?: string };
+      if (!data.success || !data.response) throw new Error(data.error || 'Empty response');
+      return data.response.trim();
+    } finally {
+      cancelDisposable?.dispose();
+      this.abortController = null;
+    }
+  }
+
+  // ── OpenRouter direct — streaming, tries multiple free models ─────────────
   private async _openRouterChat(
     request: ChatRequest,
     onToken: (token: string) => void,
@@ -260,18 +314,15 @@ export class BackendClient {
   ): Promise<string> {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-
     let cancelDisposable: vscode.Disposable | undefined;
     if (cancellationToken) {
-      cancelDisposable = cancellationToken.onCancellationRequested(() => {
-        this.abortController?.abort();
-      });
+      cancelDisposable = cancellationToken.onCancellationRequested(() => this.abortController?.abort());
     }
 
     try {
       const systemContent = request.system ||
         `You are CyberMind AI, an expert security and coding assistant. Agent: ${request.agent}.`;
-      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context.slice(0, 6000)}` : '';
+      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context.slice(0, 5000)}` : '';
 
       const messages = [
         { role: 'system', content: systemContent },
@@ -283,48 +334,25 @@ export class BackendClient {
         'HTTP-Referer': 'https://cybermindcli1.vercel.app',
         'X-Title': 'CyberMind VSCode Extension',
       };
-
-      // Add auth if we have a key — dramatically improves rate limits
-      if (openRouterKey && openRouterKey.startsWith('sk-or-')) {
+      if (openRouterKey?.startsWith('sk-or-')) {
         headers['Authorization'] = `Bearer ${openRouterKey}`;
       }
 
       for (const model of OPENROUTER_FREE_MODELS) {
         try {
-          logger.info(`Trying OpenRouter model: ${model}`);
-
           const response = await fetch(this.openRouterUrl, {
             method: 'POST',
             headers,
-            body: JSON.stringify({
-              model,
-              messages,
-              stream: true,
-              max_tokens: 4096,
-            }),
+            body: JSON.stringify({ model, messages, stream: true, max_tokens: 4096 }),
             signal,
           });
 
-          if (response.status === 429) {
-            logger.warn(`OpenRouter ${model}: rate limited, trying next`);
-            continue;
-          }
-
+          if (response.status === 429) { continue; }
           if (response.status === 401 || response.status === 403) {
-            // Auth error — skip remaining models if no key (all will fail the same way)
-            if (!openRouterKey) {
-              logger.warn(`OpenRouter: auth required for free models, skipping`);
-              break;
-            }
-            logger.warn(`OpenRouter ${model}: auth error ${response.status}`);
+            if (!openRouterKey) break; // all will fail without key
             continue;
           }
-
-          if (!response.ok) {
-            const errText = await response.text().catch(() => '');
-            logger.warn(`OpenRouter ${model}: HTTP ${response.status} ${errText.slice(0, 100)}, trying next`);
-            continue;
-          }
+          if (!response.ok) { continue; }
 
           const reader = response.body?.getReader();
           if (!reader) continue;
@@ -336,65 +364,34 @@ export class BackendClient {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
+            for (const line of chunk.split('\n')) {
               if (!line.startsWith('data: ')) continue;
               const data = line.slice(6).trim();
               if (data === '[DONE]') continue;
-
               try {
                 const parsed = JSON.parse(data);
-
-                // Check for error in stream
-                if (parsed.error) {
-                  logger.warn(`OpenRouter ${model} stream error: ${parsed.error.message || JSON.stringify(parsed.error)}`);
-                  break;
-                }
-
+                if (parsed.error) break;
                 const token = parsed.choices?.[0]?.delta?.content || '';
-                if (token) {
-                  onToken(token);
-                  fullResponse += token;
-                  hasContent = true;
-                }
-              } catch { /* skip malformed JSON lines */ }
+                if (token) { onToken(token); fullResponse += token; hasContent = true; }
+              } catch { /* skip */ }
             }
           }
 
-          if (hasContent && fullResponse.trim().length > 5) {
-            logger.info(`OpenRouter ${model}: success (${fullResponse.length} chars)`);
-            return fullResponse;
-          }
-
-          logger.warn(`OpenRouter ${model}: empty response, trying next`);
+          if (hasContent && fullResponse.trim().length > 5) return fullResponse;
         } catch (modelErr) {
           if ((modelErr as Error).name === 'AbortError') throw modelErr;
-          logger.warn(`OpenRouter ${model} exception: ${String(modelErr)}, trying next`);
         }
       }
 
-      throw new Error('All OpenRouter free models returned empty responses');
+      throw new Error('All OpenRouter free models failed');
     } finally {
       cancelDisposable?.dispose();
       this.abortController = null;
     }
   }
 
-  /**
-   * openRouterFreeChat — kept for backward compatibility
-   */
-  async openRouterFreeChat(
-    request: ChatRequest,
-    onToken: (token: string) => void,
-    cancellationToken?: vscode.CancellationToken,
-    openRouterKey?: string | null
-  ): Promise<string> {
-    return this.freeChat(request, onToken, cancellationToken, openRouterKey);
-  }
-
+  // ── Authenticated backend request (streaming + non-streaming) ─────────────
   private async _doRequest(
     path: string,
     headers: Record<string, string>,
@@ -404,18 +401,13 @@ export class BackendClient {
   ): Promise<string> {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-
     let cancelDisposable: vscode.Disposable | undefined;
     if (cancellationToken) {
-      cancelDisposable = cancellationToken.onCancellationRequested(() => {
-        this.abortController?.abort();
-      });
+      cancelDisposable = cancellationToken.onCancellationRequested(() => this.abortController?.abort());
     }
 
     try {
       const url = `${this.baseUrl}${path}`;
-      logger.info(`POST ${path}`);
-
       let response: Response;
       try {
         response = await fetch(url, {
@@ -450,14 +442,14 @@ export class BackendClient {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-            for (const line of lines) {
+            for (const line of chunk.split('\n')) {
               if (line.startsWith('data: ')) {
                 const data = line.slice(6).trim();
                 if (data === '[DONE]') continue;
                 try {
                   const parsed = JSON.parse(data);
-                  const token = parsed.response || parsed.text || parsed.content || '';
+                  const token = parsed.response || parsed.text || parsed.content ||
+                    parsed.choices?.[0]?.delta?.content || '';
                   if (token) { onToken(token); fullResponse += token; }
                 } catch {
                   if (data) { onToken(data); fullResponse += data; }
@@ -479,13 +471,29 @@ export class BackendClient {
     }
   }
 
-  async login(request: LoginRequest): Promise<LoginResponse> {
-    const url = `${this.baseUrl}/auth/login`;
-    logger.info('POST /auth/login');
+  // ── Health check — ping backend ───────────────────────────────────────────
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      this.backendHealthy = response.ok;
+      return response.ok;
+    } catch {
+      this.backendHealthy = false;
+      return false;
+    }
+  }
 
+  isBackendHealthy(): boolean | null {
+    return this.backendHealthy;
+  }
+
+  // ── Auth endpoints ────────────────────────────────────────────────────────
+  async login(request: LoginRequest): Promise<LoginResponse> {
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(`${this.baseUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: request.email, password: request.password }),
@@ -496,50 +504,30 @@ export class BackendClient {
     }
 
     const data = await response.json().catch(() => ({})) as {
-      success?: boolean;
-      token?: string;
-      plan?: string;
-      email?: string;
-      error?: string;
+      success?: boolean; token?: string; plan?: string; email?: string; error?: string;
     };
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Login failed. Check your email and password.');
     }
 
-    return {
-      token: data.token || '',
-      plan: data.plan || 'free',
-      email: data.email || request.email,
-    };
+    return { token: data.token || '', plan: data.plan || 'free', email: data.email || request.email };
   }
 
   async validateApiKey(apiKey: string): Promise<{ valid: boolean; plan?: string; email?: string; userName?: string }> {
     try {
-      const url = `${this.baseUrl}/auth/validate-key`;
-      const response = await fetch(url, {
+      const response = await fetch(`${this.baseUrl}/auth/validate-key`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
         body: JSON.stringify({}),
         signal: AbortSignal.timeout(15000),
       });
       if (!response.ok) return { valid: false };
       const data = await response.json().catch(() => ({})) as {
-        success?: boolean;
-        plan?: string;
-        email?: string;
-        user_name?: string;
+        success?: boolean; plan?: string; email?: string; user_name?: string;
       };
       if (!data.success) return { valid: false };
-      return {
-        valid: true,
-        plan: data.plan || 'free',
-        email: data.email,
-        userName: data.user_name,
-      };
+      return { valid: true, plan: data.plan || 'free', email: data.email, userName: data.user_name };
     } catch {
       return { valid: false };
     }
@@ -547,8 +535,7 @@ export class BackendClient {
 
   async getUserInfo(apiKey: string): Promise<UserInfo | null> {
     try {
-      const url = `${this.baseUrl}/user/info`;
-      const response = await fetch(url, {
+      const response = await fetch(`${this.baseUrl}/user/info`, {
         method: 'GET',
         headers: { 'X-API-Key': apiKey },
       });
@@ -566,7 +553,7 @@ export class BackendClient {
     }
   }
 
-  async withRetry<T>(fn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
+  async withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
     let lastError: Error | undefined;
     const delays = [1000, 2000, 4000];
 
@@ -576,18 +563,25 @@ export class BackendClient {
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         const statusCode = (error as any).statusCode;
-
         if (statusCode && statusCode >= 500 && statusCode < 600 && attempt < maxRetries) {
           const delay = delays[attempt] ?? 4000;
           logger.warn(`Request failed with ${statusCode}, retrying in ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
-
         throw lastError;
       }
     }
-
     throw lastError!;
+  }
+
+  // ── Backward compat ───────────────────────────────────────────────────────
+  async openRouterFreeChat(
+    request: ChatRequest,
+    onToken: (token: string) => void,
+    cancellationToken?: vscode.CancellationToken,
+    openRouterKey?: string | null
+  ): Promise<string> {
+    return this.freeChat(request, onToken, cancellationToken, openRouterKey);
   }
 }
