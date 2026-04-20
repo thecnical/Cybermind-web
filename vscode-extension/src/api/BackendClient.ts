@@ -7,7 +7,7 @@ export interface ChatRequest {
   message: string;
   agent: string;
   context: string;
-  system?: string;  // agent system prompt — used by OpenRouter free tier
+  system?: string;
 }
 
 export interface ChatResponse {
@@ -32,17 +32,17 @@ export interface UserInfo {
   credits_limit: number;
 }
 
-// OpenRouter free models — no API key needed
+// OpenRouter free models — tried in order, first working one wins
+// These are all :free models that require NO API key
 const OPENROUTER_FREE_MODELS = [
-  'minimax/minimax-m2.5:free',
   'deepseek/deepseek-r1:free',
   'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-4-31b-it:free',
+  'google/gemma-3-27b-it:free',
   'qwen/qwen3-coder:free',
-  'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+  'mistralai/mistral-7b-instruct:free',
+  'microsoft/phi-3-mini-128k-instruct:free',
 ];
 
-// Map extension model IDs to backend provider/model strings
 function resolveModel(modelId: string): { provider: string; model: string } {
   if (modelId.startsWith('or-')) {
     const map: Record<string, string> = {
@@ -97,7 +97,6 @@ function resolveModel(modelId: string): { provider: string; model: string } {
     };
     return { provider: 'bedrock', model: map[modelId] || 'us.anthropic.claude-3-7-sonnet-20250219-v1:0' };
   }
-  // Free/default
   return { provider: 'free', model: modelId };
 }
 
@@ -116,25 +115,18 @@ export class BackendClient {
     openRouterKey?: string | null
   ): Promise<string> {
     const { provider } = resolveModel(model);
-
-    // IMPORTANT: The backend /chat endpoint only accepts cp_live_ API keys.
-    // JWT tokens from web login CANNOT be used with /chat — they fail with 401.
-    // Only use /chat when we have a real API key. Otherwise use free tier.
     const hasValidApiKey = apiKey && apiKey.startsWith('cp_live_');
 
     if (!hasValidApiKey) {
-      // No valid API key — use free tier (OpenRouter)
       return this.openRouterFreeChat(request, onToken, cancellationToken, openRouterKey);
     }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-API-Key': apiKey,
+      'X-Model-Id': model,
+      'X-Provider': provider,
     };
-
-    // Tell backend which provider/model to use
-    headers['X-Model-Id'] = model;
-    headers['X-Provider'] = provider;
 
     if (provider === 'bedrock' || model.startsWith('elite')) {
       headers['X-User-Plan'] = 'elite';
@@ -147,56 +139,59 @@ export class BackendClient {
     });
   }
 
+  /**
+   * Free chat — tries OpenRouter directly first (most reliable),
+   * then falls back to CyberMind backend /free/chat (HuggingFace).
+   *
+   * OpenRouter free models work without any API key.
+   * The key insight: go to OpenRouter FIRST, not as fallback.
+   */
   async openRouterFreeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
     cancellationToken?: vscode.CancellationToken,
     openRouterKey?: string | null
   ): Promise<string> {
-    // Try CyberMind backend free endpoint first (HuggingFace)
-    // Backend expects {prompt: "..."} not {message: "..."}
-    const freeRequest = {
-      prompt: request.message,
-      messages: [],
-    };
-
+    // Try OpenRouter free models first — they're more reliable than HuggingFace
     try {
-      this.abortController = new AbortController();
-      const signal = this.abortController.signal;
-
-      let cancelDisposable: vscode.Disposable | undefined;
-      if (cancellationToken) {
-        cancelDisposable = cancellationToken.onCancellationRequested(() => {
-          this.abortController?.abort();
-        });
+      const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
+      if (result && result.trim().length > 5) {
+        return result;
       }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') throw err;
+      logger.warn(`OpenRouter failed: ${String(err)}, trying CyberMind backend`);
+    }
 
-      try {
-        const response = await fetch(`${this.baseUrl}/free/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(freeRequest),
-          signal,
-        });
+    // Fallback: CyberMind backend /free/chat (HuggingFace)
+    try {
+      const freeRequest = { prompt: request.message, messages: [] };
+      const response = await fetch(`${this.baseUrl}/free/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(freeRequest),
+        signal: AbortSignal.timeout(45000),
+      });
 
-        if (response.ok) {
-          const data = await response.json() as { success?: boolean; response?: string; error?: string };
-          if (data.success && data.response && data.response.trim().length > 10) {
-            onToken(data.response);
-            return data.response;
-          }
+      if (response.ok) {
+        const data = await response.json() as { success?: boolean; response?: string };
+        if (data.success && data.response && data.response.trim().length > 5) {
+          onToken(data.response);
+          return data.response;
         }
-      } catch (err) {
-        logger.warn(`CyberMind /free/chat failed: ${String(err)}`);
-      } finally {
-        cancelDisposable?.dispose();
-        this.abortController = null;
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      logger.warn(`CyberMind /free/chat also failed: ${String(err)}`);
+    }
 
-    // Fallback to OpenRouter free models
-    logger.info('Falling back to OpenRouter free models');
-    return this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
+    throw new Error(
+      'All AI providers are currently unavailable.\n\n' +
+      'Options:\n' +
+      '1. Sign in with your CyberMind account (Sign in with CyberMind button)\n' +
+      '2. Add an API key from dashboard/api-keys\n' +
+      '3. Add an OpenRouter key in Settings (free at openrouter.ai)\n' +
+      '4. Try again in a few minutes (free models may be overloaded)'
+    );
   }
 
   async freeChat(
@@ -224,27 +219,32 @@ export class BackendClient {
     }
 
     try {
-      // Use the agent's system prompt if provided, otherwise use a default
       const systemContent = request.system ||
         `You are CyberMind AI, an expert security and coding assistant. Agent: ${request.agent}.`;
-      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context}` : '';
+      const contextNote = request.context ? `\n\nWorkspace context:\n${request.context.slice(0, 8000)}` : '';
 
       const messages = [
         { role: 'system', content: systemContent },
         { role: 'user', content: request.message + contextNote },
       ];
 
-      // Try each free model in order until one works
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://cybermindcli1.vercel.app',
+        'X-Title': 'CyberMind VSCode Extension',
+      };
+      // Only add auth if we have a key — free models work without it
+      if (openRouterKey && openRouterKey.startsWith('sk-or-')) {
+        headers['Authorization'] = `Bearer ${openRouterKey}`;
+      }
+
       for (const model of OPENROUTER_FREE_MODELS) {
         try {
+          logger.info(`Trying OpenRouter model: ${model}`);
+
           const response = await fetch(this.openRouterUrl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://cybermindcli1.vercel.app',
-              'X-Title': 'CyberMind VSCode Extension',
-              ...(openRouterKey ? { 'Authorization': `Bearer ${openRouterKey}` } : {}),
-            },
+            headers,
             body: JSON.stringify({
               model,
               messages,
@@ -254,43 +254,68 @@ export class BackendClient {
             signal,
           });
 
+          if (response.status === 429) {
+            logger.warn(`OpenRouter ${model}: rate limited, trying next`);
+            continue;
+          }
+
           if (!response.ok) {
-            logger.warn(`OpenRouter model ${model} returned ${response.status}, trying next`);
+            const errText = await response.text().catch(() => '');
+            logger.warn(`OpenRouter ${model}: HTTP ${response.status} ${errText.slice(0, 100)}, trying next`);
             continue;
           }
 
           const reader = response.body?.getReader();
-          let fullResponse = '';
+          if (!reader) continue;
 
-          if (reader) {
-            const decoder = new TextDecoder();
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              const chunk = decoder.decode(value, { stream: true });
-              const lines = chunk.split('\n');
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6).trim();
-                  if (data === '[DONE]') continue;
-                  try {
-                    const parsed = JSON.parse(data);
-                    const token = parsed.choices?.[0]?.delta?.content || '';
-                    if (token) { onToken(token); fullResponse += token; }
-                  } catch { /* skip malformed */ }
+          let fullResponse = '';
+          let hasContent = false;
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+
+                // Check for error in stream
+                if (parsed.error) {
+                  logger.warn(`OpenRouter ${model} stream error: ${parsed.error.message || JSON.stringify(parsed.error)}`);
+                  break;
                 }
-              }
+
+                const token = parsed.choices?.[0]?.delta?.content || '';
+                if (token) {
+                  onToken(token);
+                  fullResponse += token;
+                  hasContent = true;
+                }
+              } catch { /* skip malformed JSON lines */ }
             }
           }
 
-          if (fullResponse) return fullResponse;
+          if (hasContent && fullResponse.trim().length > 5) {
+            logger.info(`OpenRouter ${model}: success (${fullResponse.length} chars)`);
+            return fullResponse;
+          }
+
+          logger.warn(`OpenRouter ${model}: empty response, trying next`);
         } catch (modelErr) {
           if ((modelErr as Error).name === 'AbortError') throw modelErr;
-          logger.warn(`OpenRouter model ${model} failed: ${String(modelErr)}, trying next`);
+          logger.warn(`OpenRouter ${model} exception: ${String(modelErr)}, trying next`);
         }
       }
 
-      throw new Error('All free models failed. Please sign in or add an OpenRouter API key in Settings.');
+      throw new Error('All OpenRouter free models returned empty responses');
     } finally {
       cancelDisposable?.dispose();
       this.abortController = null;
@@ -326,22 +351,18 @@ export class BackendClient {
           body: JSON.stringify(request),
           signal,
         });
-      } catch {
-        const networkError = new Error('Unable to reach CyberMind backend. Check your connection.');
-        (networkError as any).isNetworkError = true;
-        throw networkError;
+      } catch (fetchErr) {
+        throw new Error(`Network error: ${String(fetchErr)}`);
       }
 
       if (!response.ok) {
         const errorBody = await response.text().catch(() => '');
         const error = new Error(`HTTP ${response.status}: ${errorBody || response.statusText}`);
         (error as any).statusCode = response.status;
-
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After');
           (error as any).retryAfter = retryAfter ? parseInt(retryAfter, 10) : 60;
         }
-
         throw error;
       }
 
@@ -386,7 +407,6 @@ export class BackendClient {
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    // POST /auth/login — backend wraps Supabase auth and returns JWT + plan
     const url = `${this.baseUrl}/auth/login`;
     logger.info('POST /auth/login');
 
@@ -417,7 +437,6 @@ export class BackendClient {
 
   async validateApiKey(apiKey: string): Promise<{ valid: boolean; plan?: string; email?: string; userName?: string }> {
     try {
-      // POST /auth/validate-key with X-API-Key header
       const url = `${this.baseUrl}/auth/validate-key`;
       const response = await fetch(url, {
         method: 'POST',
@@ -434,7 +453,6 @@ export class BackendClient {
         plan?: string;
         email?: string;
         user_name?: string;
-        key_name?: string;
       };
       if (!data.success) return { valid: false };
       return {
@@ -469,10 +487,7 @@ export class BackendClient {
     }
   }
 
-  async withRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3
-  ): Promise<T> {
+  async withRetry<T>(fn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
     let lastError: Error | undefined;
     const delays = [1000, 2000, 4000];
 
@@ -485,7 +500,7 @@ export class BackendClient {
 
         if (statusCode && statusCode >= 500 && statusCode < 600 && attempt < maxRetries) {
           const delay = delays[attempt] ?? 4000;
-          logger.warn(`Request failed with ${statusCode}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+          logger.warn(`Request failed with ${statusCode}, retrying in ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
