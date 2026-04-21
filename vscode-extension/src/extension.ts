@@ -3,9 +3,15 @@ import { AuthManager } from './api/AuthManager';
 import { BackendClient } from './api/BackendClient';
 import { McpManager } from './api/McpManager';
 import { OAuthFlow } from './api/OAuthFlow';
+import { OfflineCache } from './api/OfflineCache';
 import { SessionManager } from './session/SessionManager';
 import { RepoIndexer } from './indexer/RepoIndexer';
 import { SecurityScanner } from './security/SecurityScanner';
+import { SecretLeakDetector } from './security/SecretLeakDetector';
+import { DependencyScanner } from './security/DependencyScanner';
+import { AttackSurfaceScanner } from './security/AttackSurfaceScanner';
+import { ThreatModelGenerator } from './security/ThreatModelGenerator';
+import { PRDescriptionGenerator } from './agents/PRDescriptionGenerator';
 import { TerminalManager } from './operations/TerminalManager';
 import { UndoStack } from './operations/UndoStack';
 import { FileOperations } from './operations/FileOperations';
@@ -39,6 +45,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const terminalManager = new TerminalManager();
     const repoIndexer = new RepoIndexer();
     const securityScanner = new SecurityScanner(backendClient);
+
+    // New v2 features
+    const secretLeakDetector = new SecretLeakDetector();
+    const attackSurfaceScanner = new AttackSurfaceScanner();
+    const threatModelGenerator = new ThreatModelGenerator();
+    const prDescriptionGenerator = new PRDescriptionGenerator();
+    const offlineCache = new OfflineCache(context.globalState);
+    backendClient.setOfflineCache(offlineCache);
+
+    // Start dependency scanner watching
+    const depScanner = new DependencyScanner();
+    depScanner.startWatching(context);
+    context.subscriptions.push({ dispose: () => depScanner.dispose() });
+    context.subscriptions.push({ dispose: () => secretLeakDetector.dispose() });
 
     // Load MCP config from file and start enabled servers
     await mcpManager.loadFromConfigFile();
@@ -492,6 +512,104 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       })
     );
+
+    // 20. scanSecrets - scan current file for secrets
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.scanSecrets', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) { vscode.window.showWarningMessage('No active file'); return; }
+        const findings = await secretLeakDetector.scanFile(editor.document.uri);
+        const report = secretLeakDetector.formatReport(findings);
+        chatPanelProvider.postToWebview({ type: 'token', text: report });
+        chatPanelProvider.postToWebview({ type: 'done', messageId: 'secrets-scan', fileOps: [] });
+        vscode.commands.executeCommand('workbench.view.extension.cybermind');
+      })
+    );
+
+    // 21. scanSecretsWorkspace
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.scanSecretsWorkspace', async () => {
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'CyberMind: Scanning for secrets...' }, async (progress) => {
+          const findings = await secretLeakDetector.scanWorkspace((c, t) => progress.report({ message: `${c}/${t}` }));
+          const report = secretLeakDetector.formatReport(findings);
+          chatPanelProvider.postToWebview({ type: 'token', text: report });
+          chatPanelProvider.postToWebview({ type: 'done', messageId: 'secrets-workspace', fileOps: [] });
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        });
+      })
+    );
+
+    // 22. scanAttackSurface
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.scanAttackSurface', async () => {
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'CyberMind: Scanning attack surfaces...' }, async () => {
+          const surfaces = await attackSurfaceScanner.scanWorkspace();
+          chatPanelProvider.postToWebview({ type: 'attackSurfaces', surfaces });
+          vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        });
+      })
+    );
+
+    // 23. generateThreatModel
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.generateThreatModel', async () => {
+        const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!root) { vscode.window.showWarningMessage('No workspace open'); return; }
+        chatPanelProvider.postToWebview({ type: 'token', text: '🛡️ **Generating threat model...**\n\n' });
+        vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        const content = await threatModelGenerator.generate(root, backendClient);
+        chatPanelProvider.postToWebview({ type: 'token', text: content });
+        chatPanelProvider.postToWebview({ type: 'done', messageId: 'threatmodel', fileOps: [] });
+      })
+    );
+
+    // 24. generatePRDescription
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.generatePRDescription', async () => {
+        const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!root) { vscode.window.showWarningMessage('No workspace open'); return; }
+        chatPanelProvider.postToWebview({ type: 'token', text: '📋 **Generating PR description...**\n\n' });
+        vscode.commands.executeCommand('workbench.view.extension.cybermind');
+        const desc = await prDescriptionGenerator.generate(root, backendClient, authManager);
+        chatPanelProvider.postToWebview({ type: 'token', text: desc });
+        chatPanelProvider.postToWebview({ type: 'done', messageId: 'pr-desc', fileOps: [] });
+      })
+    );
+
+    // 25. injectPayloads - offensive testing
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.injectPayloads', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) { vscode.window.showWarningMessage('No active file'); return; }
+        const selection = editor.selection;
+        const text = editor.document.getText(selection) || editor.document.getText().slice(0, 3000);
+        await chatPanelProvider.sendToChat(
+          `/inject Analyze this code and generate context-aware security test payloads (SQLi, XSS, SSRF, IDOR, path traversal) based on the actual parameter names and endpoint patterns. Show exact curl commands for each test:\n\`\`\`\n${text}\n\`\`\``,
+          'security'
+        );
+        vscode.commands.executeCommand('workbench.view.extension.cybermind');
+      })
+    );
+
+    // Auto-scan attack surfaces on workspace open (background, 5s delay)
+    setTimeout(() => {
+      attackSurfaceScanner.scanWorkspace().then(surfaces => {
+        if (surfaces.length > 0) {
+          const high = surfaces.filter(s => s.riskLevel === 'critical' || s.riskLevel === 'high');
+          if (high.length > 0) {
+            vscode.window.showWarningMessage(
+              `CyberMind: ${surfaces.length} attack surfaces found (${high.length} high risk)`,
+              'View Details'
+            ).then(action => {
+              if (action === 'View Details') {
+                chatPanelProvider.postToWebview({ type: 'attackSurfaces', surfaces });
+                vscode.commands.executeCommand('workbench.view.extension.cybermind');
+              }
+            });
+          }
+        }
+      }).catch(() => {});
+    }, 5000);
 
     logger.info('CyberMind extension activated successfully.');
   } catch (error) {

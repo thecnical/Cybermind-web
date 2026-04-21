@@ -156,6 +156,41 @@
         "command": "cybermind.openMcpConfig",
         "title": "Configure MCP Servers",
         "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.scanSecrets",
+        "title": "Scan File for Secrets",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.scanSecretsWorkspace",
+        "title": "Scan Workspace for Secrets",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.scanAttackSurface",
+        "title": "Scan Attack Surfaces",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.generateThreatModel",
+        "title": "Generate Threat Model",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.generatePRDescription",
+        "title": "Generate PR Description",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.injectPayloads",
+        "title": "Generate Security Test Payloads",
+        "category": "CyberMind"
+      },
+      {
+        "command": "cybermind.toggleScanOnSave",
+        "title": "Toggle Scan on Save",
+        "category": "CyberMind"
       }
     ],
     "menus": {
@@ -188,6 +223,15 @@
         {
           "command": "cybermind.generateDocs",
           "when": "editorHasSelection"
+        },
+        {
+          "command": "cybermind.scanSecrets",
+          "group": "cybermind"
+        },
+        {
+          "command": "cybermind.injectPayloads",
+          "when": "editorHasSelection",
+          "group": "cybermind"
         }
       ]
     },
@@ -229,6 +273,21 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically enhance prompts for better AI responses"
+        },
+        "cybermind.security.scanSecretsOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan for secrets on every file save"
+        },
+        "cybermind.security.scanDepsOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan package.json for CVEs on save"
+        },
+        "cybermind.offline.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cache responses for offline use"
         }
       }
     },
@@ -247,6 +306,16 @@
         "command": "cybermind.undoLastChange",
         "key": "ctrl+shift+z",
         "mac": "cmd+shift+z"
+      },
+      {
+        "command": "cybermind.generateThreatModel",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t"
+      },
+      {
+        "command": "cybermind.scanSecrets",
+        "key": "ctrl+shift+k",
+        "mac": "cmd+shift+k"
       }
     ]
   },

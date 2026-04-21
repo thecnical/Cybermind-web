@@ -268,6 +268,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         await this.authManager.setOpenRouterKey(message.key as string);
         this.postToWebview({ type: 'showToast', message: 'OpenRouter key saved' });
         break;
+      case 'queueTask':
+        await this.queueTask(message.text as string, message.agent as string);
+        break;
       case 'continueAsFree':
         // User chose to use free tier without signing in
         this.currentModelId = 'cybermindcli';
@@ -361,6 +364,12 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     // Build context from active file + attachments + rich repo context
     let context = '';
+
+    // Auto-context: inject current function/class context
+    const autoContext = await this.getAutoContext();
+    if (autoContext) {
+      context = autoContext + '\n\n';
+    }
 
     // Active file context (highest priority)
     const activeEditor = vscode.window.activeTextEditor;
@@ -980,6 +989,61 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   private handleDeleteCustomAgent(agentId: string): void {
     this.agentRegistry.deleteCustomAgent(agentId);
     this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
+  }
+
+  // ── Task queue ────────────────────────────────────────────────────────────
+  private taskQueue: Array<{text: string; agent: string; resolve: () => void}> = [];
+  private isProcessingQueue = false;
+
+  async queueTask(text: string, agent: string): Promise<void> {
+    return new Promise(resolve => {
+      this.taskQueue.push({ text, agent, resolve });
+      if (!this.isProcessingQueue) this.processQueue();
+    });
+  }
+
+  private async processQueue(): Promise<void> {
+    this.isProcessingQueue = true;
+    while (this.taskQueue.length > 0) {
+      const task = this.taskQueue.shift()!;
+      this.postToWebview({ type: 'queueStatus', remaining: this.taskQueue.length, current: task.text.slice(0, 50) });
+      await this.handleSendMessage({ type: 'sendMessage', text: task.text, agent: task.agent, model: this.currentModelId, attachments: [] });
+      task.resolve();
+      await new Promise(r => setTimeout(r, 500));
+    }
+    this.isProcessingQueue = false;
+    this.postToWebview({ type: 'queueStatus', remaining: 0, current: '' });
+  }
+
+  // ── Auto-context injection ─────────────────────────────────────────────────
+  private async getAutoContext(): Promise<string> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return '';
+
+    const doc = editor.document;
+    const pos = editor.selection.active;
+    const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+      'vscode.executeDocumentSymbolProvider', doc.uri
+    );
+
+    if (!symbols?.length) return '';
+
+    const findSymbol = (syms: vscode.DocumentSymbol[]): vscode.DocumentSymbol | null => {
+      for (const sym of syms) {
+        if (sym.range.contains(pos)) {
+          const child = findSymbol(sym.children);
+          return child || sym;
+        }
+      }
+      return null;
+    };
+
+    const sym = findSymbol(symbols);
+    if (!sym) return '';
+
+    const text = doc.getText(sym.range);
+    const relativePath = vscode.workspace.asRelativePath(doc.uri);
+    return `Current context: ${sym.kind === vscode.SymbolKind.Function ? 'function' : 'class'} \`${sym.name}\` in \`${relativePath}\`\n\`\`\`${doc.languageId}\n${text.slice(0, 2000)}\n\`\`\``;
   }
 
   postToWebview(message: Record<string, unknown>): void {

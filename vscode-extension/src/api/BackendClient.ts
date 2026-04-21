@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { logger } from '../utils/logger';
+import { OfflineCache } from './OfflineCache';
 
 export type ModelTier = 'free' | 'pro' | 'elite';
 
@@ -141,6 +142,11 @@ export class BackendClient {
   private readonly openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private abortController: AbortController | null = null;
   private backendHealthy: boolean | null = null; // null = unknown
+  private offlineCache: OfflineCache | null = null;
+
+  setOfflineCache(cache: OfflineCache): void {
+    this.offlineCache = cache;
+  }
 
   // ── Main chat entry point ─────────────────────────────────────────────────
   async chat(
@@ -193,6 +199,7 @@ export class BackendClient {
       const result = await this._vscodeChatRequest(request, cancellationToken);
       if (result && result.trim().length > 5) {
         onToken(result);
+        if (this.offlineCache) this.offlineCache.set(request.agent, request.message, result);
         return result;
       }
     } catch (err) {
@@ -206,6 +213,7 @@ export class BackendClient {
         logger.info('[BackendClient] Trying OpenRouter with user key...');
         const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
         if (result && result.trim().length > 5) {
+          if (this.offlineCache) this.offlineCache.set(request.agent, request.message, result);
           return result;
         }
       } catch (err) {
@@ -219,11 +227,22 @@ export class BackendClient {
       logger.info('[BackendClient] Trying OpenRouter free models...');
       const result = await this._openRouterChat(request, onToken, cancellationToken, null);
       if (result && result.trim().length > 5) {
+        if (this.offlineCache) this.offlineCache.set(request.agent, request.message, result);
         return result;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
       logger.warn(`[BackendClient] OpenRouter free failed: ${String(err)}`);
+    }
+
+    // Strategy 4: Offline cache fallback (last resort)
+    if (this.offlineCache) {
+      const cached = this.offlineCache.get(request.agent, request.message);
+      if (cached) {
+        const cachedResult = `⚡ Cached response (offline mode)\n\n${cached}`;
+        onToken(cachedResult);
+        return cachedResult;
+      }
     }
 
     throw new Error(

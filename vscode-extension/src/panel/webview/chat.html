@@ -331,6 +331,7 @@
           <span class="muted">â–¾</span>
         </button>
         <div class="header-spacer"></div>
+        <button id="btn-search" class="icon-btn" type="button" aria-label="Search sessions">&#128269;</button>
         <button id="btn-new-chat" class="icon-btn" type="button" aria-label="New Chat">+</button>
         <button id="btn-menu" class="icon-btn" type="button" aria-label="Menu">â‹¯</button>
       </div>
@@ -424,6 +425,27 @@
         <div class="server-foot">Add servers in <code>.kiro/settings/mcp.json</code></div>
       </div>
 
+      <div id="attack-overlay" class="overlay hidden">
+        <div class="overlay-head">
+          <button id="btn-attack-back" class="back-btn" type="button">&#8592;</button>
+          <div style="font-weight:800">Attack Surfaces</div>
+          <div class="header-spacer"></div>
+          <span id="attack-count" style="font-size:11px;color:var(--text2)"></span>
+        </div>
+        <div id="attack-list" class="overlay-body"></div>
+      </div>
+
+      <div id="search-overlay" class="overlay hidden">
+        <div class="overlay-head">
+          <button id="btn-search-back" class="back-btn" type="button">&#8592;</button>
+          <div style="font-weight:800">Search Sessions</div>
+        </div>
+        <div style="padding:10px">
+          <input id="search-input" class="search" type="text" placeholder="Search across all sessions..." style="width:100%">
+        </div>
+        <div id="search-results" class="overlay-body"></div>
+      </div>
+
       <main id="conversation" class="conversation">
         <div id="agent-cards" class="agent-grid"></div>
         <div id="messages"></div>
@@ -453,6 +475,7 @@
           <textarea id="chat-input" class="input-area" rows="1" placeholder="/plan task Â· /build app Â· /scan Â· @file"></textarea>
           <button id="btn-at" class="icon-btn input-at" type="button" aria-label="Mention file">@</button>
           <button id="btn-slash" class="icon-btn input-slash" type="button" aria-label="Slash command">/</button>
+          <button id="btn-voice" class="icon-btn input-voice" type="button" aria-label="Voice input" title="Voice input (hold to speak)">&#127908;</button>
           <button id="btn-send" class="send-btn" type="button">Send</button>
         </div>
         <div class="footer-tip">
@@ -467,6 +490,25 @@
   <script nonce="{{NONCE}}">
     (() => {
       "use strict";
+      // Sync with VSCode theme
+      function syncTheme() {
+        const computedBg = getComputedStyle(document.documentElement).getPropertyValue("--vscode-editor-background") || "";
+        const isLight = computedBg.trim().startsWith("#f") || computedBg.trim().startsWith("#e") || computedBg.trim().startsWith("rgb(2") || computedBg.trim().startsWith("rgb(24");
+        if (isLight) {
+          document.documentElement.style.setProperty("--bg", "#f8f9fa");
+          document.documentElement.style.setProperty("--bg2", "#ffffff");
+          document.documentElement.style.setProperty("--bg3", "#f0f2f5");
+          document.documentElement.style.setProperty("--bg4", "#e4e7eb");
+          document.documentElement.style.setProperty("--text", "#1a1d23");
+          document.documentElement.style.setProperty("--text2", "#4a5568");
+          document.documentElement.style.setProperty("--text3", "#718096");
+          document.documentElement.style.setProperty("--border", "#e4e7eb");
+        }
+      }
+      syncTheme();
+      const themeObserver = new MutationObserver(syncTheme);
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+
       const vscode = typeof acquireVsCodeApi === "function"
         ? acquireVsCodeApi()
         : { postMessage(message){ console.log("[chat:webview]", message); }, setState(){}, getState(){ return undefined; } };
@@ -505,7 +547,13 @@
         {cmd:"/test",desc:"Generate Playwright tests"},
         {cmd:"/review",desc:"Code review with security + quality"},
         {cmd:"/commit",desc:"Generate a git commit message"},
-        {cmd:"/scan",desc:"Security scan the workspace"}
+        {cmd:"/scan",desc:"Security scan the workspace"},
+        {cmd:"/threatmodel",desc:"Generate STRIDE threat model for this codebase"},
+        {cmd:"/pr",desc:"Generate PR description from git diff"},
+        {cmd:"/inject",desc:"Generate security test payloads for selected code"},
+        {cmd:"/secrets",desc:"Scan for hardcoded secrets and API keys"},
+        {cmd:"/attack",desc:"Scan codebase for attack surfaces"},
+        {cmd:"/deps",desc:"Scan dependencies for known CVEs"}
       ];
       const ALL_MODELS = [
         {tier:"FREE",id:"cybermindcli",name:"CyberMind Free",desc:"cybermindcli Â· HuggingFace",badge:"FREE"},
@@ -936,6 +984,13 @@
         const text = chatInput.value.trim();
         if(!text || isStreaming) return;
         closeAllDropdowns();
+        // Handle new slash commands by dispatching to extension
+        if(text === '/threatmodel' || text.startsWith('/threatmodel ')) { vscode.postMessage({type:'sendMessage', text, agent:'security', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
+        if(text === '/pr' || text.startsWith('/pr ')) { vscode.postMessage({type:'sendMessage', text, agent:'git', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
+        if(text === '/secrets' || text.startsWith('/secrets ')) { vscode.postMessage({type:'sendMessage', text, agent:'security', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
+        if(text === '/attack' || text.startsWith('/attack ')) { vscode.postMessage({type:'sendMessage', text, agent:'security', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
+        if(text === '/deps' || text.startsWith('/deps ')) { vscode.postMessage({type:'sendMessage', text, agent:'security', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
+        if(text.startsWith('/inject ')) { vscode.postMessage({type:'sendMessage', text, agent:'security', model:currentModel, attachments:[]}); chatInput.value=''; autoResize(); return; }
         addUserMsg(text, Date.now());
         chatInput.value = "";
         autoResize();
@@ -1116,6 +1171,77 @@
         }
       });
 
+      function renderAttackSurfaces(surfaces) {
+        var overlay = document.getElementById('attack-overlay');
+        var list = document.getElementById('attack-list');
+        var count = document.getElementById('attack-count');
+        if (!overlay || !list) return;
+        var critical = surfaces.filter(function(s) { return s.riskLevel === 'critical' || s.riskLevel === 'high'; });
+        if (count) count.textContent = surfaces.length + ' surfaces, ' + critical.length + ' high risk';
+        if (!surfaces.length) {
+          list.innerHTML = '<div class="dd-empty">No attack surfaces found. Good job!</div>';
+        } else {
+          var colors = {critical:'var(--red)', high:'var(--orange)', medium:'var(--gold)', low:'var(--accent3)'};
+          list.innerHTML = surfaces.map(function(s) {
+            var fname = (s.file.split(/[\/\\]/).pop()) || s.file;
+            return '<div class="server-card" style="cursor:pointer">' +
+              '<div class="server-line">' +
+              '<span style="width:8px;height:8px;border-radius:50%;background:' + (colors[s.riskLevel]||'var(--text3)') + ';flex-shrink:0;display:inline-block"></span>' +
+              '<span class="server-name">' + esc(s.type.replace(/_/g,' ')) + '</span>' +
+              '<span class="server-badge ' + (s.riskLevel==='critical'||s.riskLevel==='high'?'off':'on') + '">' + esc(s.riskLevel.toUpperCase()) + '</span>' +
+              '</div>' +
+              '<div style="margin-top:6px;font-size:12px;color:var(--text2)">' + esc(s.description) + '</div>' +
+              '<div style="margin-top:4px;font-size:11px;color:var(--text3)">' + esc(fname) + ':' + (s.line+1) + '</div>' +
+              (s.exploitHint ? '<div style="margin-top:6px;font-size:11px;color:var(--orange)">&#9889; ' + esc(s.exploitHint) + '</div>' : '') +
+              '</div>';
+          }).join('');
+        }
+        overlay.classList.remove('hidden');
+      }
+      document.getElementById('btn-attack-back').addEventListener('click', function() {
+        document.getElementById('attack-overlay').classList.add('hidden');
+      });
+      document.getElementById('btn-search').addEventListener('click', function() {
+        document.getElementById('search-overlay').classList.remove('hidden');
+        document.getElementById('search-input').focus();
+      });
+      document.getElementById('btn-search-back').addEventListener('click', function() {
+        document.getElementById('search-overlay').classList.add('hidden');
+      });
+      document.getElementById('search-input').addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var results = document.getElementById('search-results');
+        if (!query) { results.innerHTML = '<div class="dd-empty">Type to search sessions</div>'; return; }
+        var matches = sessionsCache.filter(function(s) {
+          return (s.title||'').toLowerCase().includes(query) || (s.agentId||'').toLowerCase().includes(query);
+        });
+        if (!matches.length) { results.innerHTML = '<div class="dd-empty">No sessions match</div>'; return; }
+        results.innerHTML = matches.map(function(s) {
+          return '<div class="dd-item" onclick="vscode.postMessage({type:\'loadSession\',sessionId:\'' + esc(s.id) + '\'});document.getElementById(\'search-overlay\').classList.add(\'hidden\')">' +
+            '<div class="dd-main"><div class="dd-name">' + esc(s.title||'Untitled') + '</div>' +
+            '<div class="dd-desc">' + esc(s.agentId||'') + ' \xB7 ' + formatDate(s.timestamp) + '</div></div></div>';
+        }).join('');
+      });
+      (function() {
+        var voiceBtn = document.getElementById('btn-voice');
+        if (!voiceBtn) return;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          var rec = new SR();
+          var listening = false;
+          rec.continuous = false;
+          rec.interimResults = true;
+          rec.lang = 'en-US';
+          rec.onstart = function() { listening = true; voiceBtn.style.color = 'var(--red)'; voiceBtn.style.borderColor = 'var(--red)'; toast('Listening...', toastKinds.ok); };
+          rec.onresult = function(e) { var t = Array.from(e.results).map(function(r){return r[0].transcript;}).join(''); chatInput.value = t; autoResize(); };
+          rec.onend = function() { listening = false; voiceBtn.style.color = ''; voiceBtn.style.borderColor = ''; if (chatInput.value.trim()) sendMsg(); };
+          rec.onerror = function() { listening = false; voiceBtn.style.color = ''; voiceBtn.style.borderColor = ''; toast('Voice input failed', toastKinds.err); };
+          voiceBtn.addEventListener('click', function() { if (listening) rec.stop(); else rec.start(); });
+        } else {
+          voiceBtn.style.display = 'none';
+        }
+      })();
+
       window.addEventListener("message", (event) => {
         const msg = event.data || {};
         switch(msg.type){
@@ -1168,6 +1294,8 @@
           case "architectureReady": toast("Architecture ready. Reply with build to continue.", toastKinds.ok); break;
           case "planReady": toast("Plan ready. Reply with execute to run it.", toastKinds.ok); break;
           case "insight": toast(String(msg.insight?.title || "Workspace insight"), toastKinds.warn); break;
+          case "attackSurfaces": renderAttackSurfaces(msg.surfaces || []); break;
+          case "queueStatus": break;
           default:
             break;
         }
