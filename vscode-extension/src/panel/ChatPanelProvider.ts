@@ -265,6 +265,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
         this.postToWebview({ type: 'currentModel', modelId: 'cybermindcli' });
         this.postToWebview({ type: 'welcome', name: 'Guest', plan: 'free' });
+        this.postToWebview({ type: 'signInSuccess' });
         break;
       case 'webSignIn': {
         // Open browser OAuth flow directly — no command needed
@@ -905,6 +906,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     this.postToWebview({ type: 'authState', isAuthenticated: true, email: displayName, plan });
     this.postToWebview({ type: 'showScreen', screen: 'chat' });
     this.postToWebview({ type: 'agentList', agents: this.agentRegistry.getAllAgents() });
+    this.postToWebview({ type: 'currentModel', modelId: this.currentModelId });
+    this.postToWebview({ type: 'welcome', name: displayName, plan });
+    this.postToWebview({ type: 'signInSuccess' });
   }
 
   private async handleSaveApiKey(apiKey: string): Promise<void> {

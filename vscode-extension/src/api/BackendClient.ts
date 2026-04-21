@@ -413,7 +413,15 @@ export class BackendClient {
         response = await fetch(url, {
           method: 'POST',
           headers,
-          body: JSON.stringify(request),
+          // Backend expects { prompt, messages, agent, context, system }
+          // NOT the raw ChatRequest shape which uses "message" field
+          body: JSON.stringify({
+            prompt: request.message,
+            messages: [],
+            agent: request.agent,
+            context: request.context?.slice(0, 8000) ?? '',
+            system: request.system ?? '',
+          }),
           signal,
         });
       } catch (fetchErr) {
