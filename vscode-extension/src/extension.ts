@@ -67,6 +67,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
     }).catch(() => {});
 
+    // --- Real-time SAST: scan on save ---
+    const scanOnSaveDisposable = securityScanner.startScanOnSave();
+    context.subscriptions.push(scanOnSaveDisposable);
+
     // --- Register DiagnosticCollection ---
     context.subscriptions.push(securityScanner);
 
@@ -476,6 +480,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       { dispose: () => inlineProvider.dispose() },
       { dispose: () => mcpManager.stopAll() },
       { dispose: () => workspaceIntelligence.dispose() }
+    );
+
+    // 19. toggleScanOnSave — enable/disable real-time SAST
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cybermind.toggleScanOnSave', () => {
+        const current = securityScanner.isScanOnSaveEnabled();
+        securityScanner.setScanOnSave(!current);
+        vscode.window.showInformationMessage(
+          `CyberMind: Real-time security scan on save ${!current ? 'enabled' : 'disabled'}.`
+        );
+      })
     );
 
     logger.info('CyberMind extension activated successfully.');
