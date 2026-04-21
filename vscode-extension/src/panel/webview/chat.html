@@ -1,524 +1,1139 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
-<title>CyberMind AI</title>
-<style>
-:root{
-  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
-  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;
-  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
-  --border:#30363d;--error:#f85149;--warn:#d29922;--ok:#3fb950;
-  --radius:8px;--radius2:12px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);min-width:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:13px;color:var(--text);line-height:1.5}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
-::-webkit-scrollbar-thumb:hover{background:var(--text3)}
-
-/* ── Screens ── */
-.screen{display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;width:100%}
-.screen.hidden{display:none!important}
-
-/* ── Welcome ── */
-#screen-welcome{align-items:center;justify-content:center;padding:20px;gap:16px;background:var(--bg)}
-.logo-row{display:flex;align-items:center;gap:10px}
-.logo-icon{width:36px;height:36px}
-.logo-text{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:.5px}
-.welcome-title{font-size:15px;font-weight:600;color:var(--text);text-align:center}
-.welcome-sub{font-size:12px;color:var(--text2);text-align:center}
-.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:280px}
-.feature-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px}
-.feature-item span:first-child{font-size:14px}
-.btn-stack{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
-.btn-primary{padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;width:100%}
-.btn-primary:hover{opacity:.85}
-.btn-outline{padding:9px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;width:100%}
-.btn-outline:hover{background:rgba(0,212,255,.08)}
-.btn-ghost{padding:8px 16px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;transition:all .15s;width:100%}
-.btn-ghost:hover{color:var(--text);border-color:var(--text3)}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:4px}
-.status-dot.offline{background:var(--error)}
-.status-dot.checking{background:var(--warn);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* ── Sign-in ── */
-#screen-signin{background:var(--bg)}
-.signin-header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
-.btn-back{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;line-height:1}
-.btn-back:hover{color:var(--text);background:var(--bg3)}
-.signin-title{font-size:14px;font-weight:600;color:var(--text)}
-.signin-body{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto}
-.form-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.5px}
-.form-input{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
-.form-input:focus{border-color:var(--accent)}
-.form-input::placeholder{color:var(--text3)}
-.divider{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:11px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.error-msg{padding:8px 10px;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:var(--radius);color:var(--error);font-size:12px;display:none}
-.error-msg.show{display:block}
-
-/* ── Chat ── */
-#screen-chat{background:var(--bg)}
-.chat-header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;min-height:44px;min-width:0;overflow:hidden}
-.header-left{flex:1;min-width:0}
-.session-btn{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px;cursor:pointer;transition:background .15s;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.session-btn:hover{background:var(--bg3)}
-.session-btn svg{flex-shrink:0;opacity:.6}
-.header-actions{display:flex;gap:4px}
-.icon-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);cursor:pointer;transition:all .15s;font-size:14px;flex-shrink:0}
-.icon-btn:hover{background:var(--bg3);color:var(--text)}
-.icon-btn.active{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:var(--accent)}
-
-/* ── Conversation ── */
-.conversation{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
-
-/* ── Agent cards ── */
-.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;padding:4px 0}
-.agent-card{padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:3px}
-.agent-card:hover{border-color:var(--accent);background:rgba(0,212,255,.04)}
-.agent-card.selected{border-color:var(--accent);background:rgba(0,212,255,.06)}
-.agent-icon{font-size:16px;margin-bottom:2px}
-.agent-name{font-size:12px;font-weight:600;color:var(--text)}
-.agent-desc{font-size:10px;color:var(--text2);line-height:1.3}
-
-/* ── Messages ── */
-.msg{display:flex;flex-direction:column;gap:3px;max-width:100%}
-.msg.user{align-items:flex-end}
-.msg.ai{align-items:flex-start}
-.msg-label{font-size:10px;color:var(--accent);font-weight:600;padding:0 2px}
-.msg-bubble{padding:9px 12px;border-radius:var(--radius2);font-size:13px;line-height:1.6;max-width:100%;word-break:break-word}
-.msg.user .msg-bubble{background:var(--bg3);border:1px solid var(--border);border-bottom-right-radius:3px;color:var(--text)}
-.msg.ai .msg-bubble{background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:3px;color:var(--text);width:100%}
-.msg-meta{font-size:10px;color:var(--text3);padding:0 2px}
-
-/* ── Code blocks ── */
-.code-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:6px 0}
-.code-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--bg3);border-bottom:1px solid var(--border)}
-.code-lang{font-size:10px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.code-actions{display:flex;gap:4px}
-.code-btn{padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
-.code-btn.copy{background:transparent;color:var(--text2)}
-.code-btn.copy:hover{background:var(--bg4);color:var(--text)}
-.code-btn.apply{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
-.code-btn.apply:hover{opacity:.85}
-.code-btn.apply.done{background:var(--ok);border-color:var(--ok)}
-.code-btn.reject{background:transparent;color:var(--error);border-color:rgba(248,81,73,.3)}
-.code-btn.reject:hover{background:rgba(248,81,73,.1)}
-.code-pre{padding:10px;overflow-x:auto;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.5;color:var(--text);white-space:pre}
-
-/* ── Typing indicator ── */
-.typing{display:flex;align-items:center;gap:4px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);border-bottom-left-radius:3px;width:fit-content}
-.typing.hidden{display:none}
-.typing span{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
-
-/* ── Footer ── */
-.chat-footer{border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.selectors{display:flex;gap:5px;flex-wrap:wrap;min-width:0}
-.selector{padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;max-width:calc(50% - 4px);overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.selector:hover{border-color:var(--accent);color:var(--accent)}
-.selector.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.06)}
-.input-row{display:flex;align-items:flex-end;gap:6px;min-width:0}
-#chat-input{flex:1;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:inherit;resize:none;outline:none;min-height:36px;max-height:120px;overflow-y:auto;line-height:1.5;transition:border-color .15s}
-#chat-input:focus{border-color:var(--accent)}
-#chat-input::placeholder{color:var(--text3)}
-.input-btns{display:flex;gap:4px;align-items:flex-end}
-.input-action{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;flex-shrink:0}
-.input-action:hover{border-color:var(--accent);color:var(--accent)}
-.send-btn{padding:7px 14px;background:var(--accent);border:none;border-radius:var(--radius);color:#000;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;flex-shrink:0;height:30px}
-.send-btn:hover{opacity:.85}
-.send-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* ── Dropdowns ── */
-.dropdown{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:100;overflow:hidden;min-width:180px;max-width:calc(100vw - 20px);max-height:300px;overflow-y:auto}
-.dropdown.hidden{display:none}
-.dd-header{padding:7px 12px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-.dd-search{padding:6px 8px;border-bottom:1px solid var(--border)}
-.dd-search input{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;outline:none}
-.dd-search input:focus{border-color:var(--accent)}
-.dd-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;transition:background .1s;font-size:12px;color:var(--text)}
-.dd-item:hover{background:var(--bg3)}
-.dd-item.active{background:rgba(0,212,255,.08);color:var(--accent)}
-.dd-item-icon{font-size:14px;flex-shrink:0}
-.dd-item-name{font-weight:500}
-.dd-item-desc{font-size:10px;color:var(--text2)}
-.dd-section{padding:4px 12px 2px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.dd-divider{height:1px;background:var(--border);margin:3px 0}
-.tier-badge{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:auto}
-.tier-free{background:rgba(59,251,80,.15);color:var(--ok)}
-.tier-pro{background:rgba(0,212,255,.15);color:var(--accent)}
-.tier-elite{background:rgba(210,153,34,.15);color:var(--warn)}
-
-/* ── Dot menu ── */
-#dot-menu{top:44px;right:10px;min-width:180px}
-.dot-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
-.dot-item:hover{background:var(--bg3)}
-.dot-item.danger{color:var(--error)}
-.dot-item.danger:hover{background:rgba(248,81,73,.08)}
-
-/* ── Sessions dropdown ── */
-#sessions-dd{top:44px;left:10px;right:10px}
-#agent-dd{bottom:90px;left:10px;right:10px}
-#model-dd{bottom:90px;left:10px;right:10px}
-#at-dd{bottom:90px;left:10px;right:10px}
-#slash-dd{bottom:90px;left:10px;right:10px}
-
-/* ── Danger dialog ── */
-.danger-dialog{position:absolute;bottom:80px;left:10px;right:10px;background:var(--bg2);border:1px solid rgba(248,81,73,.4);border-radius:var(--radius2);padding:14px;z-index:200;display:none}
-.danger-dialog.show{display:block}
-.danger-title{font-size:13px;font-weight:600;color:var(--error);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.danger-cmd{font-family:monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px;color:var(--warn);margin-bottom:10px;word-break:break-all}
-.danger-btns{display:flex;gap:8px}
-.btn-run{flex:1;padding:7px;background:var(--error);color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-cancel-cmd{flex:1;padding:7px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:5px;font-size:12px;cursor:pointer}
-
-/* ── Toast ── */
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text);z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1}
-.toast.ok{border-color:rgba(59,251,80,.4);color:var(--ok)}
-.toast.err{border-color:rgba(248,81,73,.4);color:var(--error)}
-
-/* ── Scan summary ── */
-.scan-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin:6px 0}
-.scan-title{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text)}
-.scan-counts{display:flex;gap:6px;flex-wrap:wrap}
-.sc{padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600}
-.sc-crit{background:rgba(248,81,73,.2);color:var(--error)}
-.sc-high{background:rgba(255,100,0,.2);color:#ff6400}
-.sc-med{background:rgba(210,153,34,.2);color:var(--warn)}
-.sc-low{background:rgba(59,251,80,.15);color:var(--ok)}
-.sc-info{background:rgba(0,212,255,.1);color:var(--accent)}
-
-/* ── Inline code ── */
-code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:11px;background:var(--bg3);padding:1px 4px;border-radius:3px;color:var(--accent)}
-.msg-bubble p{margin-bottom:5px}
-.msg-bubble p:last-child{margin-bottom:0}
-.msg-bubble strong{color:var(--text);font-weight:600}
-.msg-bubble a{color:var(--accent)}
-.msg-bubble ul,.msg-bubble ol{padding-left:16px;margin:4px 0}
-.msg-bubble li{margin-bottom:2px}
-
-/* ── Backend status bar ── */
-.status-bar{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3)}
-.status-bar .dot{width:5px;height:5px;border-radius:50%;background:var(--ok)}
-.status-bar .dot.warn{background:var(--warn);animation:pulse 1s infinite}
-.status-bar .dot.err{background:var(--error)}
-.wake-btn{margin-left:auto;padding:1px 7px;background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:4px;color:var(--warn);font-size:10px;cursor:pointer;transition:all .15s}
-.wake-btn:hover{background:rgba(210,153,34,.25)}
-
-/* ── File link ── */
-.file-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-family:monospace;font-size:11px}
-.file-link:hover{color:var(--accent2)}
-
-/* ── Prompt enhanced badge ── */
-.enhanced-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:4px;font-size:10px;color:#a78bfa;margin-bottom:4px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
+  <title>CyberMind AI</title>
+  <style>
+    :root{
+      --bg:#0a0d14;--bg2:#0f1420;--bg3:#161c2d;--bg4:#1e2640;
+      --accent:#00e5ff;--accent2:#7c3aed;--accent3:#10b981;
+      --red:#ff4757;--orange:#ff6b35;--gold:#ffd700;
+      --text:#e8edf5;--text2:#8892a4;--text3:#4a5568;--border:#1e2640;
+      --radius:6px;--shadow:0 24px 48px rgba(0,0,0,.45)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;overflow:hidden;background:
+      linear-gradient(180deg,rgba(0,229,255,.08),transparent 18%),
+      radial-gradient(circle at top,rgba(124,58,237,.12),transparent 32%),
+      linear-gradient(135deg,rgba(255,255,255,.02) 1px,transparent 1px),
+      linear-gradient(45deg,rgba(255,255,255,.02) 1px,transparent 1px),
+      var(--bg);
+      background-size:auto,auto,18px 18px,18px 18px,auto;
+      background-position:0 0,0 0,0 0,9px 9px,0 0;
+      color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px
+    }
+    body{position:relative}
+    button,input,textarea{font:inherit}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:rgba(136,146,164,.18);border-radius:999px}
+    .hidden{display:none!important}
+    .screen{position:absolute;inset:0;display:flex;flex-direction:column;min-width:0}
+    .panel{position:relative;display:flex;flex-direction:column;height:100%;min-width:0}
+    .glass{background:linear-gradient(180deg,rgba(255,255,255,.01),rgba(255,255,255,0)) var(--bg2);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;letter-spacing:.22em;text-transform:uppercase}
+    .title{margin:0;font-size:22px;line-height:1.05}
+    .subtitle{margin:8px 0 0;color:var(--text2);font-size:12px;line-height:1.5}
+    .screen-welcome{justify-content:center;align-items:center;padding:22px}
+    .welcome-card{width:min(100%,380px);padding:22px 18px 18px;border-radius:10px;animation:fadeUp .45s ease}
+    .welcome-brand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .welcome-logo{width:42px;height:42px;flex:0 0 auto;filter:drop-shadow(0 0 14px rgba(0,229,255,.24))}
+    .welcome-name{font-size:21px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
+    .welcome-tag{margin-top:2px;color:var(--text2);font-size:12px}
+    .pill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}
+    .feature-pill{padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.05);background:rgba(10,13,20,.65);font-size:12px;color:var(--text2)}
+    .welcome-note{display:grid;gap:8px;margin:16px 0 14px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.05);background:linear-gradient(180deg,rgba(0,229,255,.08),rgba(124,58,237,.05))}
+    .welcome-note strong{font-size:13px}
+    .welcome-note span{color:var(--text2);font-size:12px;line-height:1.5}
+    .stack{display:grid;gap:10px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:38px;border-radius:6px;border:1px solid transparent;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,opacity .18s ease}
+    .btn-primary{background:var(--accent);color:#02060a;font-weight:800;box-shadow:0 0 24px rgba(0,229,255,.2)}
+    .btn-primary:hover{opacity:.92}
+    .btn-outline{background:rgba(255,255,255,.02);border-color:rgba(0,229,255,.3);color:var(--accent)}
+    .btn-outline:hover{background:rgba(0,229,255,.08)}
+    .btn-ghost{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.08);color:var(--text2)}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.18);color:var(--text)}
+    .btn-warn{background:rgba(255,107,53,.14);border-color:rgba(255,107,53,.28);color:#ffd7c8}
+    .btn-warn:hover{background:rgba(255,107,53,.22)}
+    .micro{margin-top:10px;color:var(--text3);font-size:11px;text-align:center}
+    .signin-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:rgba(10,13,20,.86)}
+    .back-btn,.icon-btn,.chip-btn,.mini-btn,.danger-btn,.ghost-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);color:var(--text2);cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
+    .back-btn{width:30px;height:30px;font-size:17px}
+    .back-btn:hover,.icon-btn:hover,.chip-btn:hover,.mini-btn:hover,.ghost-btn:hover{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.08);color:var(--accent)}
+    .signin-body{padding:18px 14px;display:grid;gap:12px}
+    .label{display:block;margin-bottom:6px;color:var(--text2);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+    .field,.search,.input-area{width:100%;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(10,13,20,.72);color:var(--text);outline:none}
+    .field,.search{min-height:38px;padding:0 12px}
+    .field:focus,.search:focus,.input-area:focus{border-color:rgba(0,229,255,.4);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
+    .field::placeholder,.search::placeholder,.input-area::placeholder{color:var(--text3)}
+    .helper{color:var(--text2);font-size:12px;line-height:1.5}
+    .helper a{color:var(--accent);text-decoration:none;cursor:pointer}
+    .helper a:hover{text-decoration:underline}
+    .error-box{padding:10px 12px;border-radius:6px;border:1px solid rgba(255,71,87,.28);background:rgba(255,71,87,.1);color:var(--red);font-size:12px}
+    .divider{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.12em}
+    .divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.06)}
+    .status-bar{position:relative;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(10,13,20,.88);font-size:11px;color:var(--text2)}
+    .status-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent3),transparent 55%)}
+    .status-indicator{display:flex;align-items:center;gap:7px}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);box-shadow:0 0 10px currentColor}
+    .status-dot.sleep{background:var(--orange);color:var(--orange)}
+    .status-dot.checking{background:var(--accent);color:var(--accent)}
+    .status-copy{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+    .status-spacer{flex:1}
+    .header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(15,20,32,.94)}
+    .session-btn{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer}
+    .session-btn:hover{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.08)}
+    .session-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .header-spacer{flex:1}
+    .icon-btn,.chip-btn,.mini-btn{min-height:32px;padding:0 10px}
+    .icon-btn{width:32px;padding:0;font-size:16px}
+    .command-deck{display:grid;gap:10px;padding:12px;border-bottom:1px solid rgba(255,255,255,.04);background:linear-gradient(180deg,rgba(15,20,32,.95),rgba(10,13,20,.9))}
+    .deck-main{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .deck-copy{min-width:0}
+    .deck-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;letter-spacing:.04em}
+    .deck-title-mark{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:rgba(0,229,255,.12);color:var(--accent);box-shadow:0 0 18px rgba(0,229,255,.18)}
+    .deck-subtitle{margin-top:5px;color:var(--text2);font-size:12px;line-height:1.55}
+    .plan-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .plan-pill.free{background:rgba(16,185,129,.08);color:var(--accent3)}
+    .plan-pill.pro{background:rgba(0,229,255,.08);color:var(--accent)}
+    .plan-pill.elite{background:rgba(255,215,0,.12);color:var(--gold)}
+    .deck-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .metric-chip{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.05);background:rgba(10,13,20,.58)}
+    .metric-chip-label{color:var(--text3);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    .metric-chip-value{margin-top:6px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .quick-action{padding:0 10px;min-height:30px;border-radius:999px;border:1px solid rgba(0,229,255,.18);background:rgba(0,229,255,.06);color:var(--accent);cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease}
+    .quick-action:hover{background:rgba(0,229,255,.14);border-color:rgba(0,229,255,.34)}
+    .conversation{flex:1;overflow-y:auto;padding:14px 12px 120px;display:flex;flex-direction:column;gap:12px}
+    .agent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .agent-card{padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,.05);background:rgba(10,13,20,.65);cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}
+    .agent-card:hover{transform:translateY(-1px);border-color:rgba(0,229,255,.26);background:rgba(0,229,255,.06)}
+    .agent-card.active{border-color:rgba(0,229,255,.42);background:rgba(0,229,255,.08)}
+    .agent-icon{font-size:18px;margin-bottom:8px}
+    .agent-name{font-weight:700}
+    .agent-desc{margin-top:4px;color:var(--text2);font-size:12px;line-height:1.45}
+    .message{display:flex;flex-direction:column;gap:6px;max-width:100%}
+    .message.user{align-items:flex-end}
+    .message.ai{align-items:flex-start}
+    .message-label{padding:0 4px;color:var(--accent);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+    .bubble{width:100%;max-width:100%;border-radius:6px;border:1px solid rgba(255,255,255,.06);padding:12px;line-height:1.65;word-break:break-word}
+    .message.user .bubble{width:auto;max-width:88%;background:var(--bg3);border-color:rgba(255,255,255,.08)}
+    .message.ai .bubble{background:var(--bg2)}
+    .message-meta{padding:0 4px;color:var(--text3);font-size:11px}
+    .bubble p{margin:0 0 10px}
+    .bubble p:last-child{margin-bottom:0}
+    .bubble ul,.bubble ol{margin:8px 0;padding-left:18px}
+    .bubble li{margin:4px 0}
+    .bubble strong{font-weight:800}
+    .bubble em{font-style:italic}
+    .bubble code{padding:2px 5px;border-radius:4px;background:rgba(0,229,255,.08);color:var(--accent);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+    .md-heading{margin:0 0 10px;font-size:14px;font-weight:800;color:var(--text)}
+    .md-link,.file-link{color:var(--accent);text-decoration:none;cursor:pointer}
+    .md-link:hover,.file-link:hover{text-decoration:underline}
+    .code-wrap{margin:10px 0;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:#081018;overflow:hidden}
+    .code-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)}
+    .code-lang{font-size:10px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase}
+    .code-actions{display:flex;flex-wrap:wrap;gap:6px}
+    .code-btn{min-height:26px;padding:0 8px;border-radius:5px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);color:var(--text2);cursor:pointer}
+    .code-btn:hover{border-color:rgba(0,229,255,.28);color:var(--accent)}
+    .code-btn.apply{background:var(--accent);border-color:transparent;color:#02060a;font-weight:800}
+    .code-btn.apply.disabled{background:rgba(255,255,255,.03);color:var(--text3);cursor:not-allowed}
+    .code-btn.reject{color:var(--red);border-color:rgba(255,71,87,.22)}
+    .code-pre{margin:0;padding:12px;overflow:auto;color:var(--text);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.6;white-space:pre}
+    .typing{display:flex;align-items:center;gap:5px;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:var(--bg2);width:max-content}
+    .typing-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
+    .typing-dot:nth-child(2){animation-delay:.18s}
+    .typing-dot:nth-child(3){animation-delay:.36s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.38}30%{transform:translateY(-5px);opacity:1}}
+    .footer{position:absolute;left:0;right:0;bottom:0;display:grid;gap:8px;padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(10,13,20,.88),rgba(10,13,20,.98))}
+    .attachment-row{display:flex;gap:8px;flex-wrap:wrap}
+    .attachment-chip{display:inline-flex;align-items:center;gap:8px;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(0,229,255,.18);background:rgba(0,229,255,.06);color:var(--accent);max-width:100%}
+    .attachment-chip-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+    .attachment-remove{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:var(--text);cursor:pointer}
+    .attachment-remove:hover{background:rgba(255,71,87,.25);color:#fff}
+    .selector-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .selector{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer}
+    .selector:hover{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.08)}
+    .selector span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .input-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end}
+    .input-area{min-height:42px;max-height:140px;padding:10px 12px;resize:none}
+    .send-btn{min-width:60px;min-height:42px;padding:0 12px;border:none;border-radius:6px;background:var(--accent);color:#02060a;font-weight:800;cursor:pointer;box-shadow:0 0 24px rgba(0,229,255,.18)}
+    .send-btn:disabled{opacity:.42;cursor:not-allowed}
+    .footer-tip{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--text3);font-size:11px}
+    .dropdown{position:absolute;left:12px;right:12px;z-index:20;max-height:320px;overflow:auto;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(15,20,32,.98);box-shadow:var(--shadow)}
+    .dd-search{padding:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dd-body{display:grid;gap:2px;padding:6px}
+    .dd-section{padding:8px 10px 4px;color:var(--text3);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+    .dd-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:6px;cursor:pointer}
+    .dd-item:hover{background:rgba(0,229,255,.08)}
+    .dd-item.active{background:rgba(0,229,255,.12);box-shadow:inset 0 0 0 1px rgba(0,229,255,.1)}
+    .dd-icon{flex:0 0 auto;font-size:15px}
+    .dd-main{min-width:0}
+    .dd-name{font-weight:700}
+    .dd-desc{margin-top:3px;color:var(--text2);font-size:12px;line-height:1.45}
+    .dd-badge{margin-left:auto;padding:4px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.08);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+    .dd-badge.free{background:rgba(16,185,129,.08);color:var(--accent3)}
+    .dd-badge.pro{background:rgba(0,229,255,.08);color:var(--accent)}
+    .dd-badge.elite{background:rgba(255,215,0,.12);color:var(--gold)}
+    .dd-empty{padding:14px 10px;color:var(--text3)}
+    .sessions-dd{top:88px}
+    .agent-dd,.model-dd,.at-dd,.slash-dd{bottom:116px}
+    .menu-dd{top:88px;left:auto;width:214px}
+    .menu-dd .dd-item{align-items:center}
+    .session-row{display:flex;align-items:center;gap:8px;width:100%}
+    .session-main{min-width:0;flex:1}
+    .session-delete{width:26px;height:26px;border:none;border-radius:5px;background:rgba(255,71,87,.08);color:var(--red);cursor:pointer}
+    .session-delete:hover{background:rgba(255,71,87,.18)}
+    .overlay{position:absolute;inset:0;z-index:24;background:rgba(10,13,20,.98);display:flex;flex-direction:column}
+    .overlay-head{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .overlay-body{flex:1;overflow:auto;padding:12px;display:grid;gap:10px}
+    .server-card,.scan-box{padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:rgba(10,13,20,.65)}
+    .server-line{display:flex;align-items:center;gap:10px}
+    .server-name{font-weight:700;flex:1}
+    .server-badge{padding:4px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.08);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+    .server-badge.on{background:rgba(16,185,129,.08);color:var(--accent3)}
+    .server-badge.off{background:rgba(255,255,255,.03);color:var(--text2)}
+    .server-foot{padding:12px;border-top:1px solid rgba(255,255,255,.06);color:var(--text2);font-size:12px}
+    .danger{position:absolute;left:12px;right:12px;bottom:124px;z-index:26;padding:14px;border-radius:6px;border:1px solid rgba(255,71,87,.25);background:rgba(15,20,32,.98);box-shadow:var(--shadow)}
+    .danger-title{display:flex;align-items:center;gap:8px;margin:0 0 10px;color:var(--red);font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .danger-code{padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:#081018;color:#ffd7c8;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.5;word-break:break-word}
+    .danger-actions{display:flex;gap:8px;margin-top:12px}
+    .danger-btn,.ghost-btn{flex:1;min-height:36px}
+    .danger-btn{background:rgba(255,71,87,.9);border-color:transparent;color:#fff}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);padding:10px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(10,13,20,.96);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:30}
+    .toast.show{opacity:1}
+    .toast.ok{color:var(--accent3);border-color:rgba(16,185,129,.32)}
+    .toast.err{color:var(--red);border-color:rgba(255,71,87,.32)}
+    .toast.warn{color:#ffd7c8;border-color:rgba(255,107,53,.32)}
+    .dot-sep{height:1px;background:rgba(255,255,255,.06);margin:4px 10px}
+    .muted{color:var(--text3)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media (max-width:420px){
+      .agent-grid{grid-template-columns:1fr}
+      .selector-row{grid-template-columns:1fr}
+      .deck-grid{grid-template-columns:1fr}
+      .deck-main{flex-direction:column;align-items:flex-start}
+      .quick-actions{width:100%}
+      .input-row{grid-template-columns:1fr auto auto;grid-template-areas:"input input input" "at slash send"}
+      .input-area{grid-area:input}
+      .input-at{grid-area:at}
+      .input-slash{grid-area:slash}
+      .send-btn{grid-area:send}
+      .message.user .bubble{max-width:100%}
+    }
+  </style>
 </head>
 <body>
-
-<!-- ===== WELCOME SCREEN ===== -->
-<div id="screen-welcome" class="screen">
-  <div class="logo-row">
-    <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
-      <polygon points="20,2 36,12 36,28 20,38 4,28 4,12" fill="none" stroke="#00d4ff" stroke-width="2"/>
-      <path d="M22 8 L14 20 H20 L18 32 L26 20 H20 L22 8Z" fill="#00d4ff"/>
-    </svg>
-    <span class="logo-text">CyberMind</span>
-  </div>
-  <div class="welcome-title">AI Security &amp; Coding Assistant</div>
-  <div class="welcome-sub">11 AI providers · 11 agents · Agentic mode</div>
-  <div class="feature-grid">
-    <div class="feature-item"><span>🔒</span>OWASP Security</div>
-    <div class="feature-item"><span>🤖</span>Agentic Loop</div>
-    <div class="feature-item"><span>🎭</span>Playwright Tests</div>
-    <div class="feature-item"><span>🏗️</span>Full-Stack Build</div>
-    <div class="feature-item"><span>🔌</span>MCP Servers</div>
-    <div class="feature-item"><span>⚡</span>11 AI Providers</div>
-  </div>
-  <div class="btn-stack">
-    <button class="btn-primary" id="btn-web-signin">⚡ Sign in with CyberMind</button>
-    <button class="btn-outline" id="btn-goto-apikey">Use API Key</button>
-    <button class="btn-ghost" id="btn-continue-free">Continue Free (OpenRouter)</button>
-  </div>
-  <div style="font-size:10px;color:var(--text3);margin-top:4px">Free tier · No account required</div>
-</div>
-
-<!-- ===== API KEY SCREEN ===== -->
-<div id="screen-signin" class="screen hidden">
-  <div class="signin-header">
-    <button class="btn-back" id="btn-back">&#8592;</button>
-    <span class="signin-title">Connect with API Key</span>
-  </div>
-  <div class="signin-body">
-    <div>
-      <label class="form-label">API Key</label>
-      <input type="password" class="form-input" id="signin-apikey" placeholder="cp_live_xxxxxxxxxxxxxxxx" autocomplete="off">
-      <div style="margin-top:5px;font-size:11px;color:var(--text3)">
-        Get your key at <span style="color:var(--accent);cursor:pointer" id="link-get-key">cybermindcli1.vercel.app/dashboard/api-keys</span>
-      </div>
-    </div>
-    <div class="error-msg" id="signin-error"></div>
-    <button class="btn-primary" id="btn-apikey-submit">Connect with API Key</button>
-    <div class="divider">or</div>
-    <button class="btn-outline" id="btn-web-signin2">⚡ Sign in with CyberMind (browser)</button>
-  </div>
-</div>
-
-<!-- ===== CHAT SCREEN ===== -->
-<div id="screen-chat" class="screen hidden">
-  <!-- Backend status bar -->
-  <div class="status-bar" id="status-bar">
-    <span class="dot" id="status-dot"></span>
-    <span id="status-text">Checking backend...</span>
-    <button class="wake-btn hidden" id="wake-btn">Wake Backend</button>
-  </div>
-
-  <!-- Header -->
-  <div class="chat-header">
-    <div class="header-left">
-      <button class="session-btn" id="btn-sessions">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 012.5 1h11A1.5 1.5 0 0115 2.5v8A1.5 1.5 0 0113.5 12H9.06l-2.73 2.45A.5.5 0 015.5 14v-2H2.5A1.5 1.5 0 011 10.5v-8z"/></svg>
-        <span id="session-title">All Chats</span>
-        <span style="opacity:.5;font-size:10px">▾</span>
-      </button>
-    </div>
-    <div class="header-actions">
-      <button class="icon-btn" id="btn-new-chat" title="New Chat">+</button>
-      <button class="icon-btn" id="btn-dot-menu" title="More">&#8943;</button>
-    </div>
-  </div>
-
-  <!-- Dot menu -->
-  <div id="dot-menu" class="dropdown hidden">
-    <div class="dot-item" data-action="agents">🤖 Agents</div>
-    <div class="dot-item" data-action="mcp">🔌 MCP Servers</div>
-    <div class="dot-item" data-action="keys">🔑 API Keys</div>
-    <div class="dot-item" data-action="settings">⚙️ Settings</div>
-    <div class="dot-item" data-action="shortcuts">⌨️ Shortcuts</div>
-    <div class="dd-divider"></div>
-    <div class="dot-item danger" data-action="logout">🚪 Log Out</div>
-  </div>
-
-  <!-- Sessions dropdown -->
-  <div id="sessions-dd" class="dropdown hidden">
-    <div class="dd-header">Recent Chats</div>
-    <div id="sessions-list"></div>
-  </div>
-
-  <!-- Agent dropdown -->
-  <div id="agent-dd" class="dropdown hidden">
-    <div class="dd-search"><input type="text" id="agent-search" placeholder="Search agents..."></div>
-    <div class="dd-section">Built-in</div>
-    <div id="agent-list"></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">Custom</div>
-    <div id="custom-agent-list"></div>
-  </div>
-
-  <!-- Model dropdown -->
-  <div id="model-dd" class="dropdown hidden">
-    <div class="dd-header">Select Model</div>
-    <div class="dd-section">Free</div>
-    <div class="dd-item" data-model="cybermindcli"><span class="dd-item-icon">⚡</span><div><div class="dd-item-name">CyberMind Free</div><div class="dd-item-desc">cybermindcli · HuggingFace</div></div><span class="tier-badge tier-free">FREE</span></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">Groq (Fast)</div>
-    <div class="dd-item" data-model="groq-llama-3.3-70b"><span class="dd-item-icon">🚀</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">Groq · 500 tok/s</div></div><span class="tier-badge tier-pro">PRO</span></div>
-    <div class="dd-item" data-model="groq-kimi-k2"><span class="dd-item-icon">🧠</span><div><div class="dd-item-name">Kimi K2</div><div class="dd-item-desc">Groq · 1T MoE</div></div><span class="tier-badge tier-pro">PRO</span></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">Cerebras (Ultra-fast)</div>
-    <div class="dd-item" data-model="cerebras-llama3.3-70b"><span class="dd-item-icon">⚡</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">Cerebras · 2000 tok/s</div></div><span class="tier-badge tier-pro">PRO</span></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">NVIDIA NIM</div>
-    <div class="dd-item" data-model="nv-kimi-k2-thinking"><span class="dd-item-icon">🔬</span><div><div class="dd-item-name">Kimi K2 Thinking</div><div class="dd-item-desc">NVIDIA · 256K context</div></div><span class="tier-badge tier-pro">PRO</span></div>
-    <div class="dd-item" data-model="nv-minimax-m2.7"><span class="dd-item-icon">🏗️</span><div><div class="dd-item-name">MiniMax M2.7</div><div class="dd-item-desc">NVIDIA · 230B agentic</div></div><span class="tier-badge tier-pro">PRO</span></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">OpenRouter Free</div>
-    <div class="dd-item" data-model="or-llama-3.3-70b"><span class="dd-item-icon">🦙</span><div><div class="dd-item-name">Llama 3.3 70B</div><div class="dd-item-desc">OpenRouter · free</div></div><span class="tier-badge tier-free">FREE</span></div>
-    <div class="dd-item" data-model="or-qwen3-coder"><span class="dd-item-icon">💻</span><div><div class="dd-item-name">Qwen3 Coder</div><div class="dd-item-desc">OpenRouter · free</div></div><span class="tier-badge tier-free">FREE</span></div>
-    <div class="dd-divider"></div>
-    <div class="dd-section">Elite (Bedrock)</div>
-    <div class="dd-item" data-model="elite-claude-3-7"><span class="dd-item-icon">⭐</span><div><div class="dd-item-name">Claude 3.7 Sonnet</div><div class="dd-item-desc">AWS Bedrock · best</div></div><span class="tier-badge tier-elite">ELITE</span></div>
-    <div class="dd-item" data-model="elite-nova-pro"><span class="dd-item-icon">🌟</span><div><div class="dd-item-name">Amazon Nova Pro</div><div class="dd-item-desc">AWS Bedrock · multimodal</div></div><span class="tier-badge tier-elite">ELITE</span></div>
-  </div>
-
-  <!-- At-mention dropdown -->
-  <div id="at-dd" class="dropdown hidden">
-    <div class="dd-search"><input type="text" id="at-search" placeholder="Search files..."></div>
-    <div id="at-list"></div>
-  </div>
-
-  <!-- Slash command dropdown -->
-  <div id="slash-dd" class="dropdown hidden">
-    <div class="dd-header">Commands</div>
-    <div id="slash-list"></div>
-  </div>
-
-  <!-- Conversation -->
-  <main class="conversation" id="conversation">
-    <!-- Agent cards shown on new chat -->
-    <div id="agent-cards" class="agent-grid"></div>
-    <div id="messages"></div>
-    <div id="typing" class="typing hidden"><span></span><span></span><span></span></div>
-  </main>
-
-  <!-- Danger dialog -->
-  <div id="danger-dialog" class="danger-dialog">
-    <div class="danger-title">⚠️ Dangerous Command</div>
-    <div class="danger-cmd" id="danger-cmd-text"></div>
-    <div class="danger-btns">
-      <button class="btn-run" id="btn-run-anyway">Run Anyway</button>
-      <button class="btn-cancel-cmd" id="btn-cancel-cmd">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="chat-footer">
-    <div class="selectors">
-      <button class="selector active" id="btn-agent-sel">🔒 Security ▾</button>
-      <button class="selector" id="btn-model-sel">⚡ CyberMind ▾</button>
-    </div>
-    <div class="input-row">
-      <textarea id="chat-input" placeholder="/plan task · /build app · /image prompt · /debug error · @file · /test · /review" rows="1"></textarea>
-      <div class="input-btns">
-        <button class="input-action" id="btn-at" title="Attach file">@</button>
-        <button class="input-action" id="btn-slash" title="Commands">/</button>
-        <button class="send-btn" id="btn-send">Send</button>
-      </div>
-    </div>
-  </footer>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast"></div>
-
-<script nonce="{{NONCE}}">
-(function(){"use strict";const vscode=acquireVsCodeApi();
-let currentAgent="security",currentModel="cybermindcli",isStreaming=false,streamEl=null,attachments=[],agents=[],pendingDangerId=null;
-const SLASH_CMDS=[{cmd:"/plan",desc:"Generate + execute a step-by-step plan"},{cmd:"/build",desc:"Design + build a full-stack project"},{cmd:"/image",desc:"Generate an image with AI"},{cmd:"/debug",desc:"Auto-debug an error"},{cmd:"/fix",desc:"Fix a bug in selected code"},{cmd:"/test",desc:"Generate Playwright tests"},{cmd:"/review",desc:"Code review with security + quality"},{cmd:"/commit",desc:"Generate a git commit message"},{cmd:"/scan",desc:"Security scan the workspace"}];
-function showScreen(n){document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden"));const el=document.getElementById("screen-"+n);if(el)el.classList.remove("hidden");}
-function toast(msg,type){const t=document.getElementById("toast");t.textContent=msg;t.className="toast show"+(type?" "+type:"");setTimeout(()=>{t.className="toast";},3000);}
-function closeAll(){document.querySelectorAll(".dropdown").forEach(d=>d.classList.add("hidden"));}
-function toggleDD(id){const el=document.getElementById(id);const was=el.classList.contains("hidden");closeAll();if(was)el.classList.remove("hidden");}
-function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function fmtTime(ts){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});}
-function renderMd(text){let h=esc(text);h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{const id="cb-"+Math.random().toString(36).slice(2);return `<div class="code-wrap" data-id="${id}"><div class="code-header"><span class="code-lang">${esc(lang||"code")}</span><div class="code-actions"><button class="code-btn copy" onclick="copyCode(this)">Copy</button><button class="code-btn apply" onclick="applyCode(this)">Apply</button><button class="code-btn reject" onclick="rejectCode(this)">Reject</button></div></div><pre class="code-pre"><code>${code}</code></pre></div>`;});h=h.replace(/`([^`\n]+)`/g,"<code>$1</code>");h=h.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");h=h.replace(/\*([^*\n]+)\*/g,"<em>$1</em>");h="<p>"+h.replace(/\n\n+/g,"</p><p>").replace(/\n/g,"<br>")+"</p>";h=h.replace(/<p>\s*<\/p>/g,"");return h;}
-function scrollBottom(){const c=document.getElementById("conversation");c.scrollTop=c.scrollHeight;}
-function hideCards(){const c=document.getElementById("agent-cards");if(c)c.style.display="none";}
-function appendToken(tok){if(!streamEl){const id="msg-"+Date.now();const agName=agents.find(a=>a.id===currentAgent)?.name||currentAgent;const div=document.createElement("div");div.className="msg ai";div.id=id;div.innerHTML=`<div class="msg-label">${esc(agName)}</div><div class="msg-bubble" id="${id}-b"></div><div class="msg-meta" id="${id}-m">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(div);streamEl=document.getElementById(id+"-b");hideCards();document.getElementById("typing").classList.add("hidden");}if(streamEl){streamEl._raw=(streamEl._raw||"")+tok;streamEl.innerHTML=renderMd(streamEl._raw);scrollBottom();}}
-function addUserMsg(text){hideCards();const div=document.createElement("div");div.className="msg user";div.innerHTML=`<div class="msg-bubble">${esc(text)}</div><div class="msg-meta">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(div);scrollBottom();}
-function sendMsg(){const inp=document.getElementById("chat-input");const text=inp.value.trim();if(!text||isStreaming)return;closeAll();addUserMsg(text);inp.value="";inp.style.height="auto";isStreaming=true;streamEl=null;document.getElementById("typing").classList.remove("hidden");document.getElementById("btn-send").disabled=true;scrollBottom();vscode.postMessage({type:"sendMessage",text,agent:currentAgent,model:currentModel,attachments:[...attachments]});attachments=[];}
-window.copyCode=function(btn){const pre=btn.closest(".code-wrap").querySelector("pre code");if(pre){navigator.clipboard.writeText(pre.textContent||"").then(()=>{btn.textContent="Copied!";setTimeout(()=>{btn.textContent="Copy";},2000);});}};
-window.applyCode=function(btn){const wrap=btn.closest(".code-wrap");const fp=wrap.dataset.fp||"";const code=wrap.querySelector("pre code")?.textContent||"";vscode.postMessage({type:"applyEdit",messageId:currentMsgId||"",filePath:fp,newContent:code});btn.textContent="Applied";btn.classList.add("done");btn.disabled=true;};
-window.rejectCode=function(btn){const wrap=btn.closest(".code-wrap");vscode.postMessage({type:"rejectEdit",messageId:currentMsgId||""});btn.textContent="Rejected";btn.disabled=true;const ab=wrap.querySelector(".apply");if(ab){ab.disabled=true;ab.style.opacity=".4";}};
-let currentMsgId=null;
-function renderAgents(list){agents=list;const bi=list.filter(a=>!a.isCustom),cu=list.filter(a=>a.isCustom);const al=document.getElementById("agent-list");al.innerHTML=bi.map(a=>`<div class="dd-item${a.id===currentAgent?" active":""}" data-agent-id="${esc(a.id)}" onclick="selAgent(${JSON.stringify(a.id)})"><span class="dd-item-icon">${esc(a.icon)}</span><div><div class="dd-item-name">${esc(a.name)}</div><div class="dd-item-desc">${esc(a.description)}</div></div></div>`).join("");const cl=document.getElementById("custom-agent-list");cl.innerHTML=cu.length===0?`<div class="dd-item" style="color:var(--text3);font-size:11px">No custom agents</div>`:cu.map(a=>`<div class="dd-item${a.id===currentAgent?" active":""}" data-agent-id="${esc(a.id)}" onclick="selAgent(${JSON.stringify(a.id)})"><span class="dd-item-icon">${esc(a.icon||"🤖")}</span><div><div class="dd-item-name">${esc(a.name)}</div><div class="dd-item-desc">${esc(a.description)}</div></div></div>`).join("");const sl=document.getElementById("slash-list");sl.innerHTML=SLASH_CMDS.map(c=>`<div class="dd-item" onclick="insertSlash(${JSON.stringify(c.cmd)})"><div><div class="dd-item-name">${esc(c.cmd)}</div><div class="dd-item-desc">${esc(c.desc)}</div></div></div>`).join("");renderAgentCards(list);}
-function renderAgentCards(list){const grid=document.getElementById("agent-cards");grid.innerHTML=list.filter(a=>!a.isCustom).slice(0,8).map(a=>`<div class="agent-card${a.id===currentAgent?" selected":""}" data-agent-id="${esc(a.id)}" onclick="selAgent(${JSON.stringify(a.id)})"><div class="agent-icon">${esc(a.icon)}</div><div class="agent-name">${esc(a.name)}</div><div class="agent-desc">${esc(a.description)}</div></div>`).join("");}
-window.selAgent=function(id){currentAgent=id;closeAll();const a=agents.find(x=>x.id===id);if(a){document.getElementById("btn-agent-sel").textContent=a.icon+" "+a.name+" \u25be";}vscode.postMessage({type:"switchAgent",agentId:id});document.querySelectorAll(".agent-card").forEach(c=>{c.classList.toggle("selected",c.dataset.agentId===id);});document.querySelectorAll("#agent-list .dd-item,#custom-agent-list .dd-item").forEach(c=>{c.classList.toggle("active",c.dataset.agentId===id);});document.getElementById("chat-input").focus();};
-window.insertSlash=function(cmd){const inp=document.getElementById("chat-input");inp.value=cmd+" ";closeAll();inp.focus();};
-function renderSessions(sessions){const list=document.getElementById("sessions-list");if(!sessions||sessions.length===0){list.innerHTML=`<div class="dd-item" style="color:var(--text3)">No recent chats</div>`;return;}list.innerHTML=sessions.map(s=>`<div class="dd-item" onclick="loadSess(${JSON.stringify(s.id)})"><div><div class="dd-item-name">${esc(s.title||"Untitled")}</div><div class="dd-item-desc">${esc(s.agentId)} · ${new Date(s.timestamp).toLocaleDateString()}</div></div></div>`).join("");}
-window.loadSess=function(id){closeAll();vscode.postMessage({type:"loadSession",sessionId:id});};
-function renderAtResults(files){const list=document.getElementById("at-list");if(!files||files.length===0){list.innerHTML=`<div class="dd-item" style="color:var(--text3)">No files found</div>`;return;}list.innerHTML=files.map(f=>`<div class="dd-item" onclick="insertAt(${JSON.stringify(f)})"><span class="dd-item-icon">📄</span><div class="dd-item-name">${esc(f)}</div></div>`).join("");}
-window.insertAt=function(fp){const inp=document.getElementById("chat-input");const v=inp.value;const ai=v.lastIndexOf("@");if(ai>=0)inp.value=v.slice(0,ai)+"@"+fp+" ";else inp.value+="@"+fp+" ";attachments.push(fp);closeAll();inp.focus();};
-function loadSessionUI(session){currentAgent=session.agentId||"code";currentModel=session.modelId||"cybermindcli";const msgs=document.getElementById("messages");msgs.innerHTML="";hideCards();for(const m of session.messages||[]){if(m.role==="user"){const d=document.createElement("div");d.className="msg user";d.innerHTML=`<div class="msg-bubble">${esc(m.content)}</div><div class="msg-meta">${fmtTime(m.timestamp)}</div>`;msgs.appendChild(d);}else{const agName=agents.find(a=>a.id===m.agentId)?.name||m.agentId||"AI";const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">${esc(agName)}</div><div class="msg-bubble">${renderMd(m.content)}</div><div class="msg-meta">${fmtTime(m.timestamp)}</div>`;msgs.appendChild(d);}}scrollBottom();}
-function updateBackendStatus(healthy){const dot=document.getElementById("status-dot");const txt=document.getElementById("status-text");const wb=document.getElementById("wake-btn");if(healthy===true){dot.className="dot";txt.textContent="Backend online";wb.classList.add("hidden");}else if(healthy===false){dot.className="dot err";txt.textContent="Backend offline";wb.classList.remove("hidden");}else{dot.className="dot warn";txt.textContent="Checking backend...";wb.classList.add("hidden");}}
-document.getElementById("btn-send").addEventListener("click",sendMsg);
-document.getElementById("chat-input").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(!document.getElementById("slash-dd").classList.contains("hidden")){const first=document.querySelector("#slash-list .dd-item");if(first){first.click();return;}}sendMsg();}else if(e.key==="Escape")closeAll();else if(e.key==="ArrowDown"){const dd=document.querySelector(".dropdown:not(.hidden) .dd-item");if(dd){dd.focus();e.preventDefault();}}});
-document.getElementById("chat-input").addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,120)+"px";const v=this.value;const ai=v.lastIndexOf("@");if(ai>=0){const q=v.slice(ai+1);if(!q.includes(" ")){vscode.postMessage({type:"atMentionQuery",query:q});document.getElementById("at-dd").classList.remove("hidden");}else{document.getElementById("at-dd").classList.add("hidden");}}const si=v.lastIndexOf("/");if(si>=0){const sq=v.slice(si+1);if(!sq.includes(" ")){populateSlashDD(sq);document.getElementById("slash-dd").classList.remove("hidden");}else{document.getElementById("slash-dd").classList.add("hidden");}}});
-document.getElementById("at-search").addEventListener("input",function(){vscode.postMessage({type:"atMentionQuery",query:this.value});});
-document.getElementById("agent-search").addEventListener("input",function(){const q=this.value.toLowerCase();document.querySelectorAll("#agent-list .dd-item,#custom-agent-list .dd-item").forEach(item=>{const n=item.querySelector(".dd-item-name")?.textContent?.toLowerCase()||"";item.style.display=n.includes(q)?"":"none";});});
-document.getElementById("btn-sessions").addEventListener("click",e=>{e.stopPropagation();toggleDD("sessions-dd");});
-document.getElementById("btn-new-chat").addEventListener("click",()=>{closeAll();vscode.postMessage({type:"newChat"});document.getElementById("messages").innerHTML="";document.getElementById("agent-cards").style.display="";streamEl=null;isStreaming=false;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");});
-document.getElementById("btn-dot-menu").addEventListener("click",e=>{e.stopPropagation();toggleDD("dot-menu");});
-document.querySelectorAll(".dot-item").forEach(item=>{item.addEventListener("click",()=>{const a=item.dataset.action;closeAll();switch(a){case"logout":vscode.postMessage({type:"logout"});break;case"settings":vscode.postMessage({type:"openSettings"});break;case"keys":vscode.postMessage({type:"openExternal",url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});break;case"mcp":showMcpPanel();break;case"shortcuts":showShortcuts();break;case"agents":toggleDD("agent-dd");break;}});});
-function showShortcuts(){toast("Ctrl+Shift+C: Open Chat | Ctrl+Shift+S: Scan | Tab: Accept completion","");} 
-document.getElementById("btn-agent-sel").addEventListener("click",e=>{e.stopPropagation();toggleDD("agent-dd");});
-document.getElementById("btn-model-sel").addEventListener("click",e=>{e.stopPropagation();toggleDD("model-dd");});
-document.querySelectorAll("#model-dd .dd-item").forEach(item=>{item.addEventListener("click",()=>{const m=item.dataset.model;currentModel=m;closeAll();const n=item.querySelector(".dd-item-name")?.textContent||m;document.getElementById("btn-model-sel").textContent=n+" ▾";vscode.postMessage({type:"switchModel",modelId:m});});});
-document.getElementById("btn-at").addEventListener("click",e=>{e.stopPropagation();const inp=document.getElementById("chat-input");inp.value+="@";inp.focus();vscode.postMessage({type:"atMentionQuery",query:""});document.getElementById("at-dd").classList.remove("hidden");});
-document.getElementById("btn-slash").addEventListener("click",e=>{e.stopPropagation();populateSlashDD("");toggleDD("slash-dd");});
-document.getElementById("btn-web-signin").addEventListener("click",()=>{vscode.postMessage({type:"webSignIn"});toast("Opening browser for sign-in...");});
-document.getElementById("btn-goto-apikey").addEventListener("click",()=>showScreen("signin"));
-document.getElementById("btn-continue-free").addEventListener("click",()=>{vscode.postMessage({type:"continueAsFree"});});
-document.getElementById("btn-back").addEventListener("click",()=>showScreen("welcome"));
-document.getElementById("btn-apikey-submit").addEventListener("click",()=>{const k=document.getElementById("signin-apikey").value.trim();const e=document.getElementById("signin-error");if(!k){e.textContent="Please enter your API key.";e.classList.add("show");return;}e.classList.remove("show");const btn=document.getElementById("btn-apikey-submit");btn.disabled=true;btn.textContent="Connecting...";vscode.postMessage({type:"signInWithApiKey",apiKey:k});});
-document.getElementById("btn-web-signin2").addEventListener("click",()=>{vscode.postMessage({type:"webSignIn"});toast("Opening browser...");});
-document.getElementById("link-get-key").addEventListener("click",()=>{vscode.postMessage({type:"openExternal",url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});});
-document.getElementById("btn-run-anyway").addEventListener("click",()=>{if(pendingDangerId){vscode.postMessage({type:"confirmDangerousCommand",commandId:pendingDangerId,confirmed:true});pendingDangerId=null;}document.getElementById("danger-dialog").classList.remove("show");});
-document.getElementById("btn-cancel-cmd").addEventListener("click",()=>{if(pendingDangerId){vscode.postMessage({type:"confirmDangerousCommand",commandId:pendingDangerId,confirmed:false});pendingDangerId=null;}document.getElementById("danger-dialog").classList.remove("show");});
-document.getElementById("wake-btn").addEventListener("click",()=>{updateBackendStatus(null);vscode.postMessage({type:"wakeBackend"});});
-document.addEventListener("click",e=>{if(!e.target.closest(".dropdown")&&!e.target.closest("[id^=btn-]")&&!e.target.closest(".icon-btn")&&!e.target.closest(".selector"))closeAll();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
-// ── MCP Panel ──────────────────────────────────────────────────────────────
-function showMcpPanel(){
-  closeAll();
-  let panel=document.getElementById("mcp-panel");
-  if(!panel){
-    panel=document.createElement("div");
-    panel.id="mcp-panel";
-    panel.style.cssText="position:absolute;top:44px;left:0;right:0;bottom:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;overflow:hidden;";
-    panel.innerHTML=`
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-        <button onclick="closeMcpPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;" title="Back">&#8592;</button>
-        <span style="font-size:13px;font-weight:600;color:var(--text);">MCP Servers</span>
-        <button onclick="vscode.postMessage({type:'openMcpConfig'})" style="margin-left:auto;padding:3px 10px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);border-radius:5px;color:var(--accent);font-size:11px;cursor:pointer;">Edit Config</button>
-      </div>
-      <div id="mcp-server-list" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;">
-        <div style="color:var(--text3);font-size:12px;text-align:center;padding:20px;">Loading servers...</div>
-      </div>
-      <div style="padding:10px;border-top:1px solid var(--border);flex-shrink:0;">
-        <div style="font-size:11px;color:var(--text3);line-height:1.5;">
-          Add MCP servers in <code style="font-size:10px;">.kiro/settings/mcp.json</code> or click Edit Config above.
+  <div id="screen-welcome" class="screen screen-welcome">
+    <div class="welcome-card glass">
+      <div class="welcome-brand">
+        <svg class="welcome-logo" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="welcome-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00e5ff"></stop>
+              <stop offset="100%" stop-color="#7c3aed"></stop>
+            </linearGradient>
+          </defs>
+          <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="rgba(15,20,32,0.9)" stroke="url(#welcome-stroke)" stroke-width="3"></polygon>
+          <path d="M35 10L22 31H31L28 54L42 30H33L35 10Z" fill="#00e5ff"></path>
+        </svg>
+        <div>
+          <div class="welcome-name">CyberMind</div>
+          <div class="welcome-tag">Elite Security Intelligence</div>
         </div>
       </div>
-    `;
-    document.getElementById("screen-chat").appendChild(panel);
-  }
-  panel.style.display="flex";
-  vscode.postMessage({type:"getMcpServers"});
-}
-window.closeMcpPanel=function(){
-  const p=document.getElementById("mcp-panel");
-  if(p)p.style.display="none";
-};
-function renderMcpServers(servers){
-  const list=document.getElementById("mcp-server-list");
-  if(!list)return;
-  if(!servers||servers.length===0){
-    list.innerHTML=`<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px;">No MCP servers configured.<br><br>Click <strong>Edit Config</strong> to add servers.</div>`;
-    return;
-  }
-list.innerHTML=servers.map(s=>{
-    const running=s.status==="running"||s.enabled;
-    const dot=running
-      ?'<span style="width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;flex-shrink:0;"></span>'
-      :'<span style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block;flex-shrink:0;"></span>';
-    const toggleBtn='<button onclick="vscode.postMessage({type:\'toggleMcpServer\',serverId:\''+s.id+'\',enabled:'+(running?'false':'true')+'})" style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:transparent;color:'+(running?'var(--error)':'var(--ok)')+';">'+(running?'Stop':'Start')+'</button>';
-    const cmdLine=s.command?'<div style="margin-top:5px;font-size:10px;color:var(--text3);font-family:monospace;">'+esc(s.command)+' '+esc((s.args||[]).join(' '))+'</div>':"";
-    const toolLine=(s.tools&&s.tools.length>0)?'<div style="margin-top:5px;font-size:10px;color:var(--text2);">'+s.tools.length+' tool'+(s.tools.length!==1?'s':'')+': '+s.tools.slice(0,3).map(t=>esc(t.name||t)).join(', ')+(s.tools.length>3?'...':'')+'</div>':"";
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;"><div style="display:flex;align-items:center;gap:8px;">'+dot+'<span style="font-size:12px;font-weight:600;color:var(--text);flex:1;">'+esc(s.name||s.id)+'</span>'+toggleBtn+'</div>'+cmdLine+toolLine+'</div>';
-  }).join("");
-}
-function populateSlashDD(filter){
-  const list=document.getElementById("slash-list");
-  if(!list)return;
-  const cmds=filter?SLASH_CMDS.filter(c=>c.cmd.includes(filter)||c.desc.toLowerCase().includes(filter.toLowerCase())):SLASH_CMDS;
-  list.innerHTML=cmds.map(c=>`<div class="dd-item" onclick="insertSlash(${JSON.stringify(c.cmd)})"><div><div class="dd-item-name">${esc(c.cmd)}</div><div class="dd-item-desc">${esc(c.desc)}</div></div></div>`).join("");
-}
-// Populate slash commands immediately on load
-populateSlashDD("");
+      <div class="pill-grid">
+        <div class="feature-pill">🔒 OWASP Scanner</div>
+        <div class="feature-pill">🤖 11 AI Agents</div>
+        <div class="feature-pill">⚡ 11 Providers</div>
+        <div class="feature-pill">🎭 Playwright</div>
+        <div class="feature-pill">🏗️ Full-Stack</div>
+        <div class="feature-pill">🔌 MCP Servers</div>
+      </div>
+      <div class="welcome-note">
+        <strong>Security-first coding inside VS Code.</strong>
+        <span>Ship faster with agent selection, model routing, workspace context, and review workflows tuned for real repositories.</span>
+      </div>
+      <div class="stack">
+        <button id="btn-signin-web" class="btn btn-primary" type="button">⚡ Sign in with CyberMind</button>
+        <button id="btn-show-apikey" class="btn btn-outline" type="button">Use API Key</button>
+        <button id="btn-continue-free" class="btn btn-ghost" type="button">Continue Free</button>
+      </div>
+      <div class="micro">Free tier included · No credit card</div>
+    </div>
+  </div>
 
-window.addEventListener("message",event=>{const msg=event.data;switch(msg.type){case"showScreen":showScreen(msg.screen);break;case"authState":if(!msg.isAuthenticated&&!msg.plan)showScreen("welcome");break;case"token":if(msg.text)appendToken(msg.text);break;case"done":isStreaming=false;streamEl=null;currentMsgId=msg.messageId;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");break;case"signInSuccess":{showScreen("chat");const sb=document.getElementById("btn-apikey-submit");if(sb){sb.disabled=false;sb.textContent="Connect with API Key";}break;}case"error":{isStreaming=false;streamEl=null;document.getElementById("btn-send").disabled=false;document.getElementById("typing").classList.add("hidden");const errEl=document.getElementById("signin-error");if(errEl&&!document.getElementById("screen-signin").classList.contains("hidden")){errEl.textContent=msg.message;errEl.classList.add("show");const sb=document.getElementById("btn-apikey-submit");if(sb){sb.disabled=false;sb.textContent="Connect with API Key";}}else{const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-bubble" style="border-color:rgba(248,81,73,.3);background:rgba(248,81,73,.05);color:var(--error)">⚠️ ${esc(msg.message)}</div>`;document.getElementById("messages").appendChild(d);scrollBottom();}break;}case"sessions":renderSessions(msg.sessions);break;case"agentList":renderAgents(msg.agents);break;case"currentModel":{if(msg.modelId){currentModel=msg.modelId;const item=document.querySelector(`#model-dd .dd-item[data-model="${msg.modelId}"]`);const n=item?.querySelector(".dd-item-name")?.textContent||msg.modelId;document.getElementById("btn-model-sel").textContent=n+" ▾";}break;}case"atMentionResults":renderAtResults(msg.files);break;case"sessionLoaded":loadSessionUI(msg.session);break;case"welcome":{const name=msg.name||"there";const plan=msg.plan||"free";const pi=plan==="elite"?"⭐":plan==="pro"?"🚀":"⚡";const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">CyberMind</div><div class="msg-bubble"><strong>Welcome, ${esc(name)}! ${pi}</strong><br><br>You are on the <strong>${esc(plan.toUpperCase())}</strong> plan.<br><br>Select an agent below or type a message. Use <code>@filename</code> to attach files, <code>/plan</code> to plan tasks, <code>/build</code> to build projects.</div><div class="msg-meta">${fmtTime(Date.now())}</div>`;document.getElementById("messages").appendChild(d);scrollBottom();break;}case"dangerousCommandConfirm":pendingDangerId=msg.commandId;document.getElementById("danger-cmd-text").textContent=msg.command;document.getElementById("danger-dialog").classList.add("show");break;case"scanResults":{const s=msg.summary;if(s&&s.total>0){const d=document.createElement("div");d.className="msg ai";d.innerHTML=`<div class="msg-label">Security Scanner</div><div class="msg-bubble"><div class="scan-box"><div class="scan-title">🔍 Security Scan Complete</div><div class="scan-counts">${s.critical?`<span class="sc sc-crit">${s.critical} Critical</span>`:""} ${s.high?`<span class="sc sc-high">${s.high} High</span>`:""} ${s.medium?`<span class="sc sc-med">${s.medium} Medium</span>`:""} ${s.low?`<span class="sc sc-low">${s.low} Low</span>`:""} ${s.info?`<span class="sc sc-info">${s.info} Info</span>`:""}</div></div></div>`;document.getElementById("messages").appendChild(d);hideCards();scrollBottom();}break;}case"backendStatus":updateBackendStatus(msg.healthy);break;case"mcpServers":renderMcpServers(msg.servers);break;case"promptEnhanced":toast("✨ Prompt enhanced","ok");break;case"showToast":toast(msg.message,msg.toastType||"");break;case"indexStatus":break;}});
-})();</script>
-</body></html>
+  <div id="screen-signin" class="screen hidden">
+    <div class="panel">
+      <div class="signin-head">
+        <button id="btn-signin-back" class="back-btn" type="button" aria-label="Back">←</button>
+        <div>
+          <div class="eyebrow">CyberMind API</div>
+          <div style="font-weight:800">Connect API Key</div>
+        </div>
+      </div>
+      <div class="signin-body">
+        <div>
+          <label class="label" for="signin-apikey">API Key</label>
+          <input id="signin-apikey" class="field" type="password" placeholder="cp_live_..." autocomplete="off">
+          <div class="helper" style="margin-top:8px">
+            Get key at
+            <a href="#" data-action="open-link" data-url="https://cybermindcli1.vercel.app/dashboard/api-keys">cybermindcli1.vercel.app/dashboard/api-keys</a>
+          </div>
+        </div>
+        <div id="signin-error" class="error-box hidden"></div>
+        <button id="btn-apikey-submit" class="btn btn-primary" type="button">Connect</button>
+        <div class="divider">or</div>
+        <button id="btn-browser-signin" class="btn btn-outline" type="button">Sign in with browser</button>
+      </div>
+    </div>
+  </div>
 
+  <div id="screen-chat" class="screen hidden">
+    <div class="panel">
+      <div class="status-bar">
+        <div class="status-indicator">
+          <span id="status-dot" class="status-dot checking"></span>
+          <span id="status-text" class="status-copy">Checking backend</span>
+        </div>
+        <div class="status-spacer"></div>
+        <button id="btn-wake-backend" class="btn btn-warn hidden" type="button" style="width:auto;min-height:28px;padding:0 10px">Wake</button>
+      </div>
 
+      <div class="header">
+        <button id="btn-session-sel" class="session-btn" type="button">
+          <span>Recent Sessions</span>
+          <span class="muted">▾</span>
+        </button>
+        <div class="header-spacer"></div>
+        <button id="btn-new-chat" class="icon-btn" type="button" aria-label="New Chat">+</button>
+        <button id="btn-menu" class="icon-btn" type="button" aria-label="Menu">⋯</button>
+      </div>
 
+      <div class="command-deck">
+        <div class="deck-main">
+          <div class="deck-copy">
+            <div class="deck-title"><span class="deck-title-mark">⌁</span><span>CyberMind Command Center</span></div>
+            <div class="deck-subtitle">Agent-aware chat, repository context, and security workflows tuned for production repositories.</div>
+          </div>
+          <div id="plan-pill" class="plan-pill free">Free</div>
+        </div>
+        <div class="deck-grid">
+          <div class="metric-chip">
+            <div class="metric-chip-label">Agent</div>
+            <div id="metric-agent" class="metric-chip-value">Security</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Model</div>
+            <div id="metric-model" class="metric-chip-value">CyberMind Free</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Mode</div>
+            <div id="metric-mode" class="metric-chip-value">Interactive Chat</div>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <button class="quick-action" type="button" data-quick-cmd="/scan">/scan</button>
+          <button class="quick-action" type="button" data-quick-cmd="/plan">/plan</button>
+          <button class="quick-action" type="button" data-quick-cmd="/build">/build</button>
+          <button class="quick-action" type="button" data-quick-cmd="/review">/review</button>
+        </div>
+      </div>
 
+      <div id="menu-dd" class="dropdown menu-dd hidden">
+        <div class="dd-body">
+          <div class="dd-item" data-menu-action="agents"><span class="dd-icon">🤖</span><div class="dd-main"><div class="dd-name">Agents</div></div></div>
+          <div class="dd-item" data-menu-action="mcp"><span class="dd-icon">🔌</span><div class="dd-main"><div class="dd-name">MCP Servers</div></div></div>
+          <div class="dd-item" data-menu-action="keys"><span class="dd-icon">🔑</span><div class="dd-main"><div class="dd-name">API Keys</div></div></div>
+          <div class="dd-item" data-menu-action="settings"><span class="dd-icon">⚙️</span><div class="dd-main"><div class="dd-name">Settings</div></div></div>
+          <div class="dd-item" data-menu-action="shortcuts"><span class="dd-icon">⌨️</span><div class="dd-main"><div class="dd-name">Shortcuts</div></div></div>
+          <div class="dot-sep"></div>
+          <div class="dd-item" data-menu-action="logout"><span class="dd-icon">🚪</span><div class="dd-main"><div class="dd-name" style="color:var(--red)">Log Out</div></div></div>
+        </div>
+      </div>
+
+      <div id="sessions-dd" class="dropdown sessions-dd hidden">
+        <div class="dd-body">
+          <div class="dd-section">Recent Sessions</div>
+          <div id="sessions-list"></div>
+        </div>
+      </div>
+
+      <div id="agent-dd" class="dropdown agent-dd hidden">
+        <div class="dd-search"><input id="agent-search" class="search" type="text" placeholder="Search agents"></div>
+        <div class="dd-body">
+          <div class="dd-section">Built-In</div>
+          <div id="agent-list"></div>
+          <div class="dd-section">Custom</div>
+          <div id="custom-agent-list"></div>
+        </div>
+      </div>
+
+      <div id="model-dd" class="dropdown model-dd hidden">
+        <div class="dd-body">
+          <div class="dd-section">Model Routing</div>
+          <div id="model-list"></div>
+        </div>
+      </div>
+
+      <div id="at-dd" class="dropdown at-dd hidden">
+        <div class="dd-search"><input id="at-search" class="search" type="text" placeholder="Search files"></div>
+        <div class="dd-body"><div id="at-list"></div></div>
+      </div>
+
+      <div id="slash-dd" class="dropdown slash-dd hidden">
+        <div class="dd-body">
+          <div class="dd-section">Slash Commands</div>
+          <div id="slash-list"></div>
+        </div>
+      </div>
+
+      <div id="mcp-overlay" class="overlay hidden">
+        <div class="overlay-head">
+          <button id="btn-mcp-back" class="back-btn" type="button" aria-label="Back">←</button>
+          <div style="font-weight:800">MCP Servers</div>
+          <div class="header-spacer"></div>
+          <button id="btn-mcp-config" class="chip-btn" type="button">Edit Config</button>
+        </div>
+        <div id="mcp-list" class="overlay-body"></div>
+        <div class="server-foot">Add servers in <code>.kiro/settings/mcp.json</code></div>
+      </div>
+
+      <main id="conversation" class="conversation">
+        <div id="agent-cards" class="agent-grid"></div>
+        <div id="messages"></div>
+        <div id="typing" class="typing hidden">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </main>
+
+      <div id="danger-dialog" class="danger hidden">
+        <div class="danger-title">Dangerous Command</div>
+        <div id="danger-cmd-text" class="danger-code"></div>
+        <div class="danger-actions">
+          <button id="btn-danger-run" class="danger-btn" type="button">Run Anyway</button>
+          <button id="btn-danger-cancel" class="ghost-btn" type="button">Cancel</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div id="attachment-row" class="attachment-row hidden"></div>
+        <div class="selector-row">
+          <button id="btn-agent-sel" class="selector" type="button"><span>🔒 Security</span><span class="muted">▾</span></button>
+          <button id="btn-model-sel" class="selector" type="button"><span>CyberMind Free</span><span class="muted">▾</span></button>
+        </div>
+        <div class="input-row">
+          <textarea id="chat-input" class="input-area" rows="1" placeholder="/plan task · /build app · /scan · @file"></textarea>
+          <button id="btn-at" class="icon-btn input-at" type="button" aria-label="Mention file">@</button>
+          <button id="btn-slash" class="icon-btn input-slash" type="button" aria-label="Slash command">/</button>
+          <button id="btn-send" class="send-btn" type="button">Send</button>
+        </div>
+        <div class="footer-tip">
+          <span>Enter to send · Shift+Enter for newline</span>
+          <span>@ attaches files to the next prompt</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script nonce="{{NONCE}}">
+    (() => {
+      "use strict";
+      const vscode = typeof acquireVsCodeApi === "function"
+        ? acquireVsCodeApi()
+        : { postMessage(message){ console.log("[chat:webview]", message); }, setState(){}, getState(){ return undefined; } };
+
+      let currentAgent = "security";
+      let currentModel = "cybermindcli";
+      let userPlan = "free";
+      let isStreaming = false;
+      let streamEl = null;
+      let streamContainerEl = null;
+      let attachments = [];
+      let agents = [];
+      let pendingDangerId = null;
+      let currentMsgId = null;
+      let sessionsCache = [];
+      let toastTimer = null;
+
+      const SLASH_CMDS = [
+        {cmd:"/plan",desc:"Generate + execute a step-by-step plan"},
+        {cmd:"/build",desc:"Design + build a full-stack project"},
+        {cmd:"/image",desc:"Generate an image with AI"},
+        {cmd:"/debug",desc:"Auto-debug an error"},
+        {cmd:"/fix",desc:"Fix a bug in selected code"},
+        {cmd:"/test",desc:"Generate Playwright tests"},
+        {cmd:"/review",desc:"Code review with security + quality"},
+        {cmd:"/commit",desc:"Generate a git commit message"},
+        {cmd:"/scan",desc:"Security scan the workspace"}
+      ];
+      const ALL_MODELS = [
+        {tier:"FREE",id:"cybermindcli",name:"CyberMind Free",desc:"cybermindcli · HuggingFace",badge:"FREE"},
+        {tier:"FREE",id:"or-llama-3.3-70b",name:"Llama 3.3 70B",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"FREE",id:"or-qwen3-coder",name:"Qwen3 Coder",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"FREE",id:"or-deepseek-r1",name:"DeepSeek R1",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"PRO",id:"groq-llama-3.3-70b",name:"Llama 3.3 70B",desc:"Groq · 500 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"groq-kimi-k2",name:"Kimi K2",desc:"Groq · 1T MoE",badge:"PRO"},
+        {tier:"PRO",id:"groq-qwen3-32b",name:"Qwen3 32B",desc:"Groq · fast",badge:"PRO"},
+        {tier:"PRO",id:"cerebras-llama3.3-70b",name:"Llama 3.3 70B",desc:"Cerebras · 2000 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"nv-kimi-k2-thinking",name:"Kimi K2 Thinking",desc:"NVIDIA · 256K ctx",badge:"PRO"},
+        {tier:"PRO",id:"nv-minimax-m2.7",name:"MiniMax M2.7",desc:"NVIDIA · 230B",badge:"PRO"},
+        {tier:"PRO",id:"mistral-large",name:"Mistral Large",desc:"Mistral AI",badge:"PRO"},
+        {tier:"PRO",id:"samba-llama3.3-70b",name:"Llama 3.3 70B",desc:"SambaNova · fast",badge:"PRO"},
+        {tier:"ELITE",id:"elite-claude-3-7",name:"Claude 3.7 Sonnet",desc:"AWS Bedrock · best",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-claude-3-5-sonnet",name:"Claude 3.5 Sonnet",desc:"AWS Bedrock",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-nova-pro",name:"Amazon Nova Pro",desc:"AWS Bedrock · multimodal",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-llama-3-3-70b",name:"Llama 3.3 70B",desc:"AWS Bedrock",badge:"ELITE"}
+      ];
+      const TIER_ORDER = ["FREE","PRO","ELITE"];
+
+      const screenSignin = document.getElementById("screen-signin");
+      const chatInput = document.getElementById("chat-input");
+      const toastEl = document.getElementById("toast");
+      const messagesEl = document.getElementById("messages");
+      const agentCardsEl = document.getElementById("agent-cards");
+      const typingEl = document.getElementById("typing");
+      const sessionTitleButton = document.getElementById("btn-session-sel");
+      const statusDot = document.getElementById("status-dot");
+      const statusText = document.getElementById("status-text");
+      const wakeButton = document.getElementById("btn-wake-backend");
+      const agentButton = document.getElementById("btn-agent-sel");
+      const modelButton = document.getElementById("btn-model-sel");
+      const sendButton = document.getElementById("btn-send");
+      const signInError = document.getElementById("signin-error");
+      const slashList = document.getElementById("slash-list");
+      const modelList = document.getElementById("model-list");
+      const attachmentRow = document.getElementById("attachment-row");
+      const planPill = document.getElementById("plan-pill");
+      const metricAgent = document.getElementById("metric-agent");
+      const metricModel = document.getElementById("metric-model");
+      const metricMode = document.getElementById("metric-mode");
+      const toastKinds = { ok:"ok", err:"err", warn:"warn" };
+
+      function esc(value){
+        return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+      }
+      function attr(value){
+        return encodeURIComponent(String(value || ""));
+      }
+      function decAttr(value){
+        return decodeURIComponent(String(value || ""));
+      }
+      function normalizePlan(value){
+        const plan = String(value || "").toLowerCase();
+        if(plan === "elite") return "elite";
+        if(plan === "pro") return "pro";
+        return "free";
+      }
+      function showScreen(screen){
+        document.querySelectorAll(".screen").forEach((node) => node.classList.add("hidden"));
+        const target = document.getElementById("screen-" + screen);
+        if(target) target.classList.remove("hidden");
+        if(screen === "chat") requestAnimationFrame(() => focusInput());
+      }
+      function toast(message,tone){
+        if(toastTimer) clearTimeout(toastTimer);
+        toastEl.textContent = message;
+        toastEl.className = "toast show" + (tone ? " " + tone : "");
+        toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 3000);
+      }
+      function closeAllDropdowns(){
+        document.querySelectorAll(".dropdown").forEach((node) => node.classList.add("hidden"));
+      }
+      function toggleDropdown(id){
+        const target = document.getElementById(id);
+        const willOpen = target.classList.contains("hidden");
+        closeAllDropdowns();
+        if(willOpen) target.classList.remove("hidden");
+      }
+      function focusInput(){ chatInput.focus(); }
+      function autoResize(){
+        chatInput.style.height = "auto";
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + "px";
+      }
+      function scrollConversation(){
+        const conversation = document.getElementById("conversation");
+        conversation.scrollTop = conversation.scrollHeight;
+      }
+      function setSessionTitle(label){
+        sessionTitleButton.firstElementChild.textContent = label || "Recent Sessions";
+      }
+      function updateCommandDeck(){
+        const agent = getAgentMeta(currentAgent);
+        const model = getModelMeta(currentModel);
+        const modeLabel = attachments.length
+          ? "Context Attached"
+          : currentAgent === "security"
+            ? "Secure Review"
+            : currentAgent === "playwright"
+              ? "Browser Testing"
+              : currentAgent === "review"
+                ? "Code Review"
+                : "Interactive Chat";
+        planPill.textContent = userPlan.toUpperCase();
+        planPill.className = "plan-pill " + userPlan;
+        metricAgent.textContent = agent?.name || currentAgent;
+        metricModel.textContent = model?.name || currentModel;
+        metricMode.textContent = modeLabel;
+      }
+      function formatTime(timestamp){
+        return new Date(timestamp || Date.now()).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      }
+      function formatDate(timestamp){
+        return new Date(timestamp || Date.now()).toLocaleDateString([], {month:"short", day:"numeric"});
+      }
+      function showAgentCards(){ agentCardsEl.classList.remove("hidden"); }
+      function hideAgentCards(){ agentCardsEl.classList.add("hidden"); }
+      function allowedModels(){
+        return ALL_MODELS.filter((model) => {
+          if(model.tier === "FREE") return true;
+          if(model.tier === "PRO") return userPlan === "pro" || userPlan === "elite";
+          return userPlan === "elite";
+        });
+      }
+      function defaultModelForPlan(){
+        if(userPlan === "elite") return "elite-claude-3-7";
+        if(userPlan === "pro") return "groq-llama-3.3-70b";
+        return "cybermindcli";
+      }
+      function getModelMeta(id){
+        return ALL_MODELS.find((model) => model.id === id) || null;
+      }
+      function getAgentMeta(id){
+        return agents.find((agent) => agent.id === id) || null;
+      }
+      function parseFenceInfo(info, source, offset){
+        const tokens = String(info || "").trim().split(/\s+/).filter(Boolean);
+        let lang = "";
+        let filePath = "";
+        if(tokens.length && !/[=:/\\]/.test(tokens[0]) && !/\.[A-Za-z0-9]+$/.test(tokens[0])) lang = tokens.shift();
+        tokens.forEach((token) => {
+          const match = token.match(/^(?:path|file|filename)=["']?(.+?)["']?$/i);
+          if(match && !filePath) filePath = match[1];
+          else if(!filePath && (/[\\/]/.test(token) || /\.[A-Za-z0-9]+$/.test(token))) filePath = token;
+        });
+        if(!filePath){
+          const lookback = source.slice(Math.max(0, offset - 320), offset);
+          const candidates = [
+            /`([^`\n]+?\.[A-Za-z0-9]+)`\s*$/m,
+            /(?:file|path)\s*:\s*([^\s`]+?\.[A-Za-z0-9]+)/im,
+            /(?:^|\n)([A-Za-z0-9_./\\-]+\.[A-Za-z0-9]+)\s*$/m
+          ];
+          for(const pattern of candidates){
+            const found = lookback.match(pattern);
+            if(found){ filePath = found[1]; break; }
+          }
+        }
+        return { lang: lang || "code", filePath };
+      }
+      function formatInline(text){
+        let html = esc(text);
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (_, label, url) => '<a class="md-link" href="#" data-url="' + esc(url) + '">' + label + '</a>');
+        html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+        html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+        return html;
+      }
+      function renderCodeBlock(code, info, source, offset){
+        const meta = parseFenceInfo(info, source, offset);
+        const applyDisabled = meta.filePath ? "" : " disabled";
+        const applyTitle = meta.filePath ? meta.filePath : "No file path detected";
+        return '<div class="code-wrap" data-file-path="' + attr(meta.filePath) + '"><div class="code-head"><span class="code-lang">' + esc(meta.lang) + '</span><div class="code-actions"><button class="code-btn" data-code-action="copy">Copy</button><button class="code-btn apply' + applyDisabled + '" data-code-action="apply" title="' + esc(applyTitle) + '">Apply</button><button class="code-btn reject" data-code-action="reject">Reject</button></div></div><pre class="code-pre"><code>' + esc(code) + '</code></pre></div>';
+      }
+      function renderMarkdown(markdown){
+        const source = String(markdown || "").replace(/\r\n?/g, "\n");
+        const blocks = [];
+        const placeholderSource = source.replace(/```([^\n`]*)\n([\s\S]*?)```/g, (match, info, code, offset) => {
+          const token = "@@BLOCK_" + blocks.length + "@@";
+          blocks.push({ token, html: renderCodeBlock(code, info, source, offset) });
+          return "\n" + token + "\n";
+        });
+        const lines = placeholderSource.split("\n");
+        const parts = [];
+        let paragraph = [];
+        let listType = null;
+        let listItems = [];
+        const flushParagraph = () => {
+          if(!paragraph.length) return;
+          parts.push("<p>" + formatInline(paragraph.join("\n")).replace(/\n/g, "<br>") + "</p>");
+          paragraph = [];
+        };
+        const flushList = () => {
+          if(!listType || !listItems.length) return;
+          parts.push("<" + listType + ">" + listItems.map((item) => "<li>" + formatInline(item) + "</li>").join("") + "</" + listType + ">");
+          listType = null;
+          listItems = [];
+        };
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          const block = blocks.find((item) => item.token === trimmed);
+          if(block){ flushParagraph(); flushList(); parts.push(block.html); return; }
+          const heading = line.match(/^(#{1,6})\s+(.*)$/);
+          if(heading){ flushParagraph(); flushList(); parts.push('<div class="md-heading">' + formatInline(heading[2]) + "</div>"); return; }
+          const ul = line.match(/^\s*[-*]\s+(.*)$/);
+          if(ul){ flushParagraph(); if(listType && listType !== "ul") flushList(); listType = "ul"; listItems.push(ul[1]); return; }
+          const ol = line.match(/^\s*\d+\.\s+(.*)$/);
+          if(ol){ flushParagraph(); if(listType && listType !== "ol") flushList(); listType = "ol"; listItems.push(ol[1]); return; }
+          if(!trimmed){ flushParagraph(); flushList(); return; }
+          paragraph.push(line);
+        });
+        flushParagraph();
+        flushList();
+        return parts.join("");
+      }
+      function createMessage(role, label, timestamp, messageId){
+        const wrapper = document.createElement("div");
+        wrapper.className = "message " + role;
+        if(messageId) wrapper.dataset.messageId = messageId;
+        if(role === "ai"){
+          const labelEl = document.createElement("div");
+          labelEl.className = "message-label";
+          labelEl.textContent = label;
+          wrapper.appendChild(labelEl);
+        }
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        wrapper.appendChild(bubble);
+        const meta = document.createElement("div");
+        meta.className = "message-meta";
+        meta.textContent = formatTime(timestamp);
+        wrapper.appendChild(meta);
+        messagesEl.appendChild(wrapper);
+        return { wrapper, bubble };
+      }
+      function renderSessions(sessions){
+        sessionsCache = Array.isArray(sessions) ? sessions : [];
+        const list = document.getElementById("sessions-list");
+        if(!sessionsCache.length){
+          list.innerHTML = '<div class="dd-empty">No recent sessions yet</div>';
+          return;
+        }
+        list.innerHTML = sessionsCache.map((session) => '<div class="dd-item" data-session-id="' + esc(session.id) + '"><div class="session-row"><div class="session-main"><div class="dd-name">' + esc(session.title || "Untitled") + '</div><div class="dd-desc">' + esc(session.agentId || "code") + ' · ' + formatDate(session.timestamp) + '</div></div><button class="session-delete" type="button" data-session-delete="' + esc(session.id) + '">×</button></div></div>').join("");
+      }
+      function renderAgentCards(list){
+        const visible = list.filter((agent) => !agent.isCustom);
+        agentCardsEl.innerHTML = visible.map((agent) => '<button class="agent-card' + (agent.id === currentAgent ? ' active' : '') + '" type="button" data-agent-id="' + esc(agent.id) + '"><div class="agent-icon">' + esc(agent.icon || "🤖") + '</div><div class="agent-name">' + esc(agent.name) + '</div><div class="agent-desc">' + esc(agent.description) + '</div></button>').join("");
+      }
+      function renderAgents(list){
+        agents = Array.isArray(list) ? list : [];
+        const builtIn = agents.filter((agent) => !agent.isCustom);
+        const custom = agents.filter((agent) => agent.isCustom);
+        const renderList = (items, empty) => items.length
+          ? items.map((agent) => '<div class="dd-item' + (agent.id === currentAgent ? ' active' : '') + '" data-agent-id="' + esc(agent.id) + '"><span class="dd-icon">' + esc(agent.icon || "🤖") + '</span><div class="dd-main"><div class="dd-name">' + esc(agent.name) + '</div><div class="dd-desc">' + esc(agent.description) + '</div></div></div>').join("")
+          : '<div class="dd-empty">' + empty + '</div>';
+        document.getElementById("agent-list").innerHTML = renderList(builtIn, "No built-in agents");
+        document.getElementById("custom-agent-list").innerHTML = renderList(custom, "No custom agents yet");
+        if(!agents.some((agent) => agent.id === currentAgent)){
+          currentAgent = agents.some((agent) => agent.id === "security") ? "security" : (agents[0]?.id || currentAgent);
+        }
+        renderAgentCards(agents);
+        updateAgentButton();
+      }
+      function renderModelDropdown(){
+        const visible = allowedModels();
+        if(!visible.some((model) => model.id === currentModel)) currentModel = defaultModelForPlan();
+        modelList.innerHTML = TIER_ORDER.map((tier) => {
+          const items = visible.filter((model) => model.tier === tier);
+          if(!items.length) return "";
+          return '<div class="dd-section">' + tier + '</div>' + items.map((model) => '<div class="dd-item' + (model.id === currentModel ? ' active' : '') + '" data-model-id="' + esc(model.id) + '"><span class="dd-icon">' + (tier === "FREE" ? "⚡" : tier === "PRO" ? "🚀" : "⭐") + '</span><div class="dd-main"><div class="dd-name">' + esc(model.name) + '</div><div class="dd-desc">' + esc(model.desc) + '</div></div><span class="dd-badge ' + tier.toLowerCase() + '">' + esc(model.badge) + '</span></div>').join("");
+        }).join("") || '<div class="dd-empty">No models available for this plan</div>';
+        updateModelButton();
+      }
+      function populateSlashDD(filter){
+        const query = String(filter || "").toLowerCase();
+        const commands = query ? SLASH_CMDS.filter((item) => item.cmd.includes(query) || item.desc.toLowerCase().includes(query)) : SLASH_CMDS;
+        slashList.innerHTML = commands.length
+          ? commands.map((item) => '<div class="dd-item" data-slash-cmd="' + esc(item.cmd) + '"><div class="dd-main"><div class="dd-name">' + esc(item.cmd) + '</div><div class="dd-desc">' + esc(item.desc) + '</div></div></div>').join("")
+          : '<div class="dd-empty">No slash commands match.</div>';
+      }
+      function updateAgentButton(){
+        const agent = getAgentMeta(currentAgent);
+        agentButton.innerHTML = "<span>" + esc((agent?.icon || "🤖") + " " + (agent?.name || currentAgent)) + "</span><span class='muted'>▾</span>";
+        updateCommandDeck();
+      }
+      function updateModelButton(){
+        const model = getModelMeta(currentModel);
+        modelButton.innerHTML = "<span>" + esc(model ? model.name : currentModel) + "</span><span class='muted'>▾</span>";
+        updateCommandDeck();
+      }
+      function selectAgent(id, notify){
+        currentAgent = id;
+        document.querySelectorAll("[data-agent-id]").forEach((node) => node.classList.toggle("active", node.dataset.agentId === id));
+        updateAgentButton();
+        renderAgentCards(agents);
+        closeAllDropdowns();
+        if(notify !== false) vscode.postMessage({type:"switchAgent", agentId:id});
+        focusInput();
+      }
+      function selectModel(id, notify){
+        currentModel = id;
+        renderModelDropdown();
+        closeAllDropdowns();
+        if(notify !== false) vscode.postMessage({type:"switchModel", modelId:id});
+        focusInput();
+      }
+      function renderAtResults(files){
+        const list = document.getElementById("at-list");
+        list.innerHTML = Array.isArray(files) && files.length
+          ? files.map((file) => '<div class="dd-item" data-at-file="' + esc(file) + '"><span class="dd-icon">📄</span><div class="dd-main"><div class="dd-name">' + esc(file) + '</div></div></div>').join("")
+          : '<div class="dd-empty">No files found.</div>';
+      }
+      function insertMention(filePath){
+        const value = chatInput.value;
+        const mentionIndex = value.lastIndexOf("@");
+        chatInput.value = mentionIndex >= 0 ? value.slice(0, mentionIndex) + "@" + filePath + " " : value + "@" + filePath + " ";
+        if(!attachments.includes(filePath)) attachments.push(filePath);
+        renderAttachments();
+        autoResize();
+        closeAllDropdowns();
+        focusInput();
+      }
+      function insertSlash(command){
+        const value = chatInput.value;
+        const slashIndex = value.lastIndexOf("/");
+        chatInput.value = slashIndex >= 0 ? value.slice(0, slashIndex) + command + " " : command + " ";
+        autoResize();
+        closeAllDropdowns();
+        focusInput();
+      }
+      function updateBackendStatus(healthy){
+        if(healthy === true){
+          statusDot.className = "status-dot";
+          statusText.textContent = "Backend online";
+          wakeButton.classList.add("hidden");
+          return;
+        }
+        if(healthy === false){
+          statusDot.className = "status-dot sleep";
+          statusText.textContent = "Backend sleeping";
+          wakeButton.classList.remove("hidden");
+          return;
+        }
+        statusDot.className = "status-dot checking";
+        statusText.textContent = "Checking backend";
+        wakeButton.classList.add("hidden");
+      }
+      function addUserMsg(text, timestamp){
+        hideAgentCards();
+        const message = createMessage("user", "", timestamp || Date.now(), "");
+        message.bubble.textContent = text;
+        scrollConversation();
+      }
+      function appendToken(token){
+        if(!streamEl){
+          hideAgentCards();
+          const agent = getAgentMeta(currentAgent);
+          const built = createMessage("ai", agent?.name || currentAgent, Date.now(), "");
+          streamContainerEl = built.wrapper;
+          streamEl = built.bubble;
+          streamEl.dataset.raw = "";
+        }
+        streamEl.dataset.raw = (streamEl.dataset.raw || "") + token;
+        streamEl.innerHTML = renderMarkdown(streamEl.dataset.raw || "");
+        scrollConversation();
+      }
+      function addAssistantMessage(content, label, timestamp, messageId){
+        hideAgentCards();
+        const built = createMessage("ai", label, timestamp || Date.now(), messageId || "");
+        built.bubble.innerHTML = renderMarkdown(content);
+        scrollConversation();
+      }
+      function showWelcomeMsg(name, plan){
+        if(messagesEl.children.length) return;
+        addAssistantMessage("**Welcome, " + String(name || "Operator") + ".**\n\nPlan: `" + String(plan || "free").toUpperCase() + "`\n\nChoose an agent card below or start with `/scan`, `/plan`, `@file`, or a direct prompt.", "CyberMind", Date.now(), "");
+      }
+      function renderScanResults(summary){
+        addAssistantMessage("**Security Scan Complete**\n\n- Total: " + Number(summary?.total || 0) + "\n- Critical: " + Number(summary?.critical || 0) + "\n- High: " + Number(summary?.high || 0) + "\n- Medium: " + Number(summary?.medium || 0) + "\n- Low: " + Number(summary?.low || 0), "Security Scanner", Date.now(), "");
+      }
+      function renderMcpServers(servers){
+        const list = document.getElementById("mcp-list");
+        if(!Array.isArray(servers) || !servers.length){
+          list.innerHTML = '<div class="server-card"><div class="dd-name">No MCP servers configured. Click Edit Config to add.</div></div>';
+          return;
+        }
+        list.innerHTML = servers.map((server) => {
+          const enabled = !!server.enabled;
+          return '<div class="server-card"><div class="server-line"><span class="status-dot' + (enabled ? '' : ' sleep') + '"></span><div class="server-name">' + esc(server.name || server.id) + '</div><span class="server-badge ' + (enabled ? 'on' : 'off') + '">' + (enabled ? 'running' : 'stopped') + '</span><button class="mini-btn" type="button" data-toggle-server="' + esc(server.id) + '" data-enabled="' + (enabled ? '1' : '0') + '">' + (enabled ? 'Stop' : 'Start') + '</button></div></div>';
+        }).join("");
+      }
+      function handleError(message){
+        isStreaming = false;
+        streamEl = null;
+        streamContainerEl = null;
+        sendButton.disabled = false;
+        typingEl.classList.add("hidden");
+        if(!screenSignin.classList.contains("hidden")){
+          signInError.textContent = message;
+          signInError.classList.remove("hidden");
+          document.getElementById("btn-apikey-submit").disabled = false;
+          document.getElementById("btn-apikey-submit").textContent = "Connect";
+          return;
+        }
+        addAssistantMessage("⚠️ " + String(message || "Unknown error"), "CyberMind", Date.now(), "");
+      }
+      function loadSessionUI(session){
+        messagesEl.innerHTML = "";
+        streamEl = null;
+        streamContainerEl = null;
+        attachments = [];
+        isStreaming = false;
+        typingEl.classList.add("hidden");
+        sendButton.disabled = false;
+        currentMsgId = null;
+        selectAgent(session.agentId || currentAgent, false);
+        selectModel(session.modelId || currentModel, false);
+        setSessionTitle(session.title || "Recent Sessions");
+        renderAttachments();
+        const messages = Array.isArray(session.messages) ? session.messages : [];
+        if(messages.length) hideAgentCards(); else showAgentCards();
+        messages.forEach((message) => {
+          if(message.role === "user") addUserMsg(message.content, message.timestamp);
+          else addAssistantMessage(message.content, getAgentMeta(message.agentId || currentAgent)?.name || message.agentId || "CyberMind", message.timestamp, message.id || "");
+        });
+        scrollConversation();
+      }
+      function sendMsg(){
+        const text = chatInput.value.trim();
+        if(!text || isStreaming) return;
+        closeAllDropdowns();
+        addUserMsg(text, Date.now());
+        chatInput.value = "";
+        autoResize();
+        isStreaming = true;
+        streamEl = null;
+        streamContainerEl = null;
+        typingEl.classList.remove("hidden");
+        sendButton.disabled = true;
+        vscode.postMessage({type:"sendMessage", text, agent:currentAgent, model:currentModel, attachments:[...attachments]});
+        attachments = [];
+        renderAttachments();
+      }
+      function renderAttachments(){
+        if(!attachments.length){
+          attachmentRow.innerHTML = "";
+          attachmentRow.classList.add("hidden");
+          updateCommandDeck();
+          return;
+        }
+        attachmentRow.classList.remove("hidden");
+        attachmentRow.innerHTML = attachments.map((filePath, index) => '<div class="attachment-chip"><span class="attachment-chip-name">' + esc(filePath) + '</span><button class="attachment-remove" type="button" data-remove-attachment="' + index + '">×</button></div>').join("");
+        updateCommandDeck();
+      }
+      function maybeShowMentions(){
+        const value = chatInput.value;
+        const mentionIndex = value.lastIndexOf("@");
+        if(mentionIndex < 0){ document.getElementById("at-dd").classList.add("hidden"); return; }
+        const query = value.slice(mentionIndex + 1);
+        if(/\s/.test(query)){ document.getElementById("at-dd").classList.add("hidden"); return; }
+        document.getElementById("at-search").value = query;
+        vscode.postMessage({type:"atMentionQuery", query});
+        closeAllDropdowns();
+        document.getElementById("at-dd").classList.remove("hidden");
+      }
+      function maybeShowSlash(){
+        const value = chatInput.value;
+        const slashIndex = value.lastIndexOf("/");
+        if(slashIndex < 0){ document.getElementById("slash-dd").classList.add("hidden"); return; }
+        const query = value.slice(slashIndex + 1);
+        if(/\s/.test(query)){ document.getElementById("slash-dd").classList.add("hidden"); return; }
+        populateSlashDD("/" + query);
+        closeAllDropdowns();
+        document.getElementById("slash-dd").classList.remove("hidden");
+      }
+      function resetComposer(){
+        messagesEl.innerHTML = "";
+        showAgentCards();
+        streamEl = null;
+        streamContainerEl = null;
+        isStreaming = false;
+        attachments = [];
+        typingEl.classList.add("hidden");
+        sendButton.disabled = false;
+        currentMsgId = null;
+        setSessionTitle("New Session");
+        renderAttachments();
+      }
+
+      document.getElementById("btn-signin-web").addEventListener("click", () => { vscode.postMessage({type:"webSignIn"}); toast("Opening browser sign-in", toastKinds.ok); });
+      document.getElementById("btn-show-apikey").addEventListener("click", () => showScreen("signin"));
+      document.getElementById("btn-continue-free").addEventListener("click", () => vscode.postMessage({type:"continueAsFree"}));
+      document.getElementById("btn-signin-back").addEventListener("click", () => showScreen("welcome"));
+      document.getElementById("btn-browser-signin").addEventListener("click", () => vscode.postMessage({type:"webSignIn"}));
+      document.getElementById("btn-apikey-submit").addEventListener("click", () => {
+        const apiKey = document.getElementById("signin-apikey").value.trim();
+        if(!apiKey){
+          signInError.textContent = "Enter a CyberMind API key.";
+          signInError.classList.remove("hidden");
+          return;
+        }
+        signInError.classList.add("hidden");
+        const button = document.getElementById("btn-apikey-submit");
+        button.disabled = true;
+        button.textContent = "Connecting...";
+        vscode.postMessage({type:"signInWithApiKey", apiKey});
+      });
+
+      document.getElementById("btn-session-sel").addEventListener("click", (event) => { event.stopPropagation(); toggleDropdown("sessions-dd"); });
+      document.getElementById("btn-menu").addEventListener("click", (event) => { event.stopPropagation(); toggleDropdown("menu-dd"); });
+      document.getElementById("btn-agent-sel").addEventListener("click", (event) => { event.stopPropagation(); toggleDropdown("agent-dd"); });
+      document.getElementById("btn-model-sel").addEventListener("click", (event) => { event.stopPropagation(); toggleDropdown("model-dd"); });
+      document.getElementById("btn-new-chat").addEventListener("click", () => { closeAllDropdowns(); resetComposer(); vscode.postMessage({type:"newChat"}); });
+      document.getElementById("btn-send").addEventListener("click", sendMsg);
+      document.getElementById("btn-at").addEventListener("click", () => { chatInput.value += "@"; autoResize(); vscode.postMessage({type:"atMentionQuery", query:""}); closeAllDropdowns(); document.getElementById("at-dd").classList.remove("hidden"); focusInput(); });
+      document.getElementById("btn-slash").addEventListener("click", () => { if(!chatInput.value.trim()) chatInput.value = "/"; autoResize(); populateSlashDD(""); closeAllDropdowns(); document.getElementById("slash-dd").classList.remove("hidden"); focusInput(); });
+      document.getElementById("btn-wake-backend").addEventListener("click", () => { updateBackendStatus(null); vscode.postMessage({type:"wakeBackend"}); });
+      document.getElementById("btn-mcp-back").addEventListener("click", () => document.getElementById("mcp-overlay").classList.add("hidden"));
+      document.getElementById("btn-mcp-config").addEventListener("click", () => vscode.postMessage({type:"openMcpConfig"}));
+      document.getElementById("btn-danger-run").addEventListener("click", () => { if(pendingDangerId) vscode.postMessage({type:"confirmDangerousCommand", commandId:pendingDangerId, confirmed:true}); pendingDangerId = null; document.getElementById("danger-dialog").classList.add("hidden"); });
+      document.getElementById("btn-danger-cancel").addEventListener("click", () => { if(pendingDangerId) vscode.postMessage({type:"confirmDangerousCommand", commandId:pendingDangerId, confirmed:false}); pendingDangerId = null; document.getElementById("danger-dialog").classList.add("hidden"); });
+      document.getElementById("agent-search").addEventListener("input", (event) => {
+        const query = event.target.value.toLowerCase();
+        document.querySelectorAll("#agent-list .dd-item,#custom-agent-list .dd-item").forEach((node) => {
+          const name = node.querySelector(".dd-name")?.textContent?.toLowerCase() || "";
+          node.style.display = name.includes(query) ? "" : "none";
+        });
+      });
+      document.getElementById("at-search").addEventListener("input", (event) => vscode.postMessage({type:"atMentionQuery", query:event.target.value}));
+      chatInput.addEventListener("input", () => { autoResize(); maybeShowMentions(); maybeShowSlash(); });
+      chatInput.addEventListener("keydown", (event) => {
+        if(event.key === "Enter" && !event.shiftKey){ event.preventDefault(); sendMsg(); return; }
+        if(event.key === "Escape"){ closeAllDropdowns(); document.getElementById("danger-dialog").classList.add("hidden"); return; }
+      });
+
+      document.addEventListener("click", (event) => {
+        const clickable = event.target.closest("[data-agent-id],[data-model-id],[data-slash-cmd],[data-at-file],[data-session-id],[data-session-delete],[data-menu-action],[data-url],[data-toggle-server],[data-code-action],[data-remove-attachment],[data-quick-cmd]");
+        if(!clickable){
+          if(!event.target.closest(".dropdown") && !event.target.closest(".selector") && !event.target.closest(".icon-btn")) closeAllDropdowns();
+          return;
+        }
+        if(clickable.dataset.url){
+          event.preventDefault();
+          vscode.postMessage({type:"openExternal", url:clickable.dataset.url});
+          return;
+        }
+        if(clickable.dataset.agentId){ selectAgent(clickable.dataset.agentId); return; }
+        if(clickable.dataset.modelId){ selectModel(clickable.dataset.modelId); return; }
+        if(clickable.dataset.slashCmd){ insertSlash(clickable.dataset.slashCmd); return; }
+        if(clickable.dataset.atFile){ insertMention(clickable.dataset.atFile); return; }
+        if(clickable.dataset.removeAttachment){
+          const index = Number(clickable.dataset.removeAttachment);
+          if(Number.isInteger(index) && index >= 0){
+            attachments.splice(index, 1);
+            renderAttachments();
+          }
+          return;
+        }
+        if(clickable.dataset.quickCmd){ insertSlash(clickable.dataset.quickCmd); return; }
+        if(clickable.dataset.sessionDelete){
+          event.stopPropagation();
+          vscode.postMessage({type:"deleteSession", sessionId:clickable.dataset.sessionDelete});
+          return;
+        }
+        if(clickable.dataset.sessionId){ vscode.postMessage({type:"loadSession", sessionId:clickable.dataset.sessionId}); closeAllDropdowns(); return; }
+        if(clickable.dataset.menuAction){
+          closeAllDropdowns();
+          if(clickable.dataset.menuAction === "agents") toggleDropdown("agent-dd");
+          if(clickable.dataset.menuAction === "mcp"){ document.getElementById("mcp-overlay").classList.remove("hidden"); vscode.postMessage({type:"getMcpServers"}); }
+          if(clickable.dataset.menuAction === "keys") vscode.postMessage({type:"openExternal", url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});
+          if(clickable.dataset.menuAction === "settings") vscode.postMessage({type:"openSettings"});
+          if(clickable.dataset.menuAction === "shortcuts") toast("Ctrl+Shift+C chat · Ctrl+Shift+S scan · Tab accept completion", toastKinds.ok);
+          if(clickable.dataset.menuAction === "logout") vscode.postMessage({type:"logout"});
+          return;
+        }
+        if(clickable.dataset.toggleServer){
+          const enabled = clickable.dataset.enabled === "1";
+          vscode.postMessage({type:"toggleMcpServer", serverId:clickable.dataset.toggleServer, enabled:!enabled});
+          return;
+        }
+        if(clickable.dataset.codeAction){
+          const wrap = clickable.closest(".code-wrap");
+          const code = wrap.querySelector("code")?.textContent || "";
+          const filePath = decAttr(wrap.dataset.filePath);
+          const messageId = clickable.closest(".message")?.dataset.messageId || currentMsgId || "";
+          if(clickable.dataset.codeAction === "copy"){
+            navigator.clipboard.writeText(code).then(() => toast("Code copied", toastKinds.ok));
+          }
+          if(clickable.dataset.codeAction === "apply"){
+            if(!filePath){ toast("No file path detected for this code block", toastKinds.warn); return; }
+            vscode.postMessage({type:"applyEdit", messageId, filePath, newContent:code});
+            toast("Edit sent to extension host", toastKinds.ok);
+          }
+          if(clickable.dataset.codeAction === "reject"){
+            vscode.postMessage({type:"rejectEdit", messageId});
+            toast("Code suggestion rejected", toastKinds.warn);
+          }
+        }
+      });
+
+      window.addEventListener("message", (event) => {
+        const msg = event.data || {};
+        switch(msg.type){
+          case "showScreen": showScreen(msg.screen); break;
+          case "authState":
+            userPlan = normalizePlan(msg.plan);
+            renderModelDropdown();
+            updateCommandDeck();
+            if(!msg.isAuthenticated && !msg.plan) showScreen("welcome");
+            break;
+          case "token": if(msg.text) appendToken(msg.text); break;
+          case "done":
+            isStreaming = false;
+            currentMsgId = msg.messageId || currentMsgId;
+            if(streamContainerEl && currentMsgId) streamContainerEl.dataset.messageId = currentMsgId;
+            streamEl = null;
+            streamContainerEl = null;
+            sendButton.disabled = false;
+            typingEl.classList.add("hidden");
+            break;
+          case "error": handleError(String(msg.message || "Unknown error")); break;
+          case "agentList": renderAgents(msg.agents); break;
+          case "sessions": renderSessions(msg.sessions); break;
+          case "currentModel": if(msg.modelId) selectModel(msg.modelId, false); break;
+          case "atMentionResults": renderAtResults(msg.files); break;
+          case "sessionLoaded": loadSessionUI(msg.session || {}); break;
+          case "welcome": showWelcomeMsg(msg.name, msg.plan); break;
+          case "backendStatus": updateBackendStatus(msg.healthy); break;
+          case "mcpServers": renderMcpServers(msg.servers); break;
+          case "signInSuccess":
+            document.getElementById("btn-apikey-submit").disabled = false;
+            document.getElementById("btn-apikey-submit").textContent = "Connect";
+            showScreen("chat");
+            break;
+          case "showToast": toast(String(msg.message || "Updated"), msg.toastType || ""); break;
+          case "dangerousCommandConfirm":
+            pendingDangerId = msg.commandId;
+            document.getElementById("danger-cmd-text").textContent = msg.command;
+            document.getElementById("danger-dialog").classList.remove("hidden");
+            break;
+          case "scanResults": renderScanResults(msg.summary || {}); break;
+          case "promptEnhanced": toast("Prompt enhanced", toastKinds.ok); break;
+          case "prefillMessage":
+            if(msg.agentId) selectAgent(msg.agentId, false);
+            chatInput.value = String(msg.text || "");
+            autoResize();
+            showScreen("chat");
+            focusInput();
+            break;
+          case "architectureReady": toast("Architecture ready. Reply with build to continue.", toastKinds.ok); break;
+          case "planReady": toast("Plan ready. Reply with execute to run it.", toastKinds.ok); break;
+          case "insight": toast(String(msg.insight?.title || "Workspace insight"), toastKinds.warn); break;
+          default:
+            break;
+        }
+      });
+
+      populateSlashDD("");
+      renderModelDropdown();
+      updateAgentButton();
+      setSessionTitle("Recent Sessions");
+      showAgentCards();
+      renderAttachments();
+      autoResize();
+    })();
+  </script>
+</body>
+</html>

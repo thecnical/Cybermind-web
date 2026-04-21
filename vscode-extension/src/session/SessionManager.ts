@@ -96,6 +96,23 @@ export class SessionManager {
       .slice(0, MAX_SESSIONS);
   }
 
+  deleteSession(id: string): boolean {
+    const all = this.getStoredSessions();
+    const next = all.filter(session => session.id !== id);
+    const deleted = next.length !== all.length;
+
+    if (!deleted) {
+      return false;
+    }
+
+    if (this.currentSession?.id === id) {
+      this.currentSession = null;
+    }
+
+    this.globalState.update(SESSIONS_KEY, next);
+    return true;
+  }
+
   addMessage(message: Message): void {
     if (!this.currentSession) {
       this.createSession('code', 'cybermindcli');

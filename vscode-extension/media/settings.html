@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,332 +6,479 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}'; style-src 'unsafe-inline'; img-src vscode-resource: https: data:;">
   <title>CyberMind Settings</title>
   <style>
-:root{--bg:#1a1a1a;--bg2:#252525;--bg3:#2d2d2d;--hover:#333;--accent:#00ffff;--accent2:#00cccc;--glow:rgba(0,255,255,.15);--text:#e0e0e0;--text2:#999;--muted:#666;--border:#3a3a3a;--err:#ff4444;--warn:#ffaa00;--ok:#00ff88}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg);color:var(--text);line-height:1.5;padding:0;min-height:100vh}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
-.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
-.page-title{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.section{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
-.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
-.row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
-.row:last-child{border-bottom:none;padding-bottom:0}
-.row:first-of-type{padding-top:0}
-.label{font-size:13px;color:var(--text);font-weight:500}
-.sublabel{font-size:11px;color:var(--text2);margin-top:2px}
-.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
-.toggle input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border:1px solid var(--border);border-radius:10px;transition:.2s}
-.slider:before{position:absolute;content:'';height:14px;width:14px;left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:.2s}
-input:checked+.slider{background:var(--glow);border-color:var(--accent)}
-input:checked+.slider:before{transform:translateX(18px);background:var(--accent)}
-.btn{padding:7px 14px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
-.btn:hover{background:var(--accent2)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.status{font-size:11px;color:var(--text2)}
-.status.loading{color:var(--warn)}
-.status.ok{color:var(--ok)}
-.account-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
-.account-label{color:var(--text2);min-width:56px;font-size:12px}
-.account-val{color:var(--text);font-weight:500}
-.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
-.badge-free{background:rgba(0,255,136,.15);color:var(--ok)}
-.badge-pro{background:rgba(0,255,255,.15);color:var(--accent)}
-.badge-elite{background:rgba(255,170,0,.15);color:var(--warn)}
-.not-signed{color:var(--muted);font-size:12px;font-style:italic}
-/* Model picker */
-.provider-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
-.tab{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s}
-.tab.active{border-color:var(--accent);color:var(--accent);background:var(--glow)}
-.model-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto}
-.model-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg3)}
-.model-item:hover{border-color:var(--accent);background:var(--hover)}
-.model-item.selected{border-color:var(--accent);background:var(--glow)}
-.model-name{font-size:12px;font-weight:500;color:var(--text)}
-.model-tag{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
-.tag-free{background:rgba(0,255,136,.15);color:var(--ok)}
-.tag-pro{background:rgba(0,255,255,.15);color:var(--accent)}
-.tag-elite{background:rgba(255,170,0,.15);color:var(--warn)}
-.tag-exp{background:rgba(138,43,226,.2);color:#b06aff}
-.custom-key-row{display:flex;gap:6px;margin-top:8px}
-.custom-key-input{flex:1;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none;font-family:monospace}
-.custom-key-input:focus{border-color:var(--accent)}
-.custom-key-input::placeholder{color:var(--muted)}
-.shortcuts-table{width:100%;border-collapse:collapse}
-.shortcuts-table tr{border-bottom:1px solid var(--border)}
-.shortcuts-table tr:last-child{border-bottom:none}
-.shortcuts-table td{padding:7px 4px;font-size:12px}
-.shortcuts-table td:first-child{color:var(--text2);width:55%}
-.kbd{display:inline-block;padding:2px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:11px;color:var(--accent)}
+    :root{
+      --bg:#0a0d14;--bg2:#0f1420;--bg3:#161c2d;--bg4:#1e2640;
+      --accent:#00e5ff;--accent2:#7c3aed;--accent3:#10b981;
+      --red:#ff4757;--orange:#ff6b35;--gold:#ffd700;
+      --text:#e8edf5;--text2:#8892a4;--text3:#4a5568;--border:#1e2640;
+      --radius:6px;--shadow:0 18px 42px rgba(0,0,0,.42)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:
+      linear-gradient(180deg,rgba(0,229,255,.06),transparent 22%),
+      radial-gradient(circle at top,rgba(124,58,237,.12),transparent 32%),
+      linear-gradient(135deg,rgba(255,255,255,.02) 1px,transparent 1px),
+      linear-gradient(45deg,rgba(255,255,255,.02) 1px,transparent 1px),
+      var(--bg);
+      background-size:auto,auto,18px 18px,18px 18px,auto;
+      background-position:0 0,0 0,0 0,9px 9px,0 0;
+      color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px
+    }
+    body{padding:20px 16px 28px}
+    ::-webkit-scrollbar{width:8px}
+    ::-webkit-scrollbar-thumb{background:rgba(136,146,164,.18);border-radius:999px}
+    button,input{font:inherit}
+    .page{max-width:760px;margin:0 auto;display:grid;gap:14px}
+    .hero,.card{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.01),rgba(255,255,255,0)) var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero{padding:18px 18px 16px}
+    .hero::after,.card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent,rgba(0,229,255,.05),transparent);opacity:.35}
+    .hero-top,.card-header,.status-line,.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .hero-top{margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-logo{width:36px;height:36px;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(0,229,255,.2))}
+    .eyebrow{margin:0 0 4px;color:var(--accent);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+    .title{margin:0;font-size:20px;line-height:1.1;letter-spacing:.02em}
+    .tagline{margin:4px 0 0;color:var(--text2);font-size:12px}
+    .plan-badge,.pill,.status-chip,.model-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,.08)}
+    .plan-badge{padding:5px 10px;background:rgba(0,229,255,.08);color:var(--accent);white-space:nowrap}
+    .plan-badge.free{background:rgba(16,185,129,.08);color:var(--accent3)}
+    .plan-badge.pro{background:rgba(0,229,255,.08);color:var(--accent)}
+    .plan-badge.elite{background:rgba(255,215,0,.12);color:var(--gold)}
+    .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+    .surface-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .hero-metric,.row,.status-line,.shortcut,.model-item{padding:12px;border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);background:rgba(10,13,20,.58)}
+    .surface-card{padding:14px;border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);background:linear-gradient(180deg,rgba(0,229,255,.07),rgba(124,58,237,.05))}
+    .surface-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--text2)}
+    .surface-copy{margin-top:8px;color:var(--text2);font-size:12px;line-height:1.55}
+    .surface-mark{display:flex;align-items:center;gap:12px;margin-top:12px}
+    .surface-mark svg{width:44px;height:44px;flex:0 0 auto}
+    .surface-mark-name{font-size:15px;font-weight:800;color:var(--text)}
+    .metric-label,.group-head{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+    .metric-value{margin-top:6px;font-size:15px;font-weight:600}
+    .card{padding:16px;display:grid;gap:14px}
+    .card-title{margin:0;font-size:14px;font-weight:700;letter-spacing:.02em}
+    .card-subtitle{margin:4px 0 0;color:var(--text2);font-size:12px}
+    .pill{padding:5px 9px;color:var(--accent);background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.18)}
+    .status-line strong,.row-title,.model-name{display:block;font-size:13px;font-weight:700}
+    .status-line span,.row-copy,.model-desc,.hint{color:var(--text2);font-size:12px;line-height:1.55}
+    .row-main{min-width:0}
+    .button,.button-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;padding:0 12px;border-radius:var(--radius);border:1px solid transparent;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,opacity .18s ease}
+    .button{background:var(--accent);color:#02060a;font-weight:700;box-shadow:0 0 22px rgba(0,229,255,.18)}
+    .button:hover{opacity:.92}
+    .button-ghost{background:rgba(255,255,255,.02);border-color:rgba(0,229,255,.18);color:var(--accent)}
+    .button-ghost:hover{background:rgba(0,229,255,.08)}
+    .model-groups,.model-group,.model-list,.shortcuts{display:grid;gap:12px}
+    .group-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .model-item{display:grid;grid-template-columns:1fr auto;gap:12px;width:100%;text-align:left;cursor:pointer;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+    .model-item:hover{transform:translateY(-1px);border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.06)}
+    .model-item.active{border-color:rgba(0,229,255,.45);background:linear-gradient(180deg,rgba(0,229,255,.1),rgba(0,229,255,.02));box-shadow:inset 0 0 0 1px rgba(0,229,255,.08)}
+    .model-badge{align-self:start;padding:4px 7px;font-size:10px}
+    .model-badge.free{color:var(--accent3);background:rgba(16,185,129,.08)}
+    .model-badge.pro{color:var(--accent);background:rgba(0,229,255,.08)}
+    .model-badge.elite{color:var(--gold);background:rgba(255,215,0,.12)}
+    .toggle{position:relative;width:44px;height:24px;flex:0 0 auto}
+    .toggle input{opacity:0;width:0;height:0}
+    .toggle-track{position:absolute;inset:0;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:background .18s ease,border-color .18s ease}
+    .toggle-track::before{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text2);transition:transform .18s ease,background .18s ease}
+    .toggle input:checked+.toggle-track{background:rgba(0,229,255,.14);border-color:rgba(0,229,255,.35)}
+    .toggle input:checked+.toggle-track::before{transform:translateX(20px);background:var(--accent)}
+    .key-row{display:grid;grid-template-columns:1fr auto;gap:10px}
+    .input{width:100%;min-height:36px;padding:0 12px;border-radius:var(--radius);border:1px solid rgba(255,255,255,.08);background:rgba(10,13,20,.7);color:var(--text);outline:none;transition:border-color .18s ease,box-shadow .18s ease}
+    .input:focus{border-color:rgba(0,229,255,.42);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
+    .input::placeholder{color:var(--text3)}
+    .hint a,.link{color:var(--accent);text-decoration:none;cursor:pointer}
+    .hint a:hover,.link:hover{text-decoration:underline}
+    .shortcut{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .shortcut-keys{display:flex;gap:6px;flex-wrap:wrap}
+    kbd{display:inline-flex;align-items:center;justify-content:center;min-width:26px;min-height:24px;padding:0 8px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--accent);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;font-weight:700}
+    .status-chip{padding:5px 9px;background:rgba(255,255,255,.02);color:var(--text2)}
+    .status-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+    .status-chip.ok{color:var(--accent3);background:rgba(16,185,129,.08)}
+    .status-chip.loading{color:var(--orange);background:rgba(255,107,53,.1)}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);min-width:180px;max-width:calc(100vw - 32px);padding:10px 14px;border-radius:var(--radius);border:1px solid rgba(255,255,255,.08);background:rgba(10,13,20,.92);color:var(--text);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.ok{border-color:rgba(16,185,129,.35);color:var(--accent3)}
+    .toast.err{border-color:rgba(255,71,87,.35);color:var(--red)}
+    @media (max-width:640px){
+      body{padding:14px 12px 24px}
+      .hero-top,.card-header,.status-line,.row{align-items:flex-start;flex-direction:column}
+      .key-row,.surface-grid{grid-template-columns:1fr}
+      .shortcut{align-items:flex-start;flex-direction:column}
+    }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="page-title">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polygon points="9,1 17,5 17,13 9,17 1,13 1,5" stroke="#00ffff" stroke-width="1.5" fill="none"/><path d="M10 3L7 9H10L9 15L12 9H9L10 3Z" fill="#00ffff"/></svg>
-    CyberMind Settings
-  </div>
-
-  <!-- Account -->
-  <div class="section">
-    <div class="section-title">Account</div>
-    <div id="account-info"><div class="not-signed">Not signed in — using free tier</div></div>
-  </div>
-
-  <!-- AI Model -->
-  <div class="section">
-    <div class="section-title">AI Model</div>
-    <div class="provider-tabs" id="provider-tabs">
-      <button class="tab active" data-provider="free">Free</button>
-      <button class="tab" data-provider="openrouter">OpenRouter</button>
-      <button class="tab" data-provider="nvidia">NVIDIA</button>
-      <button class="tab" data-provider="groq">Groq</button>
-      <button class="tab" data-provider="mistral">Mistral</button>
-      <button class="tab" data-provider="bedrock">Elite (Bedrock)</button>
-    </div>
-    <div class="model-list" id="model-list"></div>
-    <!-- Custom OpenRouter key -->
-    <div id="custom-key-section" style="display:none;margin-top:10px">
-      <div class="sublabel" style="margin-bottom:6px">Your OpenRouter API key (optional — uses free models without key)</div>
-      <div class="custom-key-row">
-        <input type="password" class="custom-key-input" id="openrouter-key-input" placeholder="sk-or-v1-..." autocomplete="off">
-        <button class="btn" id="btn-save-or-key">Save</button>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="brand">
+          <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="settings-cm-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00e5ff"></stop>
+                <stop offset="100%" stop-color="#7c3aed"></stop>
+              </linearGradient>
+            </defs>
+            <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="rgba(15,20,32,0.9)" stroke="url(#settings-cm-stroke)" stroke-width="3"></polygon>
+            <path d="M35 10L22 31H31L28 54L42 30H33L35 10Z" fill="#00e5ff"></path>
+          </svg>
+          <div>
+            <p class="eyebrow">CyberMind AI</p>
+            <h1 class="title">Elite Security Intelligence</h1>
+            <p class="tagline">Control plan access, active model routing, editor automation, and repository indexing.</p>
+          </div>
+        </div>
+        <div id="hero-plan" class="plan-badge free">FREE</div>
       </div>
-    </div>
-  </div>
 
-  <!-- Inline Completions -->
-  <div class="section">
-    <div class="section-title">Editor</div>
-    <div class="row">
-      <div>
-        <div class="label">Inline Completions</div>
-        <div class="sublabel">Ghost text as you type (Tab to accept)</div>
+      <div class="hero-grid">
+        <div class="hero-metric"><div class="metric-label">Session</div><div id="metric-auth" class="metric-value">Guest Access</div></div>
+        <div class="hero-metric"><div class="metric-label">Active Model</div><div id="metric-model" class="metric-value">CyberMind Free</div></div>
+        <div class="hero-metric"><div class="metric-label">Workspace Index</div><div id="metric-index" class="metric-value">Loading...</div></div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="inline-toggle" checked onchange="toggleInline(this.checked)">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </div>
+    </section>
 
-  <!-- Workspace Index -->
-  <div class="section">
-    <div class="section-title">Workspace Index</div>
-    <div class="row">
-      <div>
-        <div class="label">Files Indexed</div>
-        <div class="status" id="index-status">Loading...</div>
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Account</h2>
+          <p class="card-subtitle">Authentication state, plan entitlement, and provider access.</p>
+        </div>
+        <span id="account-pill" class="pill">Free tier</span>
       </div>
-      <button class="btn" id="btn-reindex" onclick="reindex()">Re-index</button>
-    </div>
+      <div id="account-card" class="status-line">
+        <div>
+          <strong>Guest access enabled</strong>
+          <span>Continue Free is active. Sign in or add a key to unlock more providers.</span>
+        </div>
+        <button class="button-ghost" type="button" data-action="manage-api-keys">Manage API Keys</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Model Routing</h2>
+          <p class="card-subtitle">Models are filtered by your current plan and stay in sync with the chat panel.</p>
+        </div>
+        <span id="model-access" class="pill">Free provider access</span>
+      </div>
+      <div id="models" class="model-groups"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Brand Surface</h2>
+          <p class="card-subtitle">The extension panel, activity bar, and marketplace icon now share one visual language.</p>
+        </div>
+      </div>
+      <div class="surface-grid">
+        <div class="surface-card">
+          <div class="surface-title">Interface Direction</div>
+          <div class="surface-copy">Sharper chrome, stronger hierarchy, and a darker command-center aesthetic built to compete with premium agent panels.</div>
+        </div>
+        <div class="surface-card">
+          <div class="surface-title">Brand Mark</div>
+          <div class="surface-mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <defs>
+                <linearGradient id="surface-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00e5ff"></stop>
+                  <stop offset="100%" stop-color="#7c3aed"></stop>
+                </linearGradient>
+              </defs>
+              <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="rgba(15,20,32,0.9)" stroke="url(#surface-stroke)" stroke-width="3"></polygon>
+              <path d="M35 10L22 31H31L28 54L42 30H33L35 10Z" fill="#00e5ff"></path>
+            </svg>
+            <div>
+              <div class="surface-mark-name">CyberMind AI</div>
+              <div class="surface-copy" style="margin-top:4px">Elite Security Intelligence</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Editor Controls</h2>
+          <p class="card-subtitle">Tune local VSCode behaviors CyberMind uses while you code.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-main">
+          <div class="row-title">Inline completions</div>
+          <div class="row-copy">Ghost text suggestions appear directly in the editor and accept with Tab.</div>
+        </div>
+        <label class="toggle" aria-label="Inline completions toggle">
+          <input id="inline-toggle" type="checkbox">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="row">
+        <div class="row-main">
+          <div class="row-title">OpenRouter key</div>
+          <div class="row-copy">Optional. Save your key here for paid OpenRouter routing inside CyberMind.</div>
+        </div>
+        <span id="or-status" class="status-chip">Not saved</span>
+      </div>
+      <div class="key-row">
+        <input id="or-key" class="input" type="password" placeholder="sk-or-v1-..." autocomplete="off">
+        <button id="save-or-key" class="button" type="button">Save Key</button>
+      </div>
+      <div class="hint">
+        OpenRouter keys are stored in VSCode secret storage. Manage keys at
+        <a href="#" data-action="open-link" data-url="https://cybermindcli1.vercel.app/dashboard/api-keys">cybermindcli1.vercel.app/dashboard/api-keys</a>.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Workspace Index</h2>
+          <p class="card-subtitle">CyberMind searches this index for attachments and repository context.</p>
+        </div>
+        <span id="index-badge" class="status-chip loading">Loading</span>
+      </div>
+      <div class="row">
+        <div class="row-main">
+          <div class="row-title">Repository snapshot</div>
+          <div id="index-copy" class="row-copy">Collecting file counts and index timestamp.</div>
+        </div>
+        <button id="reindex" class="button-ghost" type="button">Re-index</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Shortcuts</h2>
+          <p class="card-subtitle">Fast paths for the extension actions you use most often.</p>
+        </div>
+      </div>
+      <div class="shortcuts">
+        <div class="shortcut"><span>Open CyberMind Chat</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd></div></div>
+        <div class="shortcut"><span>Scan Active File</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>S</kbd></div></div>
+        <div class="shortcut"><span>Undo Last AI Change</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>Z</kbd></div></div>
+        <div class="shortcut"><span>Accept Inline Completion</span><div class="shortcut-keys"><kbd>Tab</kbd></div></div>
+      </div>
+    </section>
   </div>
+  <div id="toast" class="toast"></div>
+  <script nonce="{{NONCE}}">
+    (() => {
+      "use strict";
+      const vscode = typeof acquireVsCodeApi === "function"
+        ? acquireVsCodeApi()
+        : { postMessage(message){ console.log("[settings:webview]", message); }, setState(){}, getState(){ return undefined; } };
 
-  <!-- Shortcuts -->
-  <div class="section">
-    <div class="section-title">Keyboard Shortcuts</div>
-    <table class="shortcuts-table">
-      <tr><td>Open Chat</td><td><span class="kbd">Ctrl+Shift+C</span></td></tr>
-      <tr><td>Scan File</td><td><span class="kbd">Ctrl+Shift+S</span></td></tr>
-      <tr><td>Undo AI Change</td><td><span class="kbd">Ctrl+Shift+Z</span></td></tr>
-      <tr><td>Accept Completion</td><td><span class="kbd">Tab</span></td></tr>
-      <tr><td>Send Message</td><td><span class="kbd">Enter</span></td></tr>
-      <tr><td>New Line</td><td><span class="kbd">Shift+Enter</span></td></tr>
-      <tr><td>Attach File</td><td><span class="kbd">@filename</span></td></tr>
-      <tr><td>Switch Agent</td><td><span class="kbd">/agent</span></td></tr>
-    </table>
-  </div>
-</div>
+      const ALL_MODELS = [
+        {tier:"FREE",id:"cybermindcli",name:"CyberMind Free",desc:"cybermindcli · HuggingFace",badge:"FREE"},
+        {tier:"FREE",id:"or-llama-3.3-70b",name:"Llama 3.3 70B",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"FREE",id:"or-qwen3-coder",name:"Qwen3 Coder",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"FREE",id:"or-deepseek-r1",name:"DeepSeek R1",desc:"OpenRouter · free",badge:"FREE"},
+        {tier:"PRO",id:"groq-llama-3.3-70b",name:"Llama 3.3 70B",desc:"Groq · 500 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"groq-kimi-k2",name:"Kimi K2",desc:"Groq · 1T MoE",badge:"PRO"},
+        {tier:"PRO",id:"groq-qwen3-32b",name:"Qwen3 32B",desc:"Groq · fast",badge:"PRO"},
+        {tier:"PRO",id:"cerebras-llama3.3-70b",name:"Llama 3.3 70B",desc:"Cerebras · 2000 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"nv-kimi-k2-thinking",name:"Kimi K2 Thinking",desc:"NVIDIA · 256K ctx",badge:"PRO"},
+        {tier:"PRO",id:"nv-minimax-m2.7",name:"MiniMax M2.7",desc:"NVIDIA · 230B",badge:"PRO"},
+        {tier:"PRO",id:"mistral-large",name:"Mistral Large",desc:"Mistral AI",badge:"PRO"},
+        {tier:"PRO",id:"samba-llama3.3-70b",name:"Llama 3.3 70B",desc:"SambaNova · fast",badge:"PRO"},
+        {tier:"ELITE",id:"elite-claude-3-7",name:"Claude 3.7 Sonnet",desc:"AWS Bedrock · best",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-claude-3-5-sonnet",name:"Claude 3.5 Sonnet",desc:"AWS Bedrock",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-nova-pro",name:"Amazon Nova Pro",desc:"AWS Bedrock · multimodal",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-llama-3-3-70b",name:"Llama 3.3 70B",desc:"AWS Bedrock",badge:"ELITE"}
+      ];
+      const TIER_ORDER = ["FREE","PRO","ELITE"];
+      let userPlan = "free";
+      let authMethod = "free";
+      let isAuthenticated = false;
+      let activeModel = "cybermindcli";
+      let inlineEnabled = true;
+      let toastTimer = null;
 
-<script nonce="{{NONCE}}">
-const vscode = acquireVsCodeApi();
+      const heroPlan = document.getElementById("hero-plan");
+      const metricAuth = document.getElementById("metric-auth");
+      const metricModel = document.getElementById("metric-model");
+      const metricIndex = document.getElementById("metric-index");
+      const accountCard = document.getElementById("account-card");
+      const accountPill = document.getElementById("account-pill");
+      const modelAccess = document.getElementById("model-access");
+      const modelsEl = document.getElementById("models");
+      const inlineToggle = document.getElementById("inline-toggle");
+      const orStatus = document.getElementById("or-status");
+      const orInput = document.getElementById("or-key");
+      const saveKeyButton = document.getElementById("save-or-key");
+      const indexBadge = document.getElementById("index-badge");
+      const indexCopy = document.getElementById("index-copy");
+      const reindexButton = document.getElementById("reindex");
+      const toastEl = document.getElementById("toast");
 
-const MODELS = {
-  free: [
-    { id: 'cybermindcli',           name: 'CyberMind Free',         tag: 'free',  desc: 'HuggingFace — no key needed' },
-    { id: 'openrouter-auto-free',   name: 'OpenRouter Auto (Free)', tag: 'free',  desc: 'Best free model auto-selected' },
-    { id: 'deepseek-r1-free',       name: 'DeepSeek R1',            tag: 'free',  desc: 'Strong reasoning, free' },
-    { id: 'llama-3.3-70b-free',     name: 'Llama 3.3 70B',          tag: 'free',  desc: 'Meta, reliable free model' },
-    { id: 'gemma-4-31b-free',       name: 'Gemma 4 31B',            tag: 'free',  desc: 'Google, strong general' },
-    { id: 'qwen3-coder-free',       name: 'Qwen3 Coder',            tag: 'free',  desc: 'Alibaba, code specialist' },
-    { id: 'minimax-m2.5-free',      name: 'MiniMax M2.5',           tag: 'free',  desc: 'Excellent for code' },
-    { id: 'dolphin-uncensored',     name: 'Dolphin Uncensored',     tag: 'free',  desc: 'No safety filters' },
-  ],
-  openrouter: [
-    { id: 'or-minimax-m2.5',        name: 'MiniMax M2.5',           tag: 'free',  desc: 'Excellent coding, free' },
-    { id: 'or-qwen3-coder',         name: 'Qwen3 Coder',            tag: 'free',  desc: 'Code specialist, free' },
-    { id: 'or-gemma-4-31b',         name: 'Gemma 4 31B',            tag: 'free',  desc: 'Google, free' },
-    { id: 'or-dolphin',             name: 'Dolphin Uncensored',     tag: 'free',  desc: 'No filters, free' },
-    { id: 'or-hermes-405b',         name: 'Hermes 405B',            tag: 'free',  desc: 'Large uncensored, free' },
-    { id: 'or-gpt-oss-120b',        name: 'GPT OSS 120B',           tag: 'free',  desc: 'OpenAI OSS, free' },
-    { id: 'or-llama-3.3-70b',       name: 'Llama 3.3 70B',          tag: 'free',  desc: 'Meta, free' },
-    { id: 'or-nemotron-super',      name: 'Nemotron Super 120B',    tag: 'free',  desc: 'NVIDIA, free' },
-    { id: 'or-deepseek-chat',       name: 'DeepSeek Chat',          tag: 'pro',   desc: 'Paid — needs OR key' },
-    { id: 'or-qwen3-235b',          name: 'Qwen3 235B',             tag: 'pro',   desc: 'Paid — needs OR key' },
-    { id: 'or-claude-3.7',          name: 'Claude 3.7 Sonnet',      tag: 'elite', desc: 'Paid — needs OR key' },
-  ],
-  nvidia: [
-    { id: 'nv-minimax-m2.7',        name: 'MiniMax M2.7 (230B)',    tag: 'pro',   desc: 'Primary coding agent, agentic' },
-    { id: 'nv-kimi-k2-thinking',    name: 'Kimi K2 Thinking',       tag: 'pro',   desc: '256K context, reasoning' },
-    { id: 'nv-kimi-k2-instruct',    name: 'Kimi K2 Instruct (1T)',  tag: 'pro',   desc: '1T params MoE' },
-    { id: 'nv-glm-4.7',             name: 'GLM-4.7',                tag: 'pro',   desc: 'Agentic coding, UI gen' },
-    { id: 'nv-gemma-2-27b',         name: 'Gemma 2 27B',            tag: 'pro',   desc: 'Security analysis' },
-    { id: 'nv-phi-3.5-mini',        name: 'Phi 3.5 Mini',           tag: 'pro',   desc: 'Fast code' },
-    { id: 'nv-mamba-codestral',     name: 'Mamba Codestral 7B',     tag: 'pro',   desc: 'Code specialist' },
-    { id: 'nv-llama3-70b',          name: 'Llama 3.3 70B',          tag: 'pro',   desc: 'General purpose' },
-  ],
-  groq: [
-    { id: 'groq-llama-3.3-70b',     name: 'Llama 3.3 70B',          tag: 'pro',   desc: 'Fast, versatile' },
-    { id: 'groq-kimi-k2',           name: 'Kimi K2',                tag: 'pro',   desc: 'Moonshot AI' },
-    { id: 'groq-qwen3-32b',         name: 'Qwen3 32B',              tag: 'pro',   desc: 'Alibaba' },
-    { id: 'groq-llama-4-scout',     name: 'Llama 4 Scout',          tag: 'pro',   desc: 'Meta latest' },
-    { id: 'groq-gpt-oss-120b',      name: 'GPT OSS 120B',           tag: 'pro',   desc: 'OpenAI OSS' },
-  ],
-  mistral: [
-    { id: 'mistral-large',          name: 'Mistral Large',          tag: 'pro',   desc: 'Most capable' },
-    { id: 'mistral-small',          name: 'Mistral Small',          tag: 'pro',   desc: 'Fast + efficient' },
-    { id: 'magistral-medium',       name: 'Magistral Medium',       tag: 'pro',   desc: 'Reasoning model' },
-    { id: 'ministral-8b',           name: 'Ministral 8B',           tag: 'pro',   desc: 'Lightweight' },
-  ],
-  bedrock: [
-    { id: 'elite-claude-3-7',       name: 'Claude 3.7 Sonnet',      tag: 'elite', desc: 'Best reasoning + security' },
-    { id: 'elite-claude-3-5-sonnet',name: 'Claude 3.5 Sonnet v2',   tag: 'elite', desc: 'Fast + powerful' },
-    { id: 'elite-claude-3-5-haiku', name: 'Claude 3.5 Haiku',       tag: 'elite', desc: 'Ultra-fast' },
-    { id: 'elite-nova-pro',         name: 'Amazon Nova Pro',        tag: 'elite', desc: 'AWS flagship, multimodal' },
-    { id: 'elite-nova-lite',        name: 'Amazon Nova Lite',       tag: 'elite', desc: 'Fast + cheap' },
-    { id: 'elite-llama-3-3-70b',    name: 'Llama 3.3 70B (Bedrock)',tag: 'elite', desc: 'Open source via AWS' },
-  ],
-};
-
-let currentProvider = 'free';
-let selectedModel = 'cybermindcli';
-let orKey = '';
-
-function renderModels() {
-  const list = document.getElementById('model-list');
-  const models = MODELS[currentProvider] || [];
-  list.innerHTML = models.map(m => {
-    const tagClass = 'tag-' + m.tag;
-    const sel = m.id === selectedModel ? ' selected' : '';
-    return '<div class="model-item' + sel + '" onclick="selectModel(\'' + m.id + '\')">' +
-      '<div><div class="model-name">' + m.name + '</div><div class="sublabel">' + m.desc + '</div></div>' +
-      '<span class="model-tag ' + tagClass + '">' + m.tag.toUpperCase() + '</span>' +
-      '</div>';
-  }).join('');
-
-  // Show custom key section for openrouter
-  document.getElementById('custom-key-section').style.display =
-    currentProvider === 'openrouter' ? 'block' : 'none';
-}
-
-function selectModel(id) {
-  selectedModel = id;
-  renderModels();
-  vscode.postMessage({ type: 'changeModel', modelId: id });
-}
-
-// Provider tabs
-document.getElementById('provider-tabs').addEventListener('click', function(e) {
-  const tab = e.target.closest('.tab');
-  if (!tab) return;
-  currentProvider = tab.dataset.provider;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
-  renderModels();
-});
-
-// Save OpenRouter key
-document.getElementById('btn-save-or-key').addEventListener('click', function() {
-  const key = document.getElementById('openrouter-key-input').value.trim();
-  if (key) {
-    vscode.postMessage({ type: 'saveOpenRouterKey', key });
-    this.textContent = 'Saved!';
-    setTimeout(() => { this.textContent = 'Save'; }, 2000);
-  }
-});
-
-function toggleInline(enabled) {
-  vscode.postMessage({ type: 'toggleInlineCompletions', enabled });
-}
-
-function reindex() {
-  const btn = document.getElementById('btn-reindex');
-  btn.disabled = true;
-  btn.textContent = 'Indexing...';
-  document.getElementById('index-status').textContent = 'Indexing...';
-  document.getElementById('index-status').className = 'status loading';
-  vscode.postMessage({ type: 'reindexWorkspace' });
-}
-
-function formatRelTime(iso) {
-  if (!iso) return 'Never';
-  const d = new Date(iso), now = new Date();
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'Just now';
-  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
-  return d.toLocaleDateString();
-}
-
-window.addEventListener('message', function(e) {
-  const msg = e.data;
-  switch (msg.type) {
-    case 'authState': {
-      const el = document.getElementById('account-info');
-      if (msg.isAuthenticated) {
-        const planClass = msg.plan === 'elite' ? 'badge-elite' : msg.plan === 'pro' ? 'badge-pro' : 'badge-free';
-        el.innerHTML =
-          '<div class="account-row"><span class="account-label">Status</span><span class="account-val">Signed In</span></div>' +
-          (msg.email ? '<div class="account-row"><span class="account-label">Email</span><span class="account-val">' + msg.email + '</span></div>' : '') +
-          '<div class="account-row"><span class="account-label">Plan</span><span class="badge ' + planClass + '">' + (msg.plan || 'free') + '</span></div>';
-      } else {
-        el.innerHTML = '<div class="not-signed">Not signed in — using free tier</div>';
+      function normalizePlan(plan){
+        const value = String(plan || "").toLowerCase();
+        if(value === "elite") return "elite";
+        if(value === "pro") return "pro";
+        return "free";
       }
-      break;
-    }
-    case 'indexStatus': {
-      const s = document.getElementById('index-status');
-      const btn = document.getElementById('btn-reindex');
-      if (msg.isIndexing) {
-        s.textContent = 'Indexing...'; s.className = 'status loading';
-        btn.disabled = true; btn.textContent = 'Indexing...';
-      } else {
-        s.textContent = msg.fileCount + ' files · Last: ' + formatRelTime(msg.lastIndexed);
-        s.className = 'status ok';
-        btn.disabled = false; btn.textContent = 'Re-index';
+      function esc(value){
+        return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
       }
-      break;
-    }
-    case 'settings': {
-      if (msg.activeModel) {
-        selectedModel = msg.activeModel;
-        // Find which provider this model belongs to
-        for (const [prov, models] of Object.entries(MODELS)) {
-          if (models.find(m => m.id === selectedModel)) {
-            currentProvider = prov;
-            document.querySelectorAll('.tab').forEach(t => {
-              t.classList.toggle('active', t.dataset.provider === prov);
-            });
-            break;
-          }
+      function toast(message,tone){
+        if(toastTimer) clearTimeout(toastTimer);
+        toastEl.textContent = message;
+        toastEl.className = "toast show" + (tone ? " " + tone : "");
+        toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 3000);
+      }
+      function allowedModels(){
+        return ALL_MODELS.filter((model) => {
+          if(model.tier === "FREE") return true;
+          if(model.tier === "PRO") return userPlan === "pro" || userPlan === "elite";
+          return userPlan === "elite";
+        });
+      }
+      function defaultModelForPlan(){
+        if(userPlan === "elite") return "elite-claude-3-7";
+        if(userPlan === "pro") return "groq-llama-3.3-70b";
+        return "cybermindcli";
+      }
+      function updatePlanUI(){
+        heroPlan.textContent = userPlan.toUpperCase();
+        heroPlan.className = "plan-badge " + userPlan;
+        accountPill.textContent = userPlan === "elite" ? "Elite access" : userPlan === "pro" ? "Pro access" : "Free tier";
+        modelAccess.textContent = userPlan === "elite" ? "Full provider access" : userPlan === "pro" ? "Free + Pro providers" : "Free provider access";
+      }
+      function renderAccount(email){
+        const methodLabel = authMethod === "browser" ? "Signed in with browser" : authMethod === "api-key" ? "Connected with API key" : "Guest access enabled";
+        metricAuth.textContent = isAuthenticated ? "Authenticated" : "Guest Access";
+        accountCard.innerHTML = !isAuthenticated
+          ? '<div><strong>' + methodLabel + '</strong><span>Continue Free is active. Sign in or add a key to unlock more providers.</span></div><button class="button-ghost" type="button" data-action="manage-api-keys">Manage API Keys</button>'
+          : '<div><strong>' + methodLabel + '</strong><span>' + esc(email || "CyberMind account active") + ' · ' + userPlan.toUpperCase() + ' plan</span></div><button class="button-ghost" type="button" data-action="manage-api-keys">Manage API Keys</button>';
+      }
+      function renderModels(){
+        const visibleModels = allowedModels();
+        if(!visibleModels.some((model) => model.id === activeModel)){
+          activeModel = defaultModelForPlan();
         }
+        const current = ALL_MODELS.find((item) => item.id === activeModel);
+        metricModel.textContent = current ? current.name : activeModel;
+        modelsEl.innerHTML = TIER_ORDER.map((tier) => {
+          const models = visibleModels.filter((item) => item.tier === tier);
+          if(!models.length) return "";
+          const tierLabel = tier === "FREE" ? "Free Access" : tier === "PRO" ? "Pro Access" : "Elite Access";
+          return '<div class="model-group"><div class="group-head"><span>' + tierLabel + '</span><span>' + models.length + ' model' + (models.length === 1 ? '' : 's') + '</span></div><div class="model-list">' + models.map((item) => '<button class="model-item' + (item.id === activeModel ? ' active' : '') + '" type="button" data-model-id="' + esc(item.id) + '"><div><div class="model-name">' + esc(item.name) + '</div><div class="model-desc">' + esc(item.desc) + '</div></div><span class="model-badge ' + item.tier.toLowerCase() + '">' + esc(item.badge) + '</span></button>').join("") + '</div></div>';
+        }).join("");
+      }
+      function setOpenRouterState(saved){
+        orStatus.className = "status-chip" + (saved ? " ok" : "");
+        orStatus.textContent = saved ? "Saved" : "Not saved";
+      }
+      function formatRelativeTime(date){
+        const diffMs = Date.now() - date.getTime();
+        const diffMinutes = Math.round(diffMs / 60000);
+        if(diffMinutes < 1) return "just now";
+        if(diffMinutes < 60) return diffMinutes + "m ago";
+        const diffHours = Math.round(diffMinutes / 60);
+        if(diffHours < 24) return diffHours + "h ago";
+        return Math.round(diffHours / 24) + "d ago";
+      }
+      function setIndexStatus(message){
+        if(message.isIndexing){
+          indexBadge.className = "status-chip loading";
+          indexBadge.textContent = "Indexing";
+          indexCopy.textContent = "Refreshing repository context and attachment search data.";
+          metricIndex.textContent = "Indexing...";
+          reindexButton.disabled = true;
+          reindexButton.textContent = "Re-indexing...";
+          return;
+        }
+        const fileCount = Number(message.fileCount || 0);
+        const lastIndexed = message.lastIndexed ? new Date(message.lastIndexed) : null;
+        const relative = lastIndexed ? formatRelativeTime(lastIndexed) : "Never";
+        metricIndex.textContent = fileCount + " files";
+        indexBadge.className = "status-chip ok";
+        indexBadge.textContent = "Ready";
+        indexCopy.textContent = fileCount + " files indexed · Last refresh " + relative + ".";
+        reindexButton.disabled = false;
+        reindexButton.textContent = "Re-index";
+      }
+      function selectModel(modelId, notify){
+        activeModel = modelId;
         renderModels();
+        if(notify !== false){
+          vscode.postMessage({type:"changeModel", modelId});
+          toast("Active model updated", "ok");
+        }
       }
-      if (msg.inlineCompletionsEnabled !== undefined) {
-        document.getElementById('inline-toggle').checked = msg.inlineCompletionsEnabled !== false;
-      }
-      if (msg.openRouterKey) {
-        document.getElementById('openrouter-key-input').value = msg.openRouterKey;
-      }
-      break;
-    }
-  }
-});
 
-// Init
-renderModels();
-</script>
+      inlineToggle.addEventListener("change", () => {
+        inlineEnabled = inlineToggle.checked;
+        vscode.postMessage({type:"toggleInlineCompletions", enabled:inlineEnabled});
+      });
+      saveKeyButton.addEventListener("click", () => {
+        const key = String(orInput.value || "").trim();
+        if(!key){
+          toast("Enter an OpenRouter key first", "err");
+          return;
+        }
+        vscode.postMessage({type:"saveOpenRouterKey", key});
+        setOpenRouterState(true);
+        orInput.value = "";
+      });
+      reindexButton.addEventListener("click", () => {
+        vscode.postMessage({type:"reindexWorkspace"});
+      });
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-model-id],[data-action]");
+        if(!target) return;
+        if(target.dataset.modelId){
+          selectModel(target.dataset.modelId);
+          return;
+        }
+        if(target.dataset.action === "manage-api-keys"){
+          vscode.postMessage({type:"openExternal", url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});
+        }
+        if(target.dataset.action === "open-link"){
+          vscode.postMessage({type:"openExternal", url:target.dataset.url});
+        }
+      });
+      window.addEventListener("message", (event) => {
+        const message = event.data || {};
+        switch(message.type){
+          case "authState":
+            isAuthenticated = !!message.isAuthenticated;
+            userPlan = normalizePlan(message.plan);
+            authMethod = String(message.authMethod || (isAuthenticated ? "api-key" : "free"));
+            updatePlanUI();
+            renderAccount(message.email);
+            renderModels();
+            break;
+          case "settings":
+            if(message.activeModel) activeModel = message.activeModel;
+            inlineEnabled = !!message.inlineCompletionsEnabled;
+            inlineToggle.checked = inlineEnabled;
+            setOpenRouterState(!!message.hasOpenRouterKey);
+            renderModels();
+            break;
+          case "indexStatus":
+            setIndexStatus(message);
+            break;
+          case "showToast":
+            toast(String(message.message || "Updated"), message.toastType === "ok" ? "ok" : message.toastType === "err" ? "err" : "");
+            break;
+          default:
+            break;
+        }
+      });
+
+      updatePlanUI();
+      renderAccount("");
+      renderModels();
+      setOpenRouterState(false);
+      setIndexStatus({isIndexing:true});
+    })();
+  </script>
 </body>
 </html>

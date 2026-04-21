@@ -209,6 +209,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       case 'loadSession':
         this.handleLoadSession(message.sessionId as string);
         break;
+      case 'deleteSession':
+        this.handleDeleteSession(message.sessionId as string);
+        break;
       case 'openFile':
         await this.handleOpenFile(message.filePath as string);
         break;
@@ -846,6 +849,31 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       this.currentModelId = session.modelId;
       this.postToWebview({ type: 'sessionLoaded', session });
     }
+  }
+
+  private handleDeleteSession(sessionId: string): void {
+    const deletedCurrent = this.sessionManager.getCurrentSession()?.id === sessionId;
+    const deleted = this.sessionManager.deleteSession(sessionId);
+
+    if (!deleted) {
+      return;
+    }
+
+    if (deletedCurrent) {
+      const session = this.sessionManager.createSession(this.currentAgentId, this.currentModelId);
+      this.postToWebview({ type: 'sessionLoaded', session });
+    }
+
+    const sessions = this.sessionManager.getAllSessions().map(s => ({
+      id: s.id,
+      title: s.title,
+      timestamp: s.timestamp,
+      agentId: s.agentId,
+      modelId: s.modelId,
+      messageCount: s.messages.length,
+    }));
+    this.postToWebview({ type: 'sessions', sessions });
+    this.postToWebview({ type: 'showToast', message: 'Session deleted', toastType: 'ok' });
   }
 
   private async handleOpenFile(filePath: string): Promise<void> {

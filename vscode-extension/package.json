@@ -1,7 +1,7 @@
 {
   "name": "cybermind-vscode",
   "displayName": "CyberMind AI",
-  "description": "AI-powered security and coding assistant — OWASP scanning, 8 AI agents, Plan Mode, real file editing, inline completions. Free tier included.",
+  "description": "Elite security intelligence for VS Code — agentic coding, OWASP scanning, MCP tools, real file edits, and full-stack build workflows.",
   "version": "1.0.0",
   "publisher": "cybermind",
   "icon": "media/icon.png",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "qna": "https://cybermindcli1.vercel.app/support",
   "galleryBanner": {
-    "color": "#0a0f1a",
+    "color": "#08111d",
     "theme": "dark"
   },
     "engines": {

@@ -110,6 +110,26 @@ describe('SessionManager', () => {
     });
   });
 
+  describe('deleteSession', () => {
+    it('deletes a stored session and clears it when it is current', () => {
+      const memento = makeMockMemento();
+      const manager = new SessionManager(memento as any);
+
+      const session = manager.createSession('security', 'cybermindcli');
+      manager.addMessage({
+        id: 'msg-1',
+        role: 'user',
+        content: 'Scan the workspace',
+        timestamp: Date.now(),
+      });
+      manager.saveCurrentSession();
+
+      expect(manager.deleteSession(session.id)).toBe(true);
+      expect(manager.getCurrentSession()).toBeNull();
+      expect(manager.getAllSessions()).toHaveLength(0);
+    });
+  });
+
   describe('addMessage', () => {
     it('adds messages to current session', () => {
       const manager = new SessionManager(makeMockMemento() as any);

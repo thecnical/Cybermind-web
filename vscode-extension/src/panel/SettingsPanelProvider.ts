@@ -57,12 +57,16 @@ export class SettingsPanelProvider {
     const isAuth = await this.authManager.isAuthenticated();
     const apiKey = await this.authManager.getApiKey();
     const token = await this.authManager.getToken();
+    const email = await this.authManager.getUserEmail();
+    const plan = await this.authManager.getUserPlan();
+    const openRouterKey = await this.authManager.getOpenRouterKey();
 
     this.panel.webview.postMessage({
       type: 'authState',
       isAuthenticated: isAuth,
-      email: token ? 'Authenticated via token' : apiKey ? 'Authenticated via API key' : undefined,
-      plan: apiKey ? 'api-key' : token ? 'token' : undefined,
+      email: email ?? (token ? 'Authenticated via browser' : apiKey ? 'API Key User' : undefined),
+      plan,
+      authMethod: token ? 'browser' : apiKey ? 'api-key' : 'free',
     });
 
     const status = this.repoIndexer.getStatus();
@@ -78,7 +82,7 @@ export class SettingsPanelProvider {
       type: 'settings',
       activeModel: config.get<string>('activeModel', 'cybermindcli'),
       inlineCompletionsEnabled: config.get<boolean>('inlineCompletions.enabled', true),
-      openRouterKey: await this.repoIndexer.getStatus ? '' : '', // placeholder
+      hasOpenRouterKey: !!openRouterKey,
     });
   }
 
@@ -107,6 +111,30 @@ export class SettingsPanelProvider {
             lastIndexed: status.lastIndexed?.toISOString() ?? null,
             isIndexing: false,
           });
+        }
+        break;
+      }
+      case 'saveOpenRouterKey': {
+        const key = String(message.key ?? '').trim();
+        if (!key) {
+          break;
+        }
+        await this.authManager.setOpenRouterKey(key);
+        if (this.panel) {
+          this.panel.webview.postMessage({
+            type: 'settings',
+            activeModel: vscode.workspace.getConfiguration('cybermind').get<string>('activeModel', 'cybermindcli'),
+            inlineCompletionsEnabled: vscode.workspace.getConfiguration('cybermind').get<boolean>('inlineCompletions.enabled', true),
+            hasOpenRouterKey: true,
+          });
+          this.panel.webview.postMessage({ type: 'showToast', message: 'OpenRouter key saved', toastType: 'ok' });
+        }
+        break;
+      }
+      case 'openExternal': {
+        const url = String(message.url ?? '');
+        if (url) {
+          await vscode.env.openExternal(vscode.Uri.parse(url));
         }
         break;
       }

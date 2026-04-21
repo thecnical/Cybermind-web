@@ -455,13 +455,35 @@ export class McpManager {
   getMcpConfigPath(): string {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders?.length) {
+      return path.join(workspaceFolders[0].uri.fsPath, '.kiro', 'settings', 'mcp.json');
+    }
+    return '';
+  }
+
+  private getLegacyMcpConfigPath(): string {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders?.length) {
       return path.join(workspaceFolders[0].uri.fsPath, '.cybermind', 'mcp.json');
     }
     return '';
   }
 
+  private getExistingConfigPath(): string {
+    const preferred = this.getMcpConfigPath();
+    if (preferred && fs.existsSync(preferred)) {
+      return preferred;
+    }
+
+    const legacy = this.getLegacyMcpConfigPath();
+    if (legacy && fs.existsSync(legacy)) {
+      return legacy;
+    }
+
+    return preferred;
+  }
+
   async loadFromConfigFile(): Promise<void> {
-    const configPath = this.getMcpConfigPath();
+    const configPath = this.getExistingConfigPath();
     if (!configPath || !fs.existsSync(configPath)) return;
 
     try {
