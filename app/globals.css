@@ -531,6 +531,34 @@
   .prose-docs li {
     @apply text-[15px] leading-7 text-[color:var(--text-soft)];
   }
+
+  .prose-blog h2 {
+    @apply mt-10 text-2xl font-semibold tracking-tight text-white md:text-3xl;
+  }
+
+  .prose-blog p {
+    @apply mb-5 text-[15px] leading-8 text-[color:var(--text-soft)] md:text-base;
+  }
+
+  .prose-blog ul {
+    @apply mb-6 space-y-3 pl-5;
+  }
+
+  .prose-blog li {
+    @apply text-[15px] leading-8 text-[color:var(--text-soft)] md:text-base;
+  }
+
+  .prose-blog pre {
+    @apply mb-6 overflow-x-auto rounded-[24px] border border-white/10 bg-[#071019] p-5 text-sm text-[#d8f8ff];
+  }
+
+  .prose-blog code {
+    color: var(--accent-cyan);
+  }
+
+  .prose-note {
+    @apply rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-[color:var(--text-soft)];
+  }
 }
 
 @layer utilities {

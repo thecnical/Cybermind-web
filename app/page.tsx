@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -26,6 +27,7 @@ import ThreeDMarquee from "@/components/ThreeDMarquee";
 import WorldMapPulse from "@/components/WorldMapPulse";
 import { Reveal, Surface } from "@/components/DesignPrimitives";
 import { CommandBar, LinkCard } from "@/components/SitePrimitives";
+import { blogPosts } from "@/lib/blogData";
 import { contributorTooltipPeople } from "@/lib/projectData";
 
 const featureCards = [
@@ -139,6 +141,8 @@ const workflowSignals = [
     text: "Switch between chat, recon, hunt, and Abhimanyu with context carry-over.",
   },
 ];
+
+const featuredResearch = blogPosts.slice(0, 3);
 
 export default function HomePage() {
   return (
@@ -292,6 +296,66 @@ export default function HomePage() {
               </Reveal>
             );
           })}
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <Surface variant="glass" elevation="medium" className="rounded-[32px] p-6 md:p-8">
+            <p className="cm-label">Research engine</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white md:text-4xl">
+              New blog surface for operator briefs, release intelligence, and Aegis strategy
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-soft)]">
+              The website now has a dedicated research layer: 2026-focused articles on OMEGA planning, Aegis integration,
+              AI hacking reality, API security, and bug bounty workflows written to rank and to convert.
+            </p>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {featuredResearch.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={`/blog/${post.slug}`}
+                  className="group overflow-hidden rounded-[26px] border border-white/10 bg-black/20 transition-all hover:border-[var(--accent-cyan)]/35"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <Image
+                      src={post.image}
+                      alt={post.imageAlt}
+                      fill
+                      sizes="(min-width: 768px) 25vw, 100vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: post.categoryColor }}>
+                      {post.category}
+                    </p>
+                    <h3 className="mt-3 text-lg font-semibold text-white">{post.title}</h3>
+                    <p className="mt-3 text-sm leading-7 text-[var(--text-soft)]">{post.excerpt}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6">
+              <Link href="/blog" className="cm-button-secondary">
+                Open research hub
+              </Link>
+            </div>
+          </Surface>
+
+          <Surface variant="clay" tone="accent" elevation="medium" className="rounded-[32px] p-6 md:p-8">
+            <p className="cm-label">Why it matters</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">Content now supports discovery, trust, and product positioning</h2>
+            <div className="mt-6 grid gap-4">
+              {[
+                "Search intent is broader now: AI security, Aegis, VSCode, bug bounty, and release content all have entry pages.",
+                "The blog now carries product strategy, not just announcements, which improves conversion quality from organic traffic.",
+                "Homepage and sitemap both point users and crawlers toward the new research surface."
+              ].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-[var(--text-soft)]">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </Surface>
         </section>
 
         <Surface variant="glass" elevation="medium" className="rounded-[28px] p-6 md:p-8">

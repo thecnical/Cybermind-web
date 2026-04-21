@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { blogPosts } from "@/lib/blogData";
 
 // FIX: correct production URL — cybermindcli1.vercel.app is the live frontend
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cybermindcli1.vercel.app";
@@ -28,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/features`,            lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/ai-models`,           lastModified: now, changeFrequency: "monthly", priority: 0.75 },
     { url: `${BASE_URL}/about`,               lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/blog`,                lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
     { url: `${BASE_URL}/contact`,             lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/resources`,           lastModified: now, changeFrequency: "weekly",  priority: 0.7 },
     { url: `${BASE_URL}/course`,              lastModified: now, changeFrequency: "monthly", priority: 0.7 },
@@ -41,5 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/aup`,                 lastModified: now, changeFrequency: "yearly",  priority: 0.3 },
   ];
 
-  return staticRoutes;
+  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...blogRoutes];
 }
