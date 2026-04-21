@@ -513,12 +513,15 @@ export class McpManager {
       fs.mkdirSync(dir, { recursive: true });
     }
 
+    // Enable zero-config servers by default (no API keys needed)
+    const zeroConfigIds = new Set(['Filesystem (Secure)', 'Git (Local)', 'Playwright (Browser)']);
+
     const defaultConfig = {
       _comment: 'CyberMind MCP config. Set enabled:true and fill in env vars to activate a server.',
       servers: MCP_TEMPLATES.map((t, i) => ({
         id: `template-${i}`,
         ...t,
-        enabled: false,
+        enabled: zeroConfigIds.has(t.name), // auto-enable zero-config servers
       })),
     };
 

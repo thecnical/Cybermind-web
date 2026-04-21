@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -244,30 +244,30 @@
         </div>
       </div>
       <div class="pill-grid">
-        <div class="feature-pill">🔒 OWASP Scanner</div>
-        <div class="feature-pill">🤖 11 AI Agents</div>
-        <div class="feature-pill">⚡ 11 Providers</div>
-        <div class="feature-pill">🎭 Playwright</div>
-        <div class="feature-pill">🏗️ Full-Stack</div>
-        <div class="feature-pill">🔌 MCP Servers</div>
+        <div class="feature-pill">ðŸ”’ OWASP Scanner</div>
+        <div class="feature-pill">ðŸ¤– 11 AI Agents</div>
+        <div class="feature-pill">âš¡ 11 Providers</div>
+        <div class="feature-pill">ðŸŽ­ Playwright</div>
+        <div class="feature-pill">ðŸ—ï¸ Full-Stack</div>
+        <div class="feature-pill">ðŸ”Œ MCP Servers</div>
       </div>
       <div class="welcome-note">
         <strong>Security-first coding inside VS Code.</strong>
         <span>Ship faster with agent selection, model routing, workspace context, and review workflows tuned for real repositories.</span>
       </div>
       <div class="stack">
-        <button id="btn-signin-web" class="btn btn-primary" type="button">⚡ Sign in with CyberMind</button>
+        <button id="btn-signin-web" class="btn btn-primary" type="button">âš¡ Sign in with CyberMind</button>
         <button id="btn-show-apikey" class="btn btn-outline" type="button">Use API Key</button>
         <button id="btn-continue-free" class="btn btn-ghost" type="button">Continue Free</button>
       </div>
-      <div class="micro">Free tier included · No credit card</div>
+      <div class="micro">Free tier included Â· No credit card</div>
     </div>
   </div>
 
   <div id="screen-signin" class="screen hidden">
     <div class="panel">
       <div class="signin-head">
-        <button id="btn-signin-back" class="back-btn" type="button" aria-label="Back">←</button>
+        <button id="btn-signin-back" class="back-btn" type="button" aria-label="Back">â†</button>
         <div>
           <div class="eyebrow">CyberMind API</div>
           <div style="font-weight:800">Connect API Key</div>
@@ -290,6 +290,30 @@
     </div>
   </div>
 
+  <div id="screen-openrouter" class="screen hidden">
+    <div class="panel">
+      <div class="signin-head">
+        <button id="btn-or-back" class="back-btn" type="button">←</button>
+        <div>
+          <div class="eyebrow">Free Tier</div>
+          <div style="font-weight:800">OpenRouter Key (Optional)</div>
+        </div>
+      </div>
+      <div class="signin-body">
+        <div style="padding:12px;border-radius:6px;border:1px solid rgba(0,229,255,.18);background:rgba(0,229,255,.06);font-size:12px;line-height:1.6;color:var(--text2)">
+          <strong style="color:var(--accent)">Free tier works without a key</strong> — but adding a free OpenRouter key gives you faster, more reliable responses.<br><br>
+          Get a free key at <a href="#" data-url="https://openrouter.ai/keys" style="color:var(--accent)">openrouter.ai/keys</a> (no credit card needed).
+        </div>
+        <div>
+          <label class="label" for="or-key-input">OpenRouter API Key (optional)</label>
+          <input id="or-key-input" class="field" type="password" placeholder="sk-or-..." autocomplete="off">
+        </div>
+        <button id="btn-or-continue" class="btn btn-primary" type="button">Continue to CyberMind</button>
+        <button id="btn-or-skip" class="btn btn-ghost" type="button">Skip — use without key</button>
+      </div>
+    </div>
+  </div>
+
   <div id="screen-chat" class="screen hidden">
     <div class="panel">
       <div class="status-bar">
@@ -304,17 +328,17 @@
       <div class="header">
         <button id="btn-session-sel" class="session-btn" type="button">
           <span>Recent Sessions</span>
-          <span class="muted">▾</span>
+          <span class="muted">â–¾</span>
         </button>
         <div class="header-spacer"></div>
         <button id="btn-new-chat" class="icon-btn" type="button" aria-label="New Chat">+</button>
-        <button id="btn-menu" class="icon-btn" type="button" aria-label="Menu">⋯</button>
+        <button id="btn-menu" class="icon-btn" type="button" aria-label="Menu">â‹¯</button>
       </div>
 
       <div class="command-deck">
         <div class="deck-main">
           <div class="deck-copy">
-            <div class="deck-title"><span class="deck-title-mark">⌁</span><span>CyberMind Command Center</span></div>
+            <div class="deck-title"><span class="deck-title-mark">âŒ</span><span>CyberMind Command Center</span></div>
             <div class="deck-subtitle">Agent-aware chat, repository context, and security workflows tuned for production repositories.</div>
           </div>
           <div id="plan-pill" class="plan-pill free">Free</div>
@@ -343,13 +367,13 @@
 
       <div id="menu-dd" class="dropdown menu-dd hidden">
         <div class="dd-body">
-          <div class="dd-item" data-menu-action="agents"><span class="dd-icon">🤖</span><div class="dd-main"><div class="dd-name">Agents</div></div></div>
-          <div class="dd-item" data-menu-action="mcp"><span class="dd-icon">🔌</span><div class="dd-main"><div class="dd-name">MCP Servers</div></div></div>
-          <div class="dd-item" data-menu-action="keys"><span class="dd-icon">🔑</span><div class="dd-main"><div class="dd-name">API Keys</div></div></div>
-          <div class="dd-item" data-menu-action="settings"><span class="dd-icon">⚙️</span><div class="dd-main"><div class="dd-name">Settings</div></div></div>
-          <div class="dd-item" data-menu-action="shortcuts"><span class="dd-icon">⌨️</span><div class="dd-main"><div class="dd-name">Shortcuts</div></div></div>
+          <div class="dd-item" data-menu-action="agents"><span class="dd-icon">ðŸ¤–</span><div class="dd-main"><div class="dd-name">Agents</div></div></div>
+          <div class="dd-item" data-menu-action="mcp"><span class="dd-icon">ðŸ”Œ</span><div class="dd-main"><div class="dd-name">MCP Servers</div></div></div>
+          <div class="dd-item" data-menu-action="keys"><span class="dd-icon">ðŸ”‘</span><div class="dd-main"><div class="dd-name">API Keys</div></div></div>
+          <div class="dd-item" data-menu-action="settings"><span class="dd-icon">âš™ï¸</span><div class="dd-main"><div class="dd-name">Settings</div></div></div>
+          <div class="dd-item" data-menu-action="shortcuts"><span class="dd-icon">âŒ¨ï¸</span><div class="dd-main"><div class="dd-name">Shortcuts</div></div></div>
           <div class="dot-sep"></div>
-          <div class="dd-item" data-menu-action="logout"><span class="dd-icon">🚪</span><div class="dd-main"><div class="dd-name" style="color:var(--red)">Log Out</div></div></div>
+          <div class="dd-item" data-menu-action="logout"><span class="dd-icon">ðŸšª</span><div class="dd-main"><div class="dd-name" style="color:var(--red)">Log Out</div></div></div>
         </div>
       </div>
 
@@ -391,7 +415,7 @@
 
       <div id="mcp-overlay" class="overlay hidden">
         <div class="overlay-head">
-          <button id="btn-mcp-back" class="back-btn" type="button" aria-label="Back">←</button>
+          <button id="btn-mcp-back" class="back-btn" type="button" aria-label="Back">â†</button>
           <div style="font-weight:800">MCP Servers</div>
           <div class="header-spacer"></div>
           <button id="btn-mcp-config" class="chip-btn" type="button">Edit Config</button>
@@ -422,17 +446,17 @@
       <div class="footer">
         <div id="attachment-row" class="attachment-row hidden"></div>
         <div class="selector-row">
-          <button id="btn-agent-sel" class="selector" type="button"><span>🔒 Security</span><span class="muted">▾</span></button>
-          <button id="btn-model-sel" class="selector" type="button"><span>CyberMind Free</span><span class="muted">▾</span></button>
+          <button id="btn-agent-sel" class="selector" type="button"><span>ðŸ”’ Security</span><span class="muted">â–¾</span></button>
+          <button id="btn-model-sel" class="selector" type="button"><span>CyberMind Free</span><span class="muted">â–¾</span></button>
         </div>
         <div class="input-row">
-          <textarea id="chat-input" class="input-area" rows="1" placeholder="/plan task · /build app · /scan · @file"></textarea>
+          <textarea id="chat-input" class="input-area" rows="1" placeholder="/plan task Â· /build app Â· /scan Â· @file"></textarea>
           <button id="btn-at" class="icon-btn input-at" type="button" aria-label="Mention file">@</button>
           <button id="btn-slash" class="icon-btn input-slash" type="button" aria-label="Slash command">/</button>
           <button id="btn-send" class="send-btn" type="button">Send</button>
         </div>
         <div class="footer-tip">
-          <span>Enter to send · Shift+Enter for newline</span>
+          <span>Enter to send Â· Shift+Enter for newline</span>
           <span>@ attaches files to the next prompt</span>
         </div>
       </div>
@@ -454,7 +478,19 @@
       let streamEl = null;
       let streamContainerEl = null;
       let attachments = [];
-      let agents = [];
+      let agents = [
+        {id:"security",name:"Security",icon:"🔒",description:"OWASP scanning, secrets detection, SQL injection & XSS analysis",isCustom:false},
+        {id:"code",name:"Code",icon:"</>",description:"Multi-file code generation and editing",isCustom:false},
+        {id:"unit-test",name:"Unit Test",icon:"🧪",description:"Generate test files for your code",isCustom:false},
+        {id:"bug-fix",name:"Bug Fix",icon:"🐛",description:"Identify and fix bugs with minimal changes",isCustom:false},
+        {id:"explain",name:"Explain",icon:"💡",description:"Plain language explanation of code",isCustom:false},
+        {id:"refactor",name:"Refactor",icon:"♻️",description:"Improve code without changing behavior",isCustom:false},
+        {id:"docs",name:"Docs",icon:"📝",description:"Generate JSDoc/TSDoc documentation",isCustom:false},
+        {id:"playwright",name:"Playwright",icon:"🎭",description:"Write E2E browser tests with Playwright",isCustom:false},
+        {id:"git",name:"Git",icon:"🌿",description:"Commit messages, PR descriptions, branching strategy",isCustom:false},
+        {id:"review",name:"Review",icon:"👁️",description:"Thorough code review with security and performance",isCustom:false},
+        {id:"fullstack",name:"Full-Stack",icon:"🚀",description:"Build complete features: Next.js, Supabase, TypeScript",isCustom:false}
+      ];
       let pendingDangerId = null;
       let currentMsgId = null;
       let sessionsCache = [];
@@ -472,21 +508,21 @@
         {cmd:"/scan",desc:"Security scan the workspace"}
       ];
       const ALL_MODELS = [
-        {tier:"FREE",id:"cybermindcli",name:"CyberMind Free",desc:"cybermindcli · HuggingFace",badge:"FREE"},
-        {tier:"FREE",id:"or-llama-3.3-70b",name:"Llama 3.3 70B",desc:"OpenRouter · free",badge:"FREE"},
-        {tier:"FREE",id:"or-qwen3-coder",name:"Qwen3 Coder",desc:"OpenRouter · free",badge:"FREE"},
-        {tier:"FREE",id:"or-deepseek-r1",name:"DeepSeek R1",desc:"OpenRouter · free",badge:"FREE"},
-        {tier:"PRO",id:"groq-llama-3.3-70b",name:"Llama 3.3 70B",desc:"Groq · 500 tok/s",badge:"PRO"},
-        {tier:"PRO",id:"groq-kimi-k2",name:"Kimi K2",desc:"Groq · 1T MoE",badge:"PRO"},
-        {tier:"PRO",id:"groq-qwen3-32b",name:"Qwen3 32B",desc:"Groq · fast",badge:"PRO"},
-        {tier:"PRO",id:"cerebras-llama3.3-70b",name:"Llama 3.3 70B",desc:"Cerebras · 2000 tok/s",badge:"PRO"},
-        {tier:"PRO",id:"nv-kimi-k2-thinking",name:"Kimi K2 Thinking",desc:"NVIDIA · 256K ctx",badge:"PRO"},
-        {tier:"PRO",id:"nv-minimax-m2.7",name:"MiniMax M2.7",desc:"NVIDIA · 230B",badge:"PRO"},
+        {tier:"FREE",id:"cybermindcli",name:"CyberMind Free",desc:"cybermindcli Â· HuggingFace",badge:"FREE"},
+        {tier:"FREE",id:"or-llama-3.3-70b",name:"Llama 3.3 70B",desc:"OpenRouter Â· free",badge:"FREE"},
+        {tier:"FREE",id:"or-qwen3-coder",name:"Qwen3 Coder",desc:"OpenRouter Â· free",badge:"FREE"},
+        {tier:"FREE",id:"or-deepseek-r1",name:"DeepSeek R1",desc:"OpenRouter Â· free",badge:"FREE"},
+        {tier:"PRO",id:"groq-llama-3.3-70b",name:"Llama 3.3 70B",desc:"Groq Â· 500 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"groq-kimi-k2",name:"Kimi K2",desc:"Groq Â· 1T MoE",badge:"PRO"},
+        {tier:"PRO",id:"groq-qwen3-32b",name:"Qwen3 32B",desc:"Groq Â· fast",badge:"PRO"},
+        {tier:"PRO",id:"cerebras-llama3.3-70b",name:"Llama 3.3 70B",desc:"Cerebras Â· 2000 tok/s",badge:"PRO"},
+        {tier:"PRO",id:"nv-kimi-k2-thinking",name:"Kimi K2 Thinking",desc:"NVIDIA Â· 256K ctx",badge:"PRO"},
+        {tier:"PRO",id:"nv-minimax-m2.7",name:"MiniMax M2.7",desc:"NVIDIA Â· 230B",badge:"PRO"},
         {tier:"PRO",id:"mistral-large",name:"Mistral Large",desc:"Mistral AI",badge:"PRO"},
-        {tier:"PRO",id:"samba-llama3.3-70b",name:"Llama 3.3 70B",desc:"SambaNova · fast",badge:"PRO"},
-        {tier:"ELITE",id:"elite-claude-3-7",name:"Claude 3.7 Sonnet",desc:"AWS Bedrock · best",badge:"ELITE"},
+        {tier:"PRO",id:"samba-llama3.3-70b",name:"Llama 3.3 70B",desc:"SambaNova Â· fast",badge:"PRO"},
+        {tier:"ELITE",id:"elite-claude-3-7",name:"Claude 3.7 Sonnet",desc:"AWS Bedrock Â· best",badge:"ELITE"},
         {tier:"ELITE",id:"elite-claude-3-5-sonnet",name:"Claude 3.5 Sonnet",desc:"AWS Bedrock",badge:"ELITE"},
-        {tier:"ELITE",id:"elite-nova-pro",name:"Amazon Nova Pro",desc:"AWS Bedrock · multimodal",badge:"ELITE"},
+        {tier:"ELITE",id:"elite-nova-pro",name:"Amazon Nova Pro",desc:"AWS Bedrock Â· multimodal",badge:"ELITE"},
         {tier:"ELITE",id:"elite-llama-3-3-70b",name:"Llama 3.3 70B",desc:"AWS Bedrock",badge:"ELITE"}
       ];
       const TIER_ORDER = ["FREE","PRO","ELITE"];
@@ -712,18 +748,18 @@
           list.innerHTML = '<div class="dd-empty">No recent sessions yet</div>';
           return;
         }
-        list.innerHTML = sessionsCache.map((session) => '<div class="dd-item" data-session-id="' + esc(session.id) + '"><div class="session-row"><div class="session-main"><div class="dd-name">' + esc(session.title || "Untitled") + '</div><div class="dd-desc">' + esc(session.agentId || "code") + ' · ' + formatDate(session.timestamp) + '</div></div><button class="session-delete" type="button" data-session-delete="' + esc(session.id) + '">×</button></div></div>').join("");
+        list.innerHTML = sessionsCache.map((session) => '<div class="dd-item" data-session-id="' + esc(session.id) + '"><div class="session-row"><div class="session-main"><div class="dd-name">' + esc(session.title || "Untitled") + '</div><div class="dd-desc">' + esc(session.agentId || "code") + ' Â· ' + formatDate(session.timestamp) + '</div></div><button class="session-delete" type="button" data-session-delete="' + esc(session.id) + '">Ã—</button></div></div>').join("");
       }
       function renderAgentCards(list){
         const visible = list.filter((agent) => !agent.isCustom);
-        agentCardsEl.innerHTML = visible.map((agent) => '<button class="agent-card' + (agent.id === currentAgent ? ' active' : '') + '" type="button" data-agent-id="' + esc(agent.id) + '"><div class="agent-icon">' + esc(agent.icon || "🤖") + '</div><div class="agent-name">' + esc(agent.name) + '</div><div class="agent-desc">' + esc(agent.description) + '</div></button>').join("");
+        agentCardsEl.innerHTML = visible.map((agent) => '<button class="agent-card' + (agent.id === currentAgent ? ' active' : '') + '" type="button" data-agent-id="' + esc(agent.id) + '"><div class="agent-icon">' + esc(agent.icon || "ðŸ¤–") + '</div><div class="agent-name">' + esc(agent.name) + '</div><div class="agent-desc">' + esc(agent.description) + '</div></button>').join("");
       }
       function renderAgents(list){
         agents = Array.isArray(list) ? list : [];
         const builtIn = agents.filter((agent) => !agent.isCustom);
         const custom = agents.filter((agent) => agent.isCustom);
         const renderList = (items, empty) => items.length
-          ? items.map((agent) => '<div class="dd-item' + (agent.id === currentAgent ? ' active' : '') + '" data-agent-id="' + esc(agent.id) + '"><span class="dd-icon">' + esc(agent.icon || "🤖") + '</span><div class="dd-main"><div class="dd-name">' + esc(agent.name) + '</div><div class="dd-desc">' + esc(agent.description) + '</div></div></div>').join("")
+          ? items.map((agent) => '<div class="dd-item' + (agent.id === currentAgent ? ' active' : '') + '" data-agent-id="' + esc(agent.id) + '"><span class="dd-icon">' + esc(agent.icon || "ðŸ¤–") + '</span><div class="dd-main"><div class="dd-name">' + esc(agent.name) + '</div><div class="dd-desc">' + esc(agent.description) + '</div></div></div>').join("")
           : '<div class="dd-empty">' + empty + '</div>';
         document.getElementById("agent-list").innerHTML = renderList(builtIn, "No built-in agents");
         document.getElementById("custom-agent-list").innerHTML = renderList(custom, "No custom agents yet");
@@ -739,7 +775,7 @@
         modelList.innerHTML = TIER_ORDER.map((tier) => {
           const items = visible.filter((model) => model.tier === tier);
           if(!items.length) return "";
-          return '<div class="dd-section">' + tier + '</div>' + items.map((model) => '<div class="dd-item' + (model.id === currentModel ? ' active' : '') + '" data-model-id="' + esc(model.id) + '"><span class="dd-icon">' + (tier === "FREE" ? "⚡" : tier === "PRO" ? "🚀" : "⭐") + '</span><div class="dd-main"><div class="dd-name">' + esc(model.name) + '</div><div class="dd-desc">' + esc(model.desc) + '</div></div><span class="dd-badge ' + tier.toLowerCase() + '">' + esc(model.badge) + '</span></div>').join("");
+          return '<div class="dd-section">' + tier + '</div>' + items.map((model) => '<div class="dd-item' + (model.id === currentModel ? ' active' : '') + '" data-model-id="' + esc(model.id) + '"><span class="dd-icon">' + (tier === "FREE" ? "âš¡" : tier === "PRO" ? "ðŸš€" : "â­") + '</span><div class="dd-main"><div class="dd-name">' + esc(model.name) + '</div><div class="dd-desc">' + esc(model.desc) + '</div></div><span class="dd-badge ' + tier.toLowerCase() + '">' + esc(model.badge) + '</span></div>').join("");
         }).join("") || '<div class="dd-empty">No models available for this plan</div>';
         updateModelButton();
       }
@@ -752,12 +788,12 @@
       }
       function updateAgentButton(){
         const agent = getAgentMeta(currentAgent);
-        agentButton.innerHTML = "<span>" + esc((agent?.icon || "🤖") + " " + (agent?.name || currentAgent)) + "</span><span class='muted'>▾</span>";
+        agentButton.innerHTML = "<span>" + esc((agent?.icon || "ðŸ¤–") + " " + (agent?.name || currentAgent)) + "</span><span class='muted'>â–¾</span>";
         updateCommandDeck();
       }
       function updateModelButton(){
         const model = getModelMeta(currentModel);
-        modelButton.innerHTML = "<span>" + esc(model ? model.name : currentModel) + "</span><span class='muted'>▾</span>";
+        modelButton.innerHTML = "<span>" + esc(model ? model.name : currentModel) + "</span><span class='muted'>â–¾</span>";
         updateCommandDeck();
       }
       function selectAgent(id, notify){
@@ -779,7 +815,7 @@
       function renderAtResults(files){
         const list = document.getElementById("at-list");
         list.innerHTML = Array.isArray(files) && files.length
-          ? files.map((file) => '<div class="dd-item" data-at-file="' + esc(file) + '"><span class="dd-icon">📄</span><div class="dd-main"><div class="dd-name">' + esc(file) + '</div></div></div>').join("")
+          ? files.map((file) => '<div class="dd-item" data-at-file="' + esc(file) + '"><span class="dd-icon">ðŸ“„</span><div class="dd-main"><div class="dd-name">' + esc(file) + '</div></div></div>').join("")
           : '<div class="dd-empty">No files found.</div>';
       }
       function insertMention(filePath){
@@ -873,7 +909,7 @@
           document.getElementById("btn-apikey-submit").textContent = "Connect";
           return;
         }
-        addAssistantMessage("⚠️ " + String(message || "Unknown error"), "CyberMind", Date.now(), "");
+        addAssistantMessage("âš ï¸ " + String(message || "Unknown error"), "CyberMind", Date.now(), "");
       }
       function loadSessionUI(session){
         messagesEl.innerHTML = "";
@@ -920,7 +956,7 @@
           return;
         }
         attachmentRow.classList.remove("hidden");
-        attachmentRow.innerHTML = attachments.map((filePath, index) => '<div class="attachment-chip"><span class="attachment-chip-name">' + esc(filePath) + '</span><button class="attachment-remove" type="button" data-remove-attachment="' + index + '">×</button></div>').join("");
+        attachmentRow.innerHTML = attachments.map((filePath, index) => '<div class="attachment-chip"><span class="attachment-chip-name">' + esc(filePath) + '</span><button class="attachment-remove" type="button" data-remove-attachment="' + index + '">Ã—</button></div>').join("");
         updateCommandDeck();
       }
       function maybeShowMentions(){
@@ -960,7 +996,18 @@
 
       document.getElementById("btn-signin-web").addEventListener("click", () => { vscode.postMessage({type:"webSignIn"}); toast("Opening browser sign-in", toastKinds.ok); });
       document.getElementById("btn-show-apikey").addEventListener("click", () => showScreen("signin"));
-      document.getElementById("btn-continue-free").addEventListener("click", () => vscode.postMessage({type:"continueAsFree"}));
+      document.getElementById("btn-continue-free").addEventListener("click", () => showScreen("openrouter"));
+      document.getElementById("btn-or-back").addEventListener("click", () => showScreen("welcome"));
+      document.getElementById("btn-or-continue").addEventListener("click", () => {
+        const key = document.getElementById("or-key-input").value.trim();
+        if (key && key.startsWith("sk-or-")) {
+          vscode.postMessage({type:"saveOpenRouterKey", key});
+        }
+        vscode.postMessage({type:"continueAsFree"});
+      });
+      document.getElementById("btn-or-skip").addEventListener("click", () => {
+        vscode.postMessage({type:"continueAsFree"});
+      });
       document.getElementById("btn-signin-back").addEventListener("click", () => showScreen("welcome"));
       document.getElementById("btn-browser-signin").addEventListener("click", () => vscode.postMessage({type:"webSignIn"}));
       document.getElementById("btn-apikey-submit").addEventListener("click", () => {
@@ -1040,7 +1087,7 @@
           if(clickable.dataset.menuAction === "mcp"){ document.getElementById("mcp-overlay").classList.remove("hidden"); vscode.postMessage({type:"getMcpServers"}); }
           if(clickable.dataset.menuAction === "keys") vscode.postMessage({type:"openExternal", url:"https://cybermindcli1.vercel.app/dashboard/api-keys"});
           if(clickable.dataset.menuAction === "settings") vscode.postMessage({type:"openSettings"});
-          if(clickable.dataset.menuAction === "shortcuts") toast("Ctrl+Shift+C chat · Ctrl+Shift+S scan · Tab accept completion", toastKinds.ok);
+          if(clickable.dataset.menuAction === "shortcuts") toast("Ctrl+Shift+C chat Â· Ctrl+Shift+S scan Â· Tab accept completion", toastKinds.ok);
           if(clickable.dataset.menuAction === "logout") vscode.postMessage({type:"logout"});
           return;
         }
@@ -1137,3 +1184,4 @@
   </script>
 </body>
 </html>
+

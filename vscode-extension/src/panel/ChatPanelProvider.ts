@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { AuthManager } from '../api/AuthManager';
 import { BackendClient } from '../api/BackendClient';
 import { McpManager } from '../api/McpManager';
+import { MCP_TEMPLATES } from '../api/McpManager';
 import { ImageGenerator } from '../api/ImageGenerator';
 import { ProjectMemoryManager } from '../api/ProjectMemory';
 import { PromptEnhancer } from '../api/PromptEnhancer';
@@ -222,8 +223,15 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         vscode.commands.executeCommand('cybermind.openMcpConfig');
         break;
       case 'getMcpServers': {
-        // Return list of configured MCP servers to the webview
-        const servers = this.mcpManager.getServers();
+        // Return all configured servers + templates so panel always shows content
+        const configured = this.mcpManager.getServers();
+        // If no servers configured yet, return templates as available options
+        const servers = configured.length > 0 ? configured : MCP_TEMPLATES.map((t, i) => ({
+          id: `template-${i}`,
+          ...t,
+          enabled: false,
+          status: 'stopped' as const,
+        }));
         this.postToWebview({ type: 'mcpServers', servers });
         break;
       }

@@ -178,7 +178,7 @@ export class BackendClient {
   }
 
   // ── Free chat — multi-provider fallback chain ─────────────────────────────
-  // Order: Backend /admin-ai/chat (Groq) → /free/chat (HuggingFace) → OpenRouter
+  // Order: /vscode/chat (Groq→Cerebras→OpenRouter) → /free/chat (HuggingFace) → OpenRouter direct
   async freeChat(
     request: ChatRequest,
     onToken: (token: string) => void,
@@ -186,43 +186,44 @@ export class BackendClient {
     openRouterKey?: string | null
   ): Promise<string> {
 
-    // Strategy 1: Backend /admin-ai/chat — uses Groq (fast, reliable)
-    // This endpoint tries: Groq → Cerebras → GitHub Models → OpenRouter → HuggingFace
+    // Strategy 1: /vscode/chat — dedicated VSCode endpoint, no origin restriction
+    // Uses Groq → Cerebras → OpenRouter → HuggingFace on the backend
     try {
-      logger.info('[BackendClient] Trying /admin-ai/chat (Groq/Cerebras)...');
-      const result = await this._adminAiChat(request, cancellationToken);
+      logger.info('[BackendClient] Trying /vscode/chat...');
+      const result = await this._vscodeChatRequest(request, cancellationToken);
       if (result && result.trim().length > 5) {
         onToken(result);
         return result;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`[BackendClient] /admin-ai/chat failed: ${String(err)}`);
+      logger.warn(`[BackendClient] /vscode/chat failed: ${String(err)}`);
     }
 
-    // Strategy 2: Backend /free/chat — HuggingFace cybermindcli model
-    try {
-      logger.info('[BackendClient] Trying /free/chat (HuggingFace)...');
-      const result = await this._backendFreeChat(request, cancellationToken);
-      if (result && result.trim().length > 5) {
-        onToken(result);
-        return result;
+    // Strategy 2: OpenRouter direct (if user provided key)
+    if (openRouterKey?.startsWith('sk-or-')) {
+      try {
+        logger.info('[BackendClient] Trying OpenRouter with user key...');
+        const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
+        if (result && result.trim().length > 5) {
+          return result;
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') throw err;
+        logger.warn(`[BackendClient] OpenRouter failed: ${String(err)}`);
       }
-    } catch (err) {
-      if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`[BackendClient] /free/chat failed: ${String(err)}`);
     }
 
-    // Strategy 3: OpenRouter free models (direct from extension)
+    // Strategy 3: OpenRouter free (no key, limited)
     try {
       logger.info('[BackendClient] Trying OpenRouter free models...');
-      const result = await this._openRouterChat(request, onToken, cancellationToken, openRouterKey);
+      const result = await this._openRouterChat(request, onToken, cancellationToken, null);
       if (result && result.trim().length > 5) {
         return result;
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') throw err;
-      logger.warn(`[BackendClient] OpenRouter failed: ${String(err)}`);
+      logger.warn(`[BackendClient] OpenRouter free failed: ${String(err)}`);
     }
 
     throw new Error(
@@ -233,6 +234,44 @@ export class BackendClient {
       '3. Add free OpenRouter key at openrouter.ai → Settings\n' +
       '4. Wait 30s and retry (backend may be waking up)'
     );
+  }
+
+  // ── /vscode/chat — dedicated VSCode endpoint ──────────────────────────────
+  private async _vscodeChatRequest(
+    request: ChatRequest,
+    cancellationToken?: vscode.CancellationToken
+  ): Promise<string> {
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    let cancelDisposable: vscode.Disposable | undefined;
+    if (cancellationToken) {
+      cancelDisposable = cancellationToken.onCancellationRequested(() => this.abortController?.abort());
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/vscode/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: request.message,
+          messages: [],
+          agent: request.agent,
+          context: request.context?.slice(0, 6000) ?? '',
+        }),
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`/vscode/chat HTTP ${response.status}`);
+      }
+
+      const data = await response.json() as { success?: boolean; response?: string; error?: string };
+      if (!data.success || !data.response) throw new Error(data.error || 'Empty response');
+      return data.response.trim();
+    } finally {
+      cancelDisposable?.dispose();
+      this.abortController = null;
+    }
   }
 
   // ── Backend /admin-ai/chat — Groq → Cerebras → GitHub → OpenRouter → HF ──
