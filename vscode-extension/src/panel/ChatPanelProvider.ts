@@ -215,6 +215,23 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       case 'openSettings':
         vscode.commands.executeCommand('cybermind.openSettings');
         break;
+      case 'openMcpConfig':
+        vscode.commands.executeCommand('cybermind.openMcpConfig');
+        break;
+      case 'getMcpServers': {
+        // Return list of configured MCP servers to the webview
+        const servers = this.mcpManager.getServers();
+        this.postToWebview({ type: 'mcpServers', servers });
+        break;
+      }
+      case 'toggleMcpServer': {
+        const { serverId, enabled } = message as { type: string; serverId: string; enabled: boolean };
+        await this.mcpManager.toggleServer(serverId, enabled);
+        const updatedServers = this.mcpManager.getServers();
+        this.postToWebview({ type: 'mcpServers', servers: updatedServers });
+        this.postToWebview({ type: 'showToast', message: `MCP server ${enabled ? 'started' : 'stopped'}` });
+        break;
+      }
       case 'logout':
         await this.handleLogout();
         break;
