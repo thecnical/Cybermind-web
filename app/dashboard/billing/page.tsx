@@ -1,13 +1,12 @@
 ﻿"use client";
 
 import { useState, useCallback } from "react";
-import { Check, Loader2, AlertCircle, CheckCircle2, ExternalLink, Globe, IndianRupee } from "lucide-react";
+import { Check, Loader2, AlertCircle, CheckCircle2, ExternalLink, IndianRupee, Globe } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { PLAN_PRICES, UserPlan } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
-import { startStripeCheckout, waitForPlanUpgrade, type StripePlan } from "@/lib/stripe";
-import { startInstamojoCheckout, waitForInstamojoUpgrade, type InstamojoPlan } from "@/lib/instamojo";
+import { startPayUCheckout, waitForPayUUpgrade, type PayUPlan } from "@/lib/payu";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
@@ -19,9 +18,15 @@ const plans: { id: UserPlan; name: string; features: string[]; devices: string }
     devices: "1 device",
   },
   {
+    id: "starter",
+    name: "Starter",
+    features: ["50 req/day", "OMEGA plan mode", "OSINT Deep + RevEng", "Breach intel", "Unlimited devices"],
+    devices: "Unlimited devices",
+  },
+  {
     id: "pro",
     name: "Pro",
-    features: ["200 requests/day", "Full 20-tool recon", "Full 11-tool hunt", "Priority backend", "Email support"],
+    features: ["200 requests/day", "Full 20-tool recon", "Full 30-tool hunt", "Priority backend", "3 devices"],
     devices: "3 devices",
   },
   {
@@ -34,8 +39,8 @@ const plans: { id: UserPlan; name: string; features: string[]; devices: string }
 
 type CheckoutState =
   | { status: "idle" }
-  | { status: "loading"; plan: StripePlan; provider: "stripe" | "instamojo" }
-  | { status: "success"; plan: StripePlan }
+  | { status: "loading"; plan: PayUPlan }
+  | { status: "success"; plan: PayUPlan }
   | { status: "error"; message: string };
 
 export default function BillingPage() {
@@ -45,11 +50,11 @@ export default function BillingPage() {
   const [checkout, setCheckout] = useState<CheckoutState>({ status: "idle" });
   const currentPlan = (profile?.plan || "free") as UserPlan;
 
-  const handleUpgrade = useCallback(async (planId: StripePlan, provider: "stripe" | "instamojo") => {
+  const handleUpgrade = useCallback(async (planId: PayUPlan) => {
     if (!user || !profile) return;
     if (currentPlan === planId) return;
 
-    setCheckout({ status: "loading", plan: planId, provider });
+    setCheckout({ status: "loading", plan: planId });
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -59,23 +64,13 @@ export default function BillingPage() {
         return;
       }
 
-      if (provider === "instamojo") {
-        // Instamojo — India only, INR only
-        await startInstamojoCheckout({
-          plan: planId as InstamojoPlan,
-          billing: annual ? "annual" : "monthly",
-          apiKey: token,
-        });
-      } else {
-        // Stripe — supports both INR and USD
-        await startStripeCheckout({
-          plan: planId,
-          billing: annual ? "annual" : "monthly",
-          currency: currency,
-          apiKey: token,
-          email: user.email ?? "",
-        });
-      }
+      await startPayUCheckout({
+        plan: planId,
+        billing: annual ? "annual" : "monthly",
+        currency,
+        apiKey: token,
+        email: user.email ?? "",
+      });
       // User is redirected — code below won't run
     } catch (err) {
       setCheckout({
@@ -83,10 +78,10 @@ export default function BillingPage() {
         message: err instanceof Error ? err.message : "Checkout failed. Please try again.",
       });
     }
-  }, [user, profile, currentPlan, annual, currency, refreshProfile]);
+  }, [user, profile, currentPlan, annual, currency]);
 
-  const isLoading = (planId: string, provider: "stripe" | "instamojo") =>
-    checkout.status === "loading" && checkout.plan === planId && checkout.provider === provider;
+  const isLoading = (planId: string) =>
+    checkout.status === "loading" && checkout.plan === planId;
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
@@ -153,14 +148,14 @@ export default function BillingPage() {
       </div>
 
       {/* Plan cards */}
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {plans.map(plan => {
           const priceINR = annual
-            ? (plan.id === "free" ? "₹0" : plan.id === "pro" ? "₹9,990/yr" : "₹23,990/yr")
-            : (plan.id === "free" ? "₹0" : plan.id === "pro" ? "₹1,149/mo" : "₹2,399/mo");
+            ? (plan.id === "free" ? "₹0" : plan.id === "starter" ? "₹850/yr" : plan.id === "pro" ? "₹9,990/yr" : "₹23,990/yr")
+            : (plan.id === "free" ? "₹0" : plan.id === "starter" ? "₹85/mo" : plan.id === "pro" ? "₹1,149/mo" : "₹2,399/mo");
           const priceUSD = annual
-            ? (plan.id === "free" ? "$0" : plan.id === "pro" ? "$120/yr" : "$290/yr")
-            : (plan.id === "free" ? "$0" : plan.id === "pro" ? "$14/mo" : "$29/mo");
+            ? (plan.id === "free" ? "$0" : plan.id === "starter" ? "$40/yr" : plan.id === "pro" ? "$120/yr" : "$290/yr")
+            : (plan.id === "free" ? "$0" : plan.id === "starter" ? "$4/mo" : plan.id === "pro" ? "$14/mo" : "$29/mo");
           const price = currency === "inr" ? priceINR : priceUSD;
           const isCurrent = plan.id === currentPlan;
           const isPro = plan.id === "pro";
@@ -190,39 +185,23 @@ export default function BillingPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {/* Instamojo — India, INR, individuals (primary for India) */}
                     <button
                       type="button"
-                      onClick={() => handleUpgrade(plan.id as StripePlan, "instamojo")}
-                      disabled={isLoading(plan.id, "instamojo") || isLoading(plan.id, "stripe")}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#FF6B00]/40 bg-[rgba(255,107,0,0.08)] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[rgba(255,107,0,0.15)] disabled:opacity-60">
-                      {isLoading(plan.id, "instamojo")
-                        ? <><Loader2 size={14} className="animate-spin" /> Redirecting...</>
-                        : <><IndianRupee size={14} /> Pay with Instamojo (India)</>
+                      onClick={() => handleUpgrade(plan.id as PayUPlan)}
+                      disabled={isLoading(plan.id)}
+                      className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition-colors disabled:opacity-60 ${
+                        isPro
+                          ? "bg-gradient-to-r from-[#00d4ff] to-[#7c3aed] text-white hover:opacity-90"
+                          : "border border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                      }`}>
+                      {isLoading(plan.id)
+                        ? <><Loader2 size={14} className="animate-spin" /> Redirecting to PayU...</>
+                        : <><IndianRupee size={14} /> Pay with PayU</>
                       }
                     </button>
                     <p className="text-center text-[10px] text-[var(--text-muted)]">
-                      UPI · Cards · Netbanking · Wallets · No company needed
+                      UPI · Cards · Net Banking · EMI · Wallets
                     </p>
-
-                    {/* Stripe — international, USD/INR */}
-                    <button
-                      type="button"
-                      onClick={() => handleUpgrade(plan.id as StripePlan, "stripe")}
-                      disabled={isLoading(plan.id, "stripe") || isLoading(plan.id, "instamojo")}
-                      className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition-colors disabled:opacity-60 ${isPro ? "border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 text-white hover:bg-[var(--accent-cyan)]/20" : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}>
-                      {isLoading(plan.id, "stripe")
-                        ? <><Loader2 size={14} className="animate-spin" /> Redirecting...</>
-                        : currency === "inr"
-                        ? <>Pay with Stripe (UPI/Card) <span className="text-[10px] opacity-50">→ International</span></>
-                        : <>Pay with Card <span className="text-[10px] opacity-50">→ Stripe</span></>
-                      }
-                    </button>
-                    {currency === "inr" && (
-                      <p className="text-center text-[10px] text-[var(--text-muted)]">
-                        International cards · Requires company docs
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
@@ -231,13 +210,12 @@ export default function BillingPage() {
         })}
       </section>
 
-      {/* Security note */}
+      {/* PayU info */}
       <section className="cm-card-soft p-4">
         <p className="text-xs text-[var(--text-muted)] flex flex-wrap items-center gap-2">
-          <span>🔒 Payments via Instamojo (India) or Stripe (International).</span>
+          <span>🔒 Payments secured by <strong className="text-white">PayU</strong> — India&apos;s leading payment gateway.</span>
           <Globe size={11} className="inline" />
-          <span>Instamojo: no company docs needed — just PAN + Aadhaar.</span>
-          <span>CyberMind never stores card details.</span>
+          <span>Supports UPI, Cards, Net Banking, EMI, Wallets. No company docs needed.</span>
           <a href="mailto:support@cybermind.thecnical.dev" className="text-[var(--accent-cyan)] hover:underline">support@cybermind.thecnical.dev</a>
         </p>
       </section>

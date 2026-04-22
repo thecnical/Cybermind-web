@@ -10,7 +10,7 @@ import Navbar from "@/components/Navbar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
-import { startStripeCheckout, waitForPlanUpgrade, type StripePlan } from "@/lib/stripe";
+import { startPayUCheckout, waitForPayUUpgrade, type PayUPlan } from "@/lib/payu";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
@@ -104,7 +104,7 @@ const plans = [
       { text: "VSCode Extension — 2,000 credits/mo", included: true },
       { text: "3 devices · Priority routing", included: true },
     ],
-    note: "3 devices · Secure checkout via Stripe",
+    note: "3 devices · Secure checkout via PayU",
     cta: "Upgrade to Pro",
     ctaHref: null as string | null,
   },
@@ -134,7 +134,7 @@ const plans = [
       { text: "VSCode Extension — Unlimited + Claude 3.7", included: true },
       { text: "Unlimited devices · Priority support", included: true },
     ],
-    note: "Unlimited devices · Secure checkout via Stripe",
+    note: "Unlimited devices · Secure checkout via PayU",
     cta: "Upgrade to Elite",
     ctaHref: null as string | null,
   },
@@ -162,7 +162,7 @@ const comparisonRows = [
 const faqs = [
   {
     question: "What payment methods are supported?",
-    answer: "Stripe handles all payments — UPI, cards, netbanking, and wallets for Indian users. International cards accepted globally.",
+    answer: "PayU handles all payments — UPI (GPay, PhonePe, Paytm, BHIM), Cards (Visa/MC/Rupay/Amex), Net Banking, EMI, and Wallets. India + International.",
   },
   {
     question: "Can I switch plans anytime?",
@@ -207,7 +207,7 @@ export default function PlansPage() {
     return null;
   }, [billing, currency]);
 
-  const handleUpgrade = useCallback(async (planId: StripePlan) => {
+  const handleUpgrade = useCallback(async (planId: PayUPlan) => {
     if (!user || !session) {
       window.location.href = "/auth/login?redirect=/plans";
       return;
@@ -223,7 +223,7 @@ export default function PlansPage() {
 
       if (!profile?.api_key) throw new Error("API key not found. Please log in again.");
 
-      await startStripeCheckout({
+      await startPayUCheckout({
         plan: planId,
         billing,
         currency,
@@ -260,7 +260,7 @@ export default function PlansPage() {
         </span>
         <span>
           <Lock size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
-          Payments secured by <strong style={{ color: "#00d4ff" }}>Stripe</strong>
+          Payments secured by <strong style={{ color: '#00d4ff' }}>PayU</strong>
         </span>
       </div>
 
@@ -523,7 +523,7 @@ export default function PlansPage() {
                   </Link>
                 ) : (
                   <button
-                    onClick={() => handleUpgrade(plan.id as StripePlan)}
+                    onClick={() => handleUpgrade(plan.id as PayUPlan)}
                     disabled={isLoading}
                     style={{
                       display: "flex",
@@ -671,3 +671,4 @@ export default function PlansPage() {
     </div>
   );
 }
+
