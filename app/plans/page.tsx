@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
@@ -25,6 +25,7 @@ function detectCurrency(): "inr" | "usd" {
 }
 
 const plans = [
+
   {
     id: "free" as const,
     name: "Free",
@@ -40,7 +41,7 @@ const plans = [
       "AI security chat (all platforms)",
       "AI coding assistant — bring your own API key",
       "2 free attacks/day (scan + hunt on Linux)",
-      "/scan /cve /payload /osint (all OS)",
+      "/scan /cve /payload /osint /locate (all OS)",
       "CyberMind fine-tuned AI (no safety filters)",
       "VSCode Extension — 50 AI credits/month",
       "1 device",
@@ -48,6 +49,7 @@ const plans = [
     ],
     note: "1 device · No credit card",
   },
+
   {
     id: "starter" as const,
     name: "Starter",
@@ -55,25 +57,30 @@ const plans = [
     annualINR: "₹850",
     monthlyUSD: "$4",
     annualUSD: "$40",
-    description: "Full pipeline: Omega plan mode → Recon → Hunt → Abhimanyu. 5 targets/month.",
+    description: "Full pipeline: Omega plan mode → Recon → Hunt → Abhimanyu + OSINT Deep + RevEng. 5 targets/month.",
     badge: "🔥 Best value",
     offer: null,
     features: [
       "50 requests/day",
       "AI security chat (all platforms)",
       "AI coding assistant — managed keys",
-      "OMEGA plan mode (auto attack planning)",
+      "OMEGA plan mode (auto attack planning + Phase 0 OSINT)",
       "HackerOne auto-target selection",
       "5 recon/hunt/Abhimanyu targets/month",
       "Full 20-tool recon chain (Linux)",
       "Full 30-tool hunt engine (Linux)",
       "Abhimanyu exploit mode (Linux)",
+      "/osint-deep — 45 tools, 9 phases (domain/email/username/phone)",
+      "/reveng — 30 tools, static+dynamic+decompile (ELF/PE/APK)",
+      "/locate — IP/EXIF/WiFi/Social geolocation",
+      "Breach intelligence (HIBP + LeakCheck + BreachDirectory APIs)",
       "Bug detection + auto PoC generation",
       "VSCode Extension — 500 AI credits/month",
       "Email support",
     ],
     note: "Unlimited devices · Secure checkout",
   },
+
   {
     id: "pro" as const,
     name: "Pro",
@@ -104,6 +111,7 @@ const plans = [
     ],
     note: "3 devices · Secure checkout via Stripe",
   },
+
   {
     id: "elite" as const,
     name: "Elite",
@@ -153,37 +161,50 @@ const comparisonRows = [
   ["PDF reports",               "—",              "—",               "—",                "✓"],
   ["Devices",                   "1",              "Unlimited",       "3",                "Unlimited"],
   ["Support",                   "Community",      "Email",           "Email",            "Priority"],
+  ["OSINT Deep (/osint-deep)",  "—",              "5 targets",       "Unlimited",        "Unlimited"],
+  ["RevEng (/reveng)",          "—",              "5 targets",       "Unlimited",        "Unlimited"],
+  ["Locate (/locate)",          "Level 1-2",      "Level 1-4",       "Level 1-4",        "Level 1-5 (SDR)"],
+  ["Breach intelligence",       "—",              "HIBP+LeakCheck",  "All APIs",         "All APIs + local"],
+  ["Phase 0 OSINT in /plan",    "—",              "✓",               "✓",                "✓ (deep)"],
 ];
 
 const faqs = [
+
   {
     title: "What is OMEGA plan mode?",
     body: "OMEGA is CyberMind's autonomous 10-phase attack pipeline: OSINT → Subdomain enum (reconftw -a --deep) → Port scan → HTTP fingerprint → Directory discovery → Vuln scan (all nuclei templates) → Hunt (XSS/SSRF/IDOR) → Secret hunting → JWT/GraphQL attacks → Exploitation. It runs for hours if needed — no shortcuts.",
   },
+
   {
     title: "What is HackerOne auto-target?",
     body: "Run 'cybermind /plan --auto-target' and CyberMind fetches the best bug bounty programs with wide scope and good payouts. You can also use '--focus xss,idor' to hunt specific vulnerability types.",
   },
+
   {
     title: "What is auto PoC generation?",
     body: "When nuclei, dalfox, or sqlmap confirms a vulnerability, CyberMind automatically generates a complete Proof-of-Concept — including curl commands, reproduction steps, CVSS score, and a ready-to-submit HackerOne report template.",
   },
+
   {
     title: "What counts as a 'target' in the Starter plan?",
     body: "Each unique domain/IP you run recon, hunt, or Abhimanyu on counts as 1 target. You get 5 per month. Targets reset on the 1st of each month.",
   },
+
   {
     title: "Can I start free and upgrade later?",
     body: "Yes. Sign up free, generate your API key, and upgrade from the plans page or dashboard billing at any time.",
   },
+
   {
     title: "What currency is used for payment?",
     body: "Payments are processed via Stripe. INR users get UPI, cards, and netbanking. International users get cards and other local methods.",
   },
+
   {
     title: "Does every plan work on every OS?",
     body: "Core chat and AI coding work everywhere (Windows, macOS, Linux). OMEGA plan mode, recon, hunt, and Abhimanyu require Linux/Kali — these use 50+ security tools that are Linux-native.",
   },
+
   {
     title: "What is the continuous loop feature?",
     body: "After scanning a target, if no medium/high bugs are found, CyberMind automatically suggests the next best bug bounty target to try — so you keep hunting without manual research.",
@@ -263,7 +284,8 @@ export default function PlansPage() {
       <Navbar />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 pb-20 pt-28 md:px-8">
 
-        {/* Hero */}
+      
+  {/* Hero */}
         <section className="linear-shell rounded-[36px] p-7 md:p-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -276,7 +298,8 @@ export default function PlansPage() {
               </p>
             </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Currency toggle */}
+          
+  {/* Currency toggle */}
             <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
               <button type="button" onClick={() => setCurrency("inr")}
                 className={cn("rounded-full px-3 py-1.5 text-xs transition-colors", currency === "inr" ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
@@ -287,7 +310,8 @@ export default function PlansPage() {
                 🌍 USD
               </button>
             </div>
-            {/* Billing toggle */}
+          
+  {/* Billing toggle */}
             <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
               <button type="button" onClick={() => setAnnual(false)}
                 className={cn("rounded-full px-4 py-2 text-sm transition-colors", !annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
@@ -302,14 +326,17 @@ export default function PlansPage() {
           </div>
         </section>
 
-        {/* Status banners */}
-        {checkout.status === "polling" && (
+      
+  {/* Status banners */}
+      
+  {checkout.status === "polling" && (
           <div className="flex items-center gap-3 rounded-2xl border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/5 px-5 py-4">
             <Loader2 size={18} className="animate-spin text-[var(--accent-cyan)]" />
             <p className="text-sm text-white">Payment received — confirming your plan upgrade...</p>
           </div>
         )}
-        {checkout.status === "success" && (
+      
+  {checkout.status === "success" && (
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 px-5 py-4">
             <div className="flex items-center gap-3">
               <CheckCircle2 size={18} className="text-[#00FF88]" />
@@ -320,7 +347,8 @@ export default function PlansPage() {
             <button onClick={() => setCheckout({ status: "idle" })} className="text-xs text-[var(--text-muted)] hover:text-white">dismiss</button>
           </div>
         )}
-        {checkout.status === "error" && (
+      
+  {checkout.status === "error" && (
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#FF4444]/30 bg-[#FF4444]/5 px-5 py-4">
             <div className="flex items-center gap-3">
               <AlertCircle size={18} className="text-[#FF4444]" />
@@ -330,9 +358,11 @@ export default function PlansPage() {
           </div>
         )}
 
-        {/* Plan cards — 4 columns */}
+      
+  {/* Plan cards — 4 columns */}
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {plans.map((plan) => {
+        
+  {plans.map((plan) => {
             const highlighted = plan.id === "pro";
             const isStarter = plan.id === "starter";
             const isCurrent = currentPlan === plan.id;
@@ -358,38 +388,48 @@ export default function PlansPage() {
                     : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]",
                   isCurrent && "ring-1 ring-[var(--accent-cyan)]/20"
                 )}>
-                {highlighted && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(0,255,255,0.85),transparent)]" />}
-                {isStarter && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)]" />}
+              
+  {highlighted && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(0,255,255,0.85),transparent)]" />}
+              
+  {isStarter && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)]" />}
 
-                {/* Badge */}
+              
+  {/* Badge */}
                 <div className="flex items-start justify-between gap-2 mb-4">
                   <p className="cm-label">{plan.name}</p>
                   <div className="flex flex-col items-end gap-1">
-                    {plan.badge && (
+                  
+  {plan.badge && (
                       <span className={cn(
                         "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
                         isStarter ? "bg-[#FFD700]/15 text-[#FFD700]" : "bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)]"
                       )}>
-                        {plan.badge}
+                      
+  {plan.badge}
                       </span>
                     )}
-                    {isCurrent && <StatusBadge label="Current" tone="success" />}
+                  
+  {isCurrent && <StatusBadge label="Current" tone="success" />}
                   </div>
                 </div>
 
-                {/* Price */}
+              
+  {/* Price */}
                 <div className="mb-1">
                   <div className="flex items-baseline gap-2">
                     <h2 className="text-3xl font-semibold text-white">{price}</h2>
-                    {originalPrice && !annual && (
+                  
+  {originalPrice && !annual && (
                       <span className="text-sm text-[var(--text-muted)] line-through">{originalPrice}</span>
                     )}
                   </div>
                   <p className="text-xs text-[var(--text-soft)]">{period}</p>
                 </div>
 
-                {/* Offer tag */}
-                {plan.offer && !annual && (
+              
+  {/* Offer tag */}
+              
+  {plan.offer && !annual && (
                   <div className="mb-3 flex items-center gap-1.5 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 px-3 py-1.5">
                     <Zap size={11} className="text-[#FFD700]" />
                     <p className="text-[10px] text-[#FFD700] font-medium">{plan.offer}</p>
@@ -399,7 +439,8 @@ export default function PlansPage() {
                 <p className="text-xs leading-5 text-[var(--text-soft)] mb-4">{plan.description}</p>
 
                 <ul className="space-y-2 text-xs text-[var(--text-main)] flex-1">
-                  {plan.features.map((feature) => (
+                
+  {plan.features.map((feature) => (
                     <li key={feature} className="flex gap-2">
                       <Check size={12} className="mt-0.5 flex-shrink-0 text-[#00FF88]" />
                       <span>{feature}</span>
@@ -408,7 +449,8 @@ export default function PlansPage() {
                 </ul>
 
                 <div className="mt-5 grid gap-2">
-                  {plan.id === "free" ? (
+                
+  {plan.id === "free" ? (
                     <Link href="/auth/register"
                       className="cm-button-secondary w-full text-center text-sm">
                       Get started free
@@ -431,7 +473,8 @@ export default function PlansPage() {
                             ? "border border-[#FFD700]/30 bg-[#FFD700]/10 text-white hover:bg-[#FFD700]/20"
                             : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
                         )}>
-                        {loading ? (
+                      
+  {loading ? (
                           <><Loader2 size={13} className="animate-spin" /> Redirecting...</>
                         ) : currency === "inr" ? (
                           <>Pay with UPI / Card <span className="text-[10px] opacity-50">→ Stripe</span></>
@@ -439,7 +482,8 @@ export default function PlansPage() {
                           <>Pay with Card <span className="text-[10px] opacity-50">→ Stripe</span></>
                         )}
                       </button>
-                      {currency === "inr" && (
+                    
+  {currency === "inr" && (
                         <p className="text-center text-[10px] text-[var(--text-muted)]">
                           UPI · Cards · Netbanking · Wallets
                         </p>
@@ -453,7 +497,8 @@ export default function PlansPage() {
           })}
         </section>
 
-        {/* Comparison table */}
+      
+  {/* Comparison table */}
         <section className="cm-card p-6 md:p-8">
           <p className="cm-label">Compare tiers</p>
           <h2 className="mt-3 text-3xl font-semibold text-white">Feature comparison</h2>
@@ -462,11 +507,14 @@ export default function PlansPage() {
               <div className="grid grid-cols-5 bg-white/[0.04] px-5 py-4 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
                 <span>Feature</span><span>Free</span><span>Starter</span><span>Pro</span><span>Elite</span>
               </div>
-              {comparisonRows.map((row) => (
+            
+  {comparisonRows.map((row) => (
                 <div key={row[0]} className="grid grid-cols-5 border-t border-white/8 px-5 py-3.5 text-sm text-[var(--text-soft)]">
-                  {row.map((cell, i) => (
+                
+  {row.map((cell, i) => (
                     <span key={`${row[0]}-${i}`} className={i === 0 ? "font-medium text-white" : undefined}>
-                      {cell}
+                    
+  {cell}
                     </span>
                   ))}
                 </div>
@@ -475,7 +523,8 @@ export default function PlansPage() {
           </div>
         </section>
 
-        {/* FAQ */}
+      
+  {/* FAQ */}
         <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="cm-card p-6 md:p-8">
             <p className="cm-label">Get started</p>
