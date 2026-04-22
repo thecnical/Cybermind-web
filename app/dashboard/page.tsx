@@ -114,6 +114,8 @@ export default function DashboardPage() {
   const [liveToday, setLiveToday] = useState<number | null>(null);
   const [liveMonth, setLiveMonth] = useState<number | null>(null);
   const [liveTargets, setLiveTargets] = useState<number | null>(null);
+  const [liveOsintTargets, setLiveOsintTargets] = useState<number | null>(null);
+  const [liveRevengTargets, setLiveRevengTargets] = useState<number | null>(null);
   const [liveUpdated, setLiveUpdated] = useState<Date | null>(null);
 
   const plan = profile?.plan || "free";
@@ -123,6 +125,8 @@ export default function DashboardPage() {
   const used = liveToday ?? profile?.requests_today ?? 0;
   const usedMonth = liveMonth ?? profile?.requests_month ?? 0;
   const targetsUsed = liveTargets ?? (profile as { recon_targets_used?: number })?.recon_targets_used ?? 0;
+  const osintTargetsUsed = liveOsintTargets ?? (profile as { osint_targets_used?: number })?.osint_targets_used ?? 0;
+  const revengTargetsUsed = liveRevengTargets ?? (profile as { reveng_targets_used?: number })?.reveng_targets_used ?? 0;
   const usagePct = limit === Infinity ? 0 : Math.min(100, (used / limit) * 100);
 
   // Live stats polling — every 30s
@@ -132,6 +136,8 @@ export default function DashboardPage() {
       setLiveToday(stats.requests_today);
       setLiveMonth(stats.requests_month);
       setLiveTargets(stats.recon_targets_used);
+      setLiveOsintTargets(stats.osint_targets_used);
+      setLiveRevengTargets(stats.reveng_targets_used);
       setLiveUpdated(new Date());
     }
   }, []);
@@ -355,7 +361,7 @@ export default function DashboardPage() {
         </div>
         {plan === "starter" ? (
           <div className="cm-card-soft p-5">
-            <p className="cm-label">Recon targets used</p>
+            <p className="cm-label">Recon/Hunt/Abhimanyu targets</p>
             <p className="mt-2 text-3xl font-semibold text-white">
               {targetsUsed}
               <span className="text-lg text-[var(--text-soft)]">/{targetLimit === Infinity ? "∞" : targetLimit}</span>
@@ -367,6 +373,10 @@ export default function DashboardPage() {
                   style={{ width: `${Math.min(100, (targetsUsed / targetLimit) * 100)}%`, backgroundColor: targetsUsed >= targetLimit ? "#FF4444" : "#FFD700" }} />
               </div>
             )}
+            <div className="mt-3 pt-3 border-t border-white/5 space-y-1">
+              <p className="text-xs text-[var(--text-soft)]">OSINT Deep: <span className="text-white">{osintTargetsUsed}/{targetLimit === Infinity ? "∞" : targetLimit}</span></p>
+              <p className="text-xs text-[var(--text-soft)]">RevEng: <span className="text-white">{revengTargetsUsed}/{targetLimit === Infinity ? "∞" : targetLimit}</span></p>
+            </div>
           </div>
         ) : (
           <div className="cm-card-soft p-5">

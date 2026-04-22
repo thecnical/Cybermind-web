@@ -51,6 +51,26 @@ const featureCards = [
     title: "Abhimanyu mode",
     body: "Linux-first exploit and post-exploitation mode for advanced research environments.",
   },
+  {
+    icon: Binary,
+    title: "OSINT Deep — 45 tools",
+    body: "9-phase OSINT pipeline: domain, email, username, phone, company. Breach check + social footprint.",
+  },
+  {
+    icon: Workflow,
+    title: "Reverse Engineering",
+    body: "30-tool RE pipeline: static, dynamic, decompile, malware analysis. Ghidra + AI explains binaries.",
+  },
+  {
+    icon: Gauge,
+    title: "Breach Intelligence",
+    body: "HIBP + BreachDirectory (RapidAPI) + LeakCheck + local SQLite dump indexing. WhatsApp OSINT.",
+  },
+  {
+    icon: Sparkles,
+    title: "Geolocation — Level 1-5",
+    body: "IP/EXIF/WiFi/Social geolocation. Level 5: SDR cell tower tracking with gr-gsm + srsRAN.",
+  },
 ];
 
 const socialProof = [

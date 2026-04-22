@@ -352,7 +352,13 @@ export async function sendInvite(email: string): Promise<void> {
 }
 
 // Fetch live usage stats (for real-time dashboard)
-export async function fetchLiveUsage(): Promise<{ requests_today: number; requests_month: number; recon_targets_used: number } | null> {
+export async function fetchLiveUsage(): Promise<{
+  requests_today: number;
+  requests_month: number;
+  recon_targets_used: number;
+  osint_targets_used: number;
+  reveng_targets_used: number;
+} | null> {
   const token = await getToken();
   if (!token) return null;
   try {
@@ -367,6 +373,8 @@ export async function fetchLiveUsage(): Promise<{ requests_today: number; reques
       requests_today: data.profile.requests_today ?? 0,
       requests_month: data.profile.requests_month ?? 0,
       recon_targets_used: data.profile.recon_targets_used ?? 0,
+      osint_targets_used: data.profile.osint_targets_used ?? 0,
+      reveng_targets_used: data.profile.reveng_targets_used ?? 0,
     };
   } catch {
     return null;
