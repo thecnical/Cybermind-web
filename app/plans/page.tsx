@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
-import { Check, Loader2, AlertCircle, CheckCircle2, Zap, Globe } from "lucide-react";
+import { Check, X, Loader2, AlertCircle, CheckCircle2, Zap, Globe, Shield, Star, ArrowRight, Users, Lock, Cpu } from "lucide-react";
 import Accordion from "@/components/Accordion";
 import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
-import StatusBadge from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
@@ -15,572 +14,660 @@ import { startStripeCheckout, waitForPlanUpgrade, type StripePlan } from "@/lib/
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
-// ── Currency detection ────────────────────────────────────────────────────────
-// Default INR for Indian users, USD for international
-// Users can toggle manually
 function detectCurrency(): "inr" | "usd" {
   if (typeof window === "undefined") return "inr";
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return tz.startsWith("Asia/") ? "inr" : "usd";
 }
 
+// ─── Plan Data ────────────────────────────────────────────────────────────────
 const plans = [
-
   {
     id: "free" as const,
     name: "Free",
-    monthlyINR: "₹0",
-    annualINR: "₹0",
-    monthlyUSD: "$0",
-    annualUSD: "$0",
-    description: "AI chat + 2 free attacks/day. Works on Linux, Windows, macOS.",
-    badge: null,
-    offer: null,
+    monthlyINR: "₹0", annualINR: "₹0",
+    monthlyUSD: "$0", annualUSD: "$0",
+    description: "AI chat + 2 free attacks/day. All platforms.",
+    badge: null as string | null, badgeColor: null as string | null,
+    popular: false,
+    accentColor: "#8b949e",
+    glowColor: "rgba(139,148,158,0.08)",
+    borderColor: "rgba(255,255,255,0.06)",
     features: [
-      "20 requests/day",
-      "AI security chat (all platforms)",
-      "AI coding assistant — bring your own API key",
-      "2 free attacks/day (scan + hunt on Linux)",
-      "/scan /cve /payload /osint /locate (all OS)",
-      "CyberMind fine-tuned AI (no safety filters)",
-      "VSCode Extension — 50 AI credits/month",
-      "1 device",
-      "Community support",
+      { text: "20 requests/day", included: true },
+      { text: "AI security chat (all platforms)", included: true },
+      { text: "AI coding — bring your own key", included: true },
+      { text: "2 free attacks/day (Linux)", included: true },
+      { text: "/scan /cve /payload /osint /locate", included: true },
+      { text: "VSCode Extension — 50 credits/mo", included: true },
+      { text: "1 device", included: true },
+      { text: "OMEGA plan mode", included: false },
+      { text: "OSINT Deep / RevEng / Breach", included: false },
     ],
     note: "1 device · No credit card",
+    cta: "Get started free",
+    ctaHref: "/auth/register",
   },
-
   {
     id: "starter" as const,
     name: "Starter",
-    monthlyINR: "₹85",
-    annualINR: "₹850",
-    monthlyUSD: "$4",
-    annualUSD: "$40",
-    description: "Full pipeline: Omega plan mode → Recon → Hunt → Abhimanyu + OSINT Deep + RevEng. 5 targets/month.",
-    badge: "🔥 Best value",
-    offer: null,
+    monthlyINR: "₹85", annualINR: "₹850",
+    monthlyUSD: "$4", annualUSD: "$40",
+    description: "Full pipeline: OMEGA → Recon → Hunt → Abhimanyu + OSINT Deep + RevEng.",
+    badge: "🔥 Best value" as string | null, badgeColor: "#FFD700" as string | null,
+    popular: false,
+    accentColor: "#FFD700",
+    glowColor: "rgba(255,215,0,0.06)",
+    borderColor: "rgba(255,215,0,0.15)",
     features: [
-      "50 requests/day",
-      "AI security chat (all platforms)",
-      "AI coding assistant — managed keys",
-      "OMEGA plan mode (auto attack planning + Phase 0 OSINT)",
-      "HackerOne auto-target selection",
-      "5 recon/hunt/Abhimanyu targets/month",
-      "Full 20-tool recon chain (Linux)",
-      "Full 30-tool hunt engine (Linux)",
-      "Abhimanyu exploit mode (Linux)",
-      "/osint-deep — 45 tools, 9 phases (domain/email/username/phone)",
-      "/reveng — 30 tools, static+dynamic+decompile (ELF/PE/APK)",
-      "/locate — IP/EXIF/WiFi/Social geolocation",
-      "Breach intelligence (HIBP + LeakCheck + BreachDirectory APIs)",
-      "Bug detection + auto PoC generation",
-      "VSCode Extension — 500 AI credits/month",
-      "Email support",
+      { text: "50 requests/day", included: true },
+      { text: "AI security chat + managed keys", included: true },
+      { text: "OMEGA plan mode + Phase 0 OSINT", included: true },
+      { text: "5 recon/hunt/Abhimanyu targets/mo", included: true },
+      { text: "Full 20-tool recon chain (Linux)", included: true },
+      { text: "Full 30-tool hunt engine (Linux)", included: true },
+      { text: "/osint-deep — 45 tools, 9 phases", included: true },
+      { text: "/reveng — 30 tools, 6 phases", included: true },
+      { text: "Breach intel (HIBP + BreachDir + LeakCheck)", included: true },
+      { text: "/locate — IP/EXIF/WiFi/Social geo", included: true },
+      { text: "Bug detection + auto PoC generation", included: true },
+      { text: "VSCode Extension — 500 credits/mo", included: true },
     ],
     note: "Unlimited devices · Secure checkout",
+    cta: "Upgrade to Starter",
+    ctaHref: null as string | null,
   },
-
   {
     id: "pro" as const,
     name: "Pro",
-    monthlyINR: "₹1,149",
-    annualINR: "₹9,990",
-    monthlyUSD: "$14",
-    annualUSD: "$120",
-    originalMonthlyINR: "₹1,499",
-    originalMonthlyUSD: "$19",
+    monthlyINR: "₹1,149", annualINR: "₹9,990",
+    monthlyUSD: "$14", annualUSD: "$120",
+    originalMonthlyINR: "₹1,499", originalMonthlyUSD: "$19",
     description: "Unlimited recon, hunt, AI coding with web search + image gen + PoC reports.",
-    badge: "Most popular",
-    offer: null,
+    badge: "Most popular" as string | null, badgeColor: "#00d4ff" as string | null,
+    popular: true,
+    accentColor: "#00d4ff",
+    glowColor: "rgba(0,212,255,0.08)",
+    borderColor: "rgba(0,212,255,0.2)",
     features: [
-      "200 requests/day",
-      "AI coding + web search + image gen",
-      "OMEGA plan mode (unlimited)",
-      "HackerOne auto-target + --focus flag",
-      "Unlimited recon targets (Linux)",
-      "Full 20-tool recon chain + reconftw -a",
-      "Full 30-tool hunt engine",
-      "Auto bug detection + PoC generation",
-      "Bug bounty report auto-generation",
-      "Continuous loop (next target suggest)",
-      "OSINT Deep — 45 tools, 9 phases (unlimited targets)",
-      "RevEng — 30 tools, static+dynamic+decompile+malware",
-      "/locate — IP/EXIF/WiFi/Social geolocation (Level 1-4)",
-      "Breach intelligence — HIBP + BreachDirectory (RapidAPI) + LeakCheck",
-      "/breach — email/domain/phone breach check",
-      "Priority backend routing",
-      "VSCode Extension — 2,000 AI credits/month",
-      "3 devices",
-      "Email support",
+      { text: "200 requests/day", included: true },
+      { text: "AI coding + web search + image gen", included: true },
+      { text: "OMEGA plan mode (unlimited)", included: true },
+      { text: "Unlimited recon targets (Linux)", included: true },
+      { text: "Full recon chain + reconftw -a", included: true },
+      { text: "OSINT Deep — unlimited targets", included: true },
+      { text: "RevEng — unlimited targets", included: true },
+      { text: "/locate Level 1-4", included: true },
+      { text: "Breach intel — all APIs", included: true },
+      { text: "Bug bounty report auto-generation", included: true },
+      { text: "Continuous loop (next target suggest)", included: true },
+      { text: "VSCode Extension — 2,000 credits/mo", included: true },
+      { text: "3 devices · Priority routing", included: true },
     ],
     note: "3 devices · Secure checkout via Stripe",
+    cta: "Upgrade to Pro",
+    ctaHref: null as string | null,
   },
-
   {
     id: "elite" as const,
     name: "Elite",
-    monthlyINR: "₹2,399",
-    annualINR: "₹23,990",
-    monthlyUSD: "$29",
-    annualUSD: "$290",
-    description: "Unlimited everything — AI coding with GPT-5/Claude, Abhimanyu, full OMEGA pipeline, PDF reports.",
-    badge: null,
-    offer: null,
+    monthlyINR: "₹2,399", annualINR: "₹23,990",
+    monthlyUSD: "$29", annualUSD: "$290",
+    description: "Unlimited everything — GPT-5/Claude, Abhimanyu, full OMEGA, PDF reports.",
+    badge: null as string | null, badgeColor: null as string | null,
+    popular: false,
+    accentColor: "#7c3aed",
+    glowColor: "rgba(124,58,237,0.08)",
+    borderColor: "rgba(124,58,237,0.2)",
     features: [
-      "Unlimited requests",
-      "AI coding with GPT-5 + Claude Opus 4",
-      "OMEGA plan mode (unlimited, 10-phase + Phase 0 OSINT)",
-      "HackerOne integration + AI target selection",
-      "All modes including Abhimanyu",
-      "Phase 1: shodan, h8mail, exiftool, metagoofil, spiderfoot, recon-ng",
-      "reconftw -a --deep (6h exhaustive scan)",
-      "OSINT Deep — 45 tools, 9 phases + dark web + breach (unlimited)",
-      "RevEng — Ghidra headless + AI decompile + malware analysis (unlimited)",
-      "/locate-advanced — SDR cell tower tracking (Level 5, needs hardware)",
-      "Breach intelligence — all APIs + local dump indexing + WhatsApp OSINT",
-      "Auto PoC generation for every bug",
-      "Full bug bounty report with PoC",
-      "Continuous hunting loop",
-      "Session persistence",
-      "PDF reports",
-      "VSCode Extension — Unlimited credits + Claude 3.7",
-      "Unlimited devices",
-      "Priority support + early access",
+      { text: "Unlimited requests", included: true },
+      { text: "AI coding with GPT-5 + Claude Opus 4", included: true },
+      { text: "OMEGA plan mode (10-phase + Phase 0)", included: true },
+      { text: "All modes including Abhimanyu", included: true },
+      { text: "reconftw -a --deep (6h exhaustive)", included: true },
+      { text: "OSINT Deep + dark web + breach (unlimited)", included: true },
+      { text: "RevEng — Ghidra + AI decompile", included: true },
+      { text: "/locate-advanced — SDR cell tower (Level 5)", included: true },
+      { text: "Breach — all APIs + local dump indexing", included: true },
+      { text: "Auto PoC + PDF bug bounty reports", included: true },
+      { text: "Continuous hunting loop + session persistence", included: true },
+      { text: "VSCode Extension — Unlimited + Claude 3.7", included: true },
+      { text: "Unlimited devices · Priority support", included: true },
     ],
     note: "Unlimited devices · Secure checkout via Stripe",
+    cta: "Upgrade to Elite",
+    ctaHref: null as string | null,
   },
 ] as const;
 
+// ─── Comparison Table Data ────────────────────────────────────────────────────
 const comparisonRows = [
-  ["Requests/day",              "20",             "50",              "200",              "Unlimited"],
-  ["AI chat",                   "✓",              "✓",               "✓",                "✓"],
-  ["Free attacks/day (Linux)",  "2",              "—",               "—",                "—"],
-  ["AI coding",                 "Own keys",       "Managed keys",    "+ web/img",        "GPT-5/Claude"],
-  ["OMEGA plan mode",           "—",              "✓",               "✓",                "✓ (10-phase)"],
-  ["HackerOne auto-target",     "—",              "✓",               "✓ + --focus",      "✓ + AI suggest"],
-  ["Recon targets/mo",          "2/day",          "5",               "Unlimited",        "Unlimited"],
-  ["reconftw mode",             "—",              "-r --deep",       "-a --deep",        "-a --deep 6h"],
-  ["Hunt workflow",             "2/day",          "5 targets",       "Full 30 tools",    "Full 30 tools"],
-  ["Abhimanyu mode",            "—",              "5 targets",       "—",                "✓"],
-  ["Bug detection",             "—",              "✓",               "✓",                "✓"],
-  ["Auto PoC generation",       "—",              "✓",               "✓",                "✓"],
-  ["Bug bounty report",         "—",              "Markdown",        "Markdown + PoC",   "PDF + PoC"],
-  ["Continuous loop",           "—",              "—",               "✓",                "✓"],
-  ["PDF reports",               "—",              "—",               "—",                "✓"],
-  ["Devices",                   "1",              "Unlimited",       "3",                "Unlimited"],
-  ["Support",                   "Community",      "Email",           "Email",            "Priority"],
-  ["OSINT Deep (/osint-deep)",  "—",              "5 targets",       "Unlimited",        "Unlimited"],
-  ["RevEng (/reveng)",          "—",              "5 targets",       "Unlimited",        "Unlimited"],
-  ["Locate (/locate)",          "Level 1-2",      "Level 1-4",       "Level 1-4",        "Level 1-5 (SDR)"],
-  ["Breach intelligence",       "—",              "HIBP+LeakCheck",  "All APIs",         "All APIs + local"],
-  ["Phase 0 OSINT in /plan",    "—",              "✓",               "✓",                "✓ (deep)"],
+  { category: "Core", icon: <Zap size={14} />, feature: "Daily requests", free: "20", starter: "50", pro: "200", elite: "Unlimited" },
+  { category: "Core", icon: <Zap size={14} />, feature: "AI security chat", free: true, starter: true, pro: true, elite: true },
+  { category: "Core", icon: <Zap size={14} />, feature: "Devices", free: "1", starter: "Unlimited", pro: "3", elite: "Unlimited" },
+  { category: "Recon", icon: <Globe size={14} />, feature: "OMEGA plan mode", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Auto recon (Linux)", free: false, starter: "5/mo", pro: "Unlimited", elite: "Unlimited" },
+  { category: "Recon", icon: <Globe size={14} />, feature: "OSINT Deep (45 tools)", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "RevEng (30 tools)", free: false, starter: true, pro: true, elite: true },
+  { category: "Security", icon: <Shield size={14} />, feature: "Breach intel", free: false, starter: true, pro: true, elite: true },
+  { category: "Security", icon: <Shield size={14} />, feature: "Threat intel (/threat)", free: true, starter: true, pro: true, elite: true },
+  { category: "Security", icon: <Shield size={14} />, feature: "Abhimanyu exploit mode", free: false, starter: false, pro: false, elite: true },
+  { category: "Security", icon: <Shield size={14} />, feature: "SDR cell tower locate", free: false, starter: false, pro: false, elite: true },
+  { category: "AI", icon: <Cpu size={14} />, feature: "AI coding", free: "BYOK", starter: "Managed", pro: "Web search + img", elite: "GPT-5 + Claude" },
+  { category: "AI", icon: <Cpu size={14} />, feature: "Bug bounty reports", free: false, starter: false, pro: true, elite: "PDF auto-gen" },
+  { category: "VSCode", icon: <Star size={14} />, feature: "Extension credits/mo", free: "50", starter: "500", pro: "2,000", elite: "Unlimited" },
 ];
 
+// ─── FAQ Data ─────────────────────────────────────────────────────────────────
 const faqs = [
-
   {
-    title: "What is OMEGA plan mode?",
-    body: "OMEGA is CyberMind's autonomous 10-phase attack pipeline: OSINT → Subdomain enum (reconftw -a --deep) → Port scan → HTTP fingerprint → Directory discovery → Vuln scan (all nuclei templates) → Hunt (XSS/SSRF/IDOR) → Secret hunting → JWT/GraphQL attacks → Exploitation. It runs for hours if needed — no shortcuts.",
+    question: "What payment methods are supported?",
+    answer: "Stripe handles all payments — UPI, cards, netbanking, and wallets for Indian users. International cards accepted globally.",
   },
-
   {
-    title: "What is HackerOne auto-target?",
-    body: "Run 'cybermind /plan --auto-target' and CyberMind fetches the best bug bounty programs with wide scope and good payouts. You can also use '--focus xss,idor' to hunt specific vulnerability types.",
+    question: "Can I switch plans anytime?",
+    answer: "Yes. Upgrade or downgrade anytime. Upgrades take effect immediately. Downgrades apply at the next billing cycle.",
   },
-
   {
-    title: "What is auto PoC generation?",
-    body: "When nuclei, dalfox, or sqlmap confirms a vulnerability, CyberMind automatically generates a complete Proof-of-Concept — including curl commands, reproduction steps, CVSS score, and a ready-to-submit HackerOne report template.",
+    question: "Do I need Linux for all features?",
+    answer: "No. AI chat, /scan, /osint, /breach, /threat, /cve, /payload, /locate work on Windows, macOS, and Linux. Recon/hunt/abhimanyu/reveng require Linux/Kali.",
   },
-
   {
-    title: "What counts as a 'target' in the Starter plan?",
-    body: "Each unique domain/IP you run recon, hunt, or Abhimanyu on counts as 1 target. You get 5 per month. Targets reset on the 1st of each month.",
+    question: "What is OMEGA mode?",
+    answer: "OMEGA is CyberMind's autonomous 10-phase attack planner. It auto-runs recon → hunt → exploit → post-exploit in sequence, passing context between phases.",
   },
-
   {
-    title: "Can I start free and upgrade later?",
-    body: "Yes. Sign up free, generate your API key, and upgrade from the plans page or dashboard billing at any time.",
-  },
-
-  {
-    title: "What currency is used for payment?",
-    body: "Payments are processed via Stripe. INR users get UPI, cards, and netbanking. International users get cards and other local methods.",
-  },
-
-  {
-    title: "Does every plan work on every OS?",
-    body: "Core chat and AI coding work everywhere (Windows, macOS, Linux). OMEGA plan mode, recon, hunt, and Abhimanyu require Linux/Kali — these use 50+ security tools that are Linux-native.",
-  },
-
-  {
-    title: "What is the continuous loop feature?",
-    body: "After scanning a target, if no medium/high bugs are found, CyberMind automatically suggests the next best bug bounty target to try — so you keep hunting without manual research.",
+    question: "Is there a free trial for paid plans?",
+    answer: "The Free plan gives you full access to AI chat and cross-platform tools. Paid plans unlock the full offensive pipeline.",
   },
 ];
 
-type CheckoutState =
-  | { status: "idle" }
-  | { status: "loading"; plan: StripePlan }
-  | { status: "polling"; plan: StripePlan }
-  | { status: "success"; plan: StripePlan }
-  | { status: "error"; message: string };
-
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function PlansPage() {
-  const { user, profile, refreshProfile } = useAuth();
-  const [annual, setAnnual] = useState(false);
-  const [currency, setCurrency] = useState<"inr" | "usd">("inr");
-  const [checkout, setCheckout] = useState<CheckoutState>({ status: "idle" });
-  const [loginModal, setLoginModal] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<StripePlan | null>(null);
+  const { user, session } = useAuth();
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [currency] = useState<"inr" | "usd">(() => detectCurrency());
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const currentPlan = profile?.plan || "free";
+  const getPrice = useCallback((plan: typeof plans[number]) => {
+    if (billing === "annual") {
+      return currency === "inr" ? plan.annualINR : plan.annualUSD;
+    }
+    return currency === "inr" ? plan.monthlyINR : plan.monthlyUSD;
+  }, [billing, currency]);
+
+  const getOriginalPrice = useCallback((plan: typeof plans[number]) => {
+    if (billing === "monthly" && "originalMonthlyINR" in plan) {
+      return currency === "inr"
+        ? (plan as { originalMonthlyINR?: string; originalMonthlyUSD?: string }).originalMonthlyINR
+        : (plan as { originalMonthlyINR?: string; originalMonthlyUSD?: string }).originalMonthlyUSD;
+    }
+    return null;
+  }, [billing, currency]);
 
   const handleUpgrade = useCallback(async (planId: StripePlan) => {
-    if (!user || !profile) {
-      setPendingPlan(planId);
-      setLoginModal(true);
+    if (!user || !session) {
+      window.location.href = "/auth/login?redirect=/plans";
       return;
     }
-    if (currentPlan === planId) return;
-
-    setCheckout({ status: "loading", plan: planId });
-
+    setLoading(planId);
+    setError(null);
     try {
-      // Get API key for auth
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) {
-        setCheckout({ status: "error", message: "Session expired. Please log in again." });
-        return;
-      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("api_key, email")
+        .eq("id", user.id)
+        .single();
 
-      // Fetch user's API key for payment auth
-      const keysRes = await fetch(`${BACKEND_URL}/auth/keys`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const keysData = await keysRes.json();
-      const apiKey = keysData.keys?.[0]?.key_prefix
-        ? null // prefix only — use JWT auth instead
-        : keysData.keys?.[0]?.key;
+      if (!profile?.api_key) throw new Error("API key not found. Please log in again.");
 
-      // Start Stripe checkout — redirects to Stripe hosted page
-      // Stripe handles UPI, cards, netbanking automatically
       await startStripeCheckout({
-        plan:     planId,
-        billing:  annual ? "annual" : "monthly",
-        currency: currency,
-        apiKey:   apiKey || token, // fallback to JWT
-        email:    user.email ?? "",
+        plan: planId,
+        billing,
+        currency,
+        apiKey: profile.api_key,
+        email: profile.email || user.email || "",
       });
-
-      // Note: user will be redirected to Stripe, so code below won't run
-      // unless there's an error before redirect
-    } catch (err) {
-      setCheckout({
-        status: "error",
-        message: err instanceof Error ? err.message : "Checkout failed. Please try again.",
-      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+    } finally {
+      setLoading(null);
     }
-  }, [user, profile, currentPlan, annual, currency, refreshProfile]);
-
-  const isLoading = (planId: string) =>
-    (checkout.status === "loading" || checkout.status === "polling") && checkout.plan === planId;
+  }, [user, session, billing, currency]);
 
   return (
-    <div className="min-h-screen">
+    <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#e0e0e0" }}>
       <Navbar />
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 pb-20 pt-28 md:px-8">
 
-      
-  {/* Hero */}
-        <section className="linear-shell rounded-[36px] p-7 md:p-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="cm-label">Commercial plans</p>
-              <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
-                Start free, then scale into the full CyberMind CLI workflow.
-              </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--text-soft)]">
-                From free chat to unlimited recon pipelines — pick the tier that matches your workflow.
-              </p>
-            </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          
-  {/* Currency toggle */}
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
-              <button type="button" onClick={() => setCurrency("inr")}
-                className={cn("rounded-full px-3 py-1.5 text-xs transition-colors", currency === "inr" ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
-                🇮🇳 INR
-              </button>
-              <button type="button" onClick={() => setCurrency("usd")}
-                className={cn("rounded-full px-3 py-1.5 text-xs transition-colors", currency === "usd" ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
-                🌍 USD
-              </button>
-            </div>
-          
-  {/* Billing toggle */}
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1">
-              <button type="button" onClick={() => setAnnual(false)}
-                className={cn("rounded-full px-4 py-2 text-sm transition-colors", !annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
-                Monthly
-              </button>
-              <button type="button" onClick={() => setAnnual(true)}
-                className={cn("rounded-full px-4 py-2 text-sm transition-colors", annual ? "bg-white/10 text-white" : "text-[var(--text-soft)]")}>
-                Annual <span className="text-[#00FF88] text-xs ml-1">save 17%</span>
-              </button>
-            </div>
-          </div>
-          </div>
-        </section>
+      {/* ── Social Proof Bar ── */}
+      <div style={{
+        background: "rgba(0,212,255,0.04)",
+        borderBottom: "1px solid rgba(0,212,255,0.08)",
+        padding: "10px 0",
+        textAlign: "center",
+        fontSize: "13px",
+        color: "#8b949e",
+      }}>
+        <span style={{ marginRight: 24 }}>
+          <Users size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
+          Trusted by <strong style={{ color: "#00d4ff" }}>12,000+</strong> security researchers
+        </span>
+        <span style={{ marginRight: 24 }}>
+          <Shield size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
+          <strong style={{ color: "#00d4ff" }}>45</strong> OSINT tools · <strong style={{ color: "#00d4ff" }}>30</strong> RE tools
+        </span>
+        <span>
+          <Lock size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
+          Payments secured by <strong style={{ color: "#00d4ff" }}>Stripe</strong>
+        </span>
+      </div>
 
-      
-  {/* Status banners */}
-      
-  {checkout.status === "polling" && (
-          <div className="flex items-center gap-3 rounded-2xl border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/5 px-5 py-4">
-            <Loader2 size={18} className="animate-spin text-[var(--accent-cyan)]" />
-            <p className="text-sm text-white">Payment received — confirming your plan upgrade...</p>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 20px 40px" }}>
+
+        {/* ── Header ── */}
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{
+            display: "inline-block",
+            background: "rgba(0,212,255,0.08)",
+            border: "1px solid rgba(0,212,255,0.2)",
+            borderRadius: 20,
+            padding: "4px 16px",
+            fontSize: 12,
+            color: "#00d4ff",
+            marginBottom: 16,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}>
+            Pricing
+          </div>
+          <h1 style={{
+            fontSize: "clamp(32px, 5vw, 52px)",
+            fontWeight: 700,
+            margin: "0 0 16px",
+            background: "linear-gradient(135deg, #ffffff 0%, #00d4ff 50%, #7c3aed 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            Choose your arsenal
+          </h1>
+          <p style={{ color: "#8b949e", fontSize: 17, maxWidth: 520, margin: "0 auto 32px" }}>
+            From free AI chat to full autonomous offensive security. No lock-in, cancel anytime.
+          </p>
+
+          {/* ── Billing Toggle ── */}
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 40,
+            padding: "6px 8px",
+          }}>
+            <button
+              onClick={() => setBilling("monthly")}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 32,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 500,
+                transition: "all 0.2s",
+                background: billing === "monthly" ? "rgba(255,255,255,0.1)" : "transparent",
+                color: billing === "monthly" ? "#fff" : "#8b949e",
+              }}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling("annual")}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 32,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 500,
+                transition: "all 0.2s",
+                background: billing === "annual" ? "rgba(255,255,255,0.1)" : "transparent",
+                color: billing === "annual" ? "#fff" : "#8b949e",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              Annual
+              <span style={{
+                background: "linear-gradient(135deg, #00d4ff, #7c3aed)",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: 10,
+                letterSpacing: "0.04em",
+              }}>
+                Save 17%
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Error / Success ── */}
+        {error && (
+          <div style={{
+            background: "rgba(255,68,68,0.08)",
+            border: "1px solid rgba(255,68,68,0.2)",
+            borderRadius: 10,
+            padding: "12px 16px",
+            marginBottom: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            color: "#ff6b6b",
+            fontSize: 14,
+          }}>
+            <AlertCircle size={16} />
+            {error}
           </div>
         )}
-      
-  {checkout.status === "success" && (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#00FF88]/30 bg-[#00FF88]/5 px-5 py-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 size={18} className="text-[#00FF88]" />
-              <p className="text-sm text-white">
-                Plan upgraded to <span className="font-semibold capitalize">{checkout.plan}</span>. Your CLI will use the new limits on the next request.
-              </p>
-            </div>
-            <button onClick={() => setCheckout({ status: "idle" })} className="text-xs text-[var(--text-muted)] hover:text-white">dismiss</button>
-          </div>
-        )}
-      
-  {checkout.status === "error" && (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#FF4444]/30 bg-[#FF4444]/5 px-5 py-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle size={18} className="text-[#FF4444]" />
-              <p className="text-sm text-white">{checkout.message}</p>
-            </div>
-            <button onClick={() => setCheckout({ status: "idle" })} className="text-xs text-[var(--text-muted)] hover:text-white">dismiss</button>
+        {success && (
+          <div style={{
+            background: "rgba(0,255,136,0.08)",
+            border: "1px solid rgba(0,255,136,0.2)",
+            borderRadius: 10,
+            padding: "12px 16px",
+            marginBottom: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            color: "#00ff88",
+            fontSize: 14,
+          }}>
+            <CheckCircle2 size={16} />
+            {success}
           </div>
         )}
 
-      
-  {/* Plan cards — 4 columns */}
-        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        
-  {plans.map((plan) => {
-            const highlighted = plan.id === "pro";
-            const isStarter = plan.id === "starter";
-            const isCurrent = currentPlan === plan.id;
-            const loading = isLoading(plan.id);
-            const price = currency === "inr"
-              ? (annual ? plan.annualINR : plan.monthlyINR)
-              : (annual ? plan.annualUSD : plan.monthlyUSD);
-            const period = annual ? "/ year" : "/ month";
-            const originalPrice = currency === "inr" && !annual
-              ? ("originalMonthlyINR" in plan ? plan.originalMonthlyINR : null)
-              : currency === "usd" && !annual
-              ? ("originalMonthlyUSD" in plan ? plan.originalMonthlyUSD : null)
-              : null;
+        {/* ── Plan Cards ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 20,
+          marginBottom: 80,
+        }}>
+          {plans.map((plan) => {
+            const price = getPrice(plan);
+            const originalPrice = getOriginalPrice(plan);
+            const isLoading = loading === plan.id;
 
             return (
-              <div key={plan.id}
-                className={cn(
-                  "cm-spotlight-card relative overflow-hidden rounded-[28px] border p-5 flex flex-col",
-                  highlighted
-                    ? "border-[var(--accent-cyan)]/30 bg-[radial-gradient(circle_at_top,rgba(0,255,255,0.12),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))]"
-                    : isStarter
-                    ? "border-[#FFD700]/20 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.08),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]"
-                    : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))]",
-                  isCurrent && "ring-1 ring-[var(--accent-cyan)]/20"
-                )}>
-              
-  {highlighted && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(0,255,255,0.85),transparent)]" />}
-              
-  {isStarter && <div className="absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,215,0,0.6),transparent)]" />}
+              <div
+                key={plan.id}
+                style={{
+                  position: "relative",
+                  background: plan.popular
+                    ? `linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(124,58,237,0.06) 100%)`
+                    : `rgba(255,255,255,0.02)`,
+                  border: plan.popular
+                    ? "1px solid rgba(0,212,255,0.3)"
+                    : `1px solid ${plan.borderColor}`,
+                  borderRadius: 16,
+                  padding: "28px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxShadow: plan.popular
+                    ? "0 0 40px rgba(0,212,255,0.08), 0 0 80px rgba(124,58,237,0.04)"
+                    : `0 0 30px ${plan.glowColor}`,
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                }}
+              >
+                {/* Popular ring */}
+                {plan.popular && (
+                  <div style={{
+                    position: "absolute",
+                    inset: -1,
+                    borderRadius: 17,
+                    background: "linear-gradient(135deg, #00d4ff, #7c3aed)",
+                    zIndex: -1,
+                    opacity: 0.4,
+                  }} />
+                )}
 
-              
-  {/* Badge */}
-                <div className="flex items-start justify-between gap-2 mb-4">
-                  <p className="cm-label">{plan.name}</p>
-                  <div className="flex flex-col items-end gap-1">
-                  
-  {plan.badge && (
-                      <span className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-                        isStarter ? "bg-[#FFD700]/15 text-[#FFD700]" : "bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)]"
-                      )}>
-                      
-  {plan.badge}
-                      </span>
-                    )}
-                  
-  {isCurrent && <StatusBadge label="Current" tone="success" />}
-                  </div>
-                </div>
-
-              
-  {/* Price */}
-                <div className="mb-1">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-3xl font-semibold text-white">{price}</h2>
-                  
-  {originalPrice && !annual && (
-                      <span className="text-sm text-[var(--text-muted)] line-through">{originalPrice}</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[var(--text-soft)]">{period}</p>
-                </div>
-
-              
-  {/* Offer tag */}
-              
-  {plan.offer && !annual && (
-                  <div className="mb-3 flex items-center gap-1.5 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 px-3 py-1.5">
-                    <Zap size={11} className="text-[#FFD700]" />
-                    <p className="text-[10px] text-[#FFD700] font-medium">{plan.offer}</p>
+                {/* Badge */}
+                {plan.badge && (
+                  <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: plan.popular
+                      ? "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15))"
+                      : `rgba(255,215,0,0.1)`,
+                    border: `1px solid ${plan.popular ? "rgba(0,212,255,0.3)" : "rgba(255,215,0,0.3)"}`,
+                    borderRadius: 20,
+                    padding: "3px 12px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: plan.popular ? "#00d4ff" : "#FFD700",
+                    marginBottom: 16,
+                    width: "fit-content",
+                  }}>
+                    {plan.popular && <Star size={11} fill="currentColor" />}
+                    {plan.badge}
                   </div>
                 )}
 
-                <p className="text-xs leading-5 text-[var(--text-soft)] mb-4">{plan.description}</p>
+                {/* Plan name */}
+                <h2 style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: plan.accentColor,
+                  margin: "0 0 6px",
+                }}>
+                  {plan.name}
+                </h2>
 
-                <ul className="space-y-2 text-xs text-[var(--text-main)] flex-1">
-                
-  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2">
-                      <Check size={12} className="mt-0.5 flex-shrink-0 text-[#00FF88]" />
-                      <span>{feature}</span>
+                {/* Price */}
+                <div style={{ marginBottom: 8, display: "flex", alignItems: "baseline", gap: 6 }}>
+                  {originalPrice && (
+                    <span style={{ fontSize: 16, color: "#555", textDecoration: "line-through" }}>
+                      {originalPrice}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 48, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
+                    {price}
+                  </span>
+                  {plan.id !== "free" && (
+                    <span style={{ fontSize: 14, color: "#8b949e" }}>
+                      /{billing === "annual" ? "yr" : "mo"}
+                    </span>
+                  )}
+                </div>
+
+                <p style={{ fontSize: 13, color: "#8b949e", margin: "0 0 20px", lineHeight: 1.5 }}>
+                  {plan.description}
+                </p>
+
+                {/* CTA Button */}
+                {plan.ctaHref ? (
+                  <Link
+                    href={plan.ctaHref}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "12px 20px",
+                      borderRadius: 10,
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      marginBottom: 20,
+                      transition: "background 0.2s",
+                    }}
+                  >
+                    {plan.cta}
+                    <ArrowRight size={14} />
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleUpgrade(plan.id as StripePlan)}
+                    disabled={isLoading}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "12px 20px",
+                      borderRadius: 10,
+                      border: "none",
+                      cursor: isLoading ? "not-allowed" : "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      marginBottom: 20,
+                      transition: "opacity 0.2s, transform 0.1s",
+                      opacity: isLoading ? 0.7 : 1,
+                      background: plan.popular
+                        ? "linear-gradient(135deg, #00d4ff, #7c3aed)"
+                        : plan.id === "elite"
+                          ? "linear-gradient(135deg, #7c3aed, #a855f7)"
+                          : plan.id === "starter"
+                            ? "rgba(255,215,0,0.12)"
+                            : "rgba(255,255,255,0.06)",
+                      color: "#fff",
+                      boxShadow: plan.popular ? "0 4px 20px rgba(0,212,255,0.25)" : "none",
+                    }}
+                  >
+                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                    {plan.cta}
+                    {!isLoading && <ArrowRight size={14} />}
+                  </button>
+                )}
+
+                <p style={{ fontSize: 11, color: "#555", textAlign: "center", margin: "0 0 20px" }}>
+                  {plan.note}
+                </p>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 20 }} />
+
+                {/* Features */}
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1 }}>
+                  {plan.features.map((f, i) => (
+                    <li key={i} style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      marginBottom: 10,
+                      fontSize: 13,
+                      color: f.included ? "#c9d1d9" : "#444",
+                    }}>
+                      {f.included ? (
+                        <Check size={14} style={{ color: plan.accentColor, flexShrink: 0, marginTop: 1 }} />
+                      ) : (
+                        <X size={14} style={{ color: "#333", flexShrink: 0, marginTop: 1 }} />
+                      )}
+                      {f.text}
                     </li>
                   ))}
                 </ul>
-
-                <div className="mt-5 grid gap-2">
-                
-  {plan.id === "free" ? (
-                    <Link href="/auth/register"
-                      className="cm-button-secondary w-full text-center text-sm">
-                      Get started free
-                    </Link>
-                  ) : isCurrent ? (
-                    <div className="rounded-2xl border border-white/10 px-4 py-2.5 text-center text-xs text-[var(--text-muted)]">
-                      Current plan
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleUpgrade(plan.id as StripePlan)}
-                        disabled={loading || checkout.status === "polling"}
-                        className={cn(
-                          "flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition-all disabled:opacity-60",
-                          highlighted
-                            ? "border border-[var(--accent-cyan)]/30 bg-[var(--accent-cyan)]/10 text-white hover:bg-[var(--accent-cyan)]/20"
-                            : isStarter
-                            ? "border border-[#FFD700]/30 bg-[#FFD700]/10 text-white hover:bg-[#FFD700]/20"
-                            : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                        )}>
-                      
-  {loading ? (
-                          <><Loader2 size={13} className="animate-spin" /> Redirecting...</>
-                        ) : currency === "inr" ? (
-                          <>Pay with UPI / Card <span className="text-[10px] opacity-50">→ Stripe</span></>
-                        ) : (
-                          <>Pay with Card <span className="text-[10px] opacity-50">→ Stripe</span></>
-                        )}
-                      </button>
-                    
-  {currency === "inr" && (
-                        <p className="text-center text-[10px] text-[var(--text-muted)]">
-                          UPI · Cards · Netbanking · Wallets
-                        </p>
-                      )}
-                    </>
-                  )}
-                  <p className="text-center text-[10px] text-[var(--text-muted)]">{plan.note}</p>
-                </div>
               </div>
             );
           })}
-        </section>
+        </div>
 
-      
-  {/* Comparison table */}
-        <section className="cm-card p-6 md:p-8">
-          <p className="cm-label">Compare tiers</p>
-          <h2 className="mt-3 text-3xl font-semibold text-white">Feature comparison</h2>
-          <div className="mt-6 overflow-x-auto">
-            <div className="min-w-[860px] overflow-hidden rounded-[24px] border border-white/8">
-              <div className="grid grid-cols-5 bg-white/[0.04] px-5 py-4 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
-                <span>Feature</span><span>Free</span><span>Starter</span><span>Pro</span><span>Elite</span>
-              </div>
-            
-  {comparisonRows.map((row) => (
-                <div key={row[0]} className="grid grid-cols-5 border-t border-white/8 px-5 py-3.5 text-sm text-[var(--text-soft)]">
-                
-  {row.map((cell, i) => (
-                    <span key={`${row[0]}-${i}`} className={i === 0 ? "font-medium text-white" : undefined}>
-                    
-  {cell}
-                    </span>
+        {/* ── Comparison Table ── */}
+        <div style={{ marginBottom: 80 }}>
+          <h2 style={{
+            textAlign: "center",
+            fontSize: 28,
+            fontWeight: 700,
+            marginBottom: 32,
+            color: "#fff",
+          }}>
+            Full comparison
+          </h2>
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16,
+            overflow: "hidden",
+          }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <th style={{ padding: "14px 20px", textAlign: "left", color: "#8b949e", fontWeight: 500, width: "35%" }}>Feature</th>
+                  {["Free", "Starter", "Pro", "Elite"].map((name, i) => (
+                    <th key={name} style={{
+                      padding: "14px 16px",
+                      textAlign: "center",
+                      color: i === 2 ? "#00d4ff" : "#c9d1d9",
+                      fontWeight: i === 2 ? 700 : 500,
+                    }}>
+                      {name}
+                    </th>
                   ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-      
-  {/* FAQ */}
-        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="cm-card p-6 md:p-8">
-            <p className="cm-label">Get started</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white">Start free, upgrade when ready.</h2>
-            <p className="mt-4 text-sm leading-7 text-[var(--text-soft)]">
-              Sign up now to generate your first API key and move into the dashboard immediately.
-            </p>
-            <Link href="/auth/register" className="cm-button-primary mt-6 inline-block">
-              Start your free account
-            </Link>
-          </div>
-          <div className="grid gap-4">
-            <div>
-              <p className="cm-label">FAQ</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white">Common plan questions</h2>
-            </div>
-            <Accordion items={faqs} />
-          </div>
-        </section>
-
-        <section className="rounded-[24px] border border-white/8 bg-white/[0.02] px-6 py-5">
-          <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-soft)]">
-            <span className="text-[#00FF88]">🔒 Secure payments</span>
-            <span>Powered by Stripe · UPI + Cards + Netbanking · No card data stored by CyberMind</span>
-            <span className="flex items-center gap-1"><Globe size={12} /> Available worldwide</span>
-            <Link href="/privacy" className="text-[var(--accent-cyan)] hover:underline ml-auto">Privacy Policy</Link>
-            <Link href="/terms" className="text-[var(--accent-cyan)] hover:underline">Terms</Link>
-          </div>
-        </section>
-      </main>
-      <Footer />
-
-      <Modal open={loginModal} onClose={() => setLoginModal(false)} title="Sign in to upgrade">
-        <div className="grid gap-4">
-          <p className="text-sm leading-7 text-[var(--text-soft)]">
-            Sign in to upgrade to the <span className="capitalize text-white">{pendingPlan}</span> plan.
-          </p>
-          <div className="grid gap-3">
-            <Link href={`/auth/login?redirect=/plans`} className="cm-button-primary w-full text-center" onClick={() => setLoginModal(false)}>
-              Sign in
-            </Link>
-            <Link href={`/auth/register?plan=${pendingPlan}`} className="cm-button-secondary w-full text-center" onClick={() => setLoginModal(false)}>
-              Create account
-            </Link>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row, i) => (
+                  <tr key={i} style={{
+                    borderTop: "1px solid rgba(255,255,255,0.04)",
+                    background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)",
+                  }}>
+                    <td style={{ padding: "12px 20px", color: "#8b949e", display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ color: "#555" }}>{row.icon}</span>
+                      {row.feature}
+                    </td>
+                    {[row.free, row.starter, row.pro, row.elite].map((val, j) => (
+                      <td key={j} style={{ padding: "12px 16px", textAlign: "center" }}>
+                        {typeof val === "boolean" ? (
+                          val
+                            ? <Check size={15} style={{ color: j === 2 ? "#00d4ff" : "#00ff88", margin: "0 auto" }} />
+                            : <X size={15} style={{ color: "#333", margin: "0 auto" }} />
+                        ) : (
+                          <span style={{ color: j === 2 ? "#00d4ff" : "#c9d1d9", fontWeight: j === 2 ? 600 : 400 }}>
+                            {val}
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </Modal>
+
+        {/* ── FAQ ── */}
+        <div style={{ maxWidth: 720, margin: "0 auto 80px" }}>
+          <h2 style={{
+            textAlign: "center",
+            fontSize: 28,
+            fontWeight: 700,
+            marginBottom: 32,
+            color: "#fff",
+          }}>
+            FAQ
+          </h2>
+          <Accordion items={faqs.map(f => ({ title: f.question, body: f.answer }))} />
+        </div>
+
+      </div>
+
+      <Footer />
     </div>
   );
 }
