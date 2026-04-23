@@ -1,7 +1,8 @@
 ﻿#!/bin/bash
-# CyberMind CLI — Linux/Kali Installer v2.6.2
+# CyberMind CLI — Linux/Kali Installer v4.3.0
 # Downloads pre-built binary — NO Go required.
-# Full pipeline: recon + hunt + Abhimanyu + Omega + AI chat
+# Full pipeline: recon + hunt + Abhimanyu + OMEGA smart pipeline + AI chat
+# New in v4.3.0: OMEGA target-type detection, isolated venv, brain self-learning
 #
 # Usage:
 #   curl -sL https://cybermindcli1.vercel.app/install.sh | bash
@@ -25,8 +26,8 @@ echo -e "${CYAN}██║      ╚████╔╝ ██████╔╝█
 echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
 echo -e "${CYAN} ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝${NC}"
 echo ""
-echo -e "${GREEN}  ⚡ CyberMind CLI v2.6.2 — Installer${NC}"
-echo -e "${DIM}  No Go required. Full pipeline: recon + hunt + Abhimanyu + Omega + AI chat${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v4.3.0 — Installer${NC}"
+echo -e "${DIM}  No Go required. OMEGA smart pipeline + isolated venv + brain self-learning${NC}"
 echo ""
 
 # ── Detect architecture ───────────────────────────────────────────────────────
@@ -98,14 +99,21 @@ done
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡ CyberMind CLI v2.6.2 installed!${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v4.3.0 installed!${NC}"
 echo ""
 echo -e "  ${CYAN}Verify:${NC}      cybermind --version"
 echo -e "  ${CYAN}AI Chat:${NC}     cybermind"
-echo -e "  ${CYAN}Doctor:${NC}      sudo cybermind /doctor   ${DIM}← installs ALL tools${NC}"
+echo -e "  ${CYAN}Doctor:${NC}      sudo cybermind /doctor   ${DIM}← installs ALL tools (isolated venv)${NC}"
 echo -e "  ${CYAN}Recon:${NC}       sudo cybermind /recon example.com"
 echo -e "  ${CYAN}Hunt:${NC}        sudo cybermind /hunt example.com"
-echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan --auto-target --skill intermediate"
+echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan example.com  ${DIM}← auto-detects target type${NC}"
+echo -e "  ${CYAN}OMEGA Auto:${NC}  sudo cybermind /plan --auto-target --skill intermediate"
+echo ""
+echo -e "  ${DIM}New in v4.3.0:${NC}"
+echo -e "  ${DIM}  • OMEGA smart pipeline: web/IP/email/phone/person/binary/APK/hash${NC}"
+echo -e "  ${DIM}  • Isolated Python venv: no more pip errors on Kali 2024+${NC}"
+echo -e "  ${DIM}  • Brain self-learning: confidence scores update after every scan${NC}"
+echo -e "  ${DIM}  • 12 new exploit tools: interactsh, ghauri, pacu, roadrecon...${NC}"
 echo ""
 if [ -n "$API_KEY" ]; then
   echo -e "  ${GREEN}✓ API key saved — run: cybermind whoami${NC}"
@@ -115,7 +123,7 @@ echo ""
 
 # ── Verify install ────────────────────────────────────────────────────────────
 if command -v cybermind &>/dev/null; then
-  VER=$(cybermind --version 2>/dev/null || echo "v2.5.2")
+  VER=$(cybermind --version 2>/dev/null || echo "v4.3.0")
   echo -e "${GREEN}  ✓ ${VER} — ready!${NC}"
 else
   echo -e "${YELLOW}  ⚠  Run: hash -r && cybermind --version${NC}"

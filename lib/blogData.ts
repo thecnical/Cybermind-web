@@ -1497,7 +1497,323 @@ export const blogPosts: BlogArticle[] = [
     ],
     cta: { label: "Try CyberMind XSS detection", href: "/features" },
     relatedSlugs: ["owasp-top-10-2026-testing-guide", "api-security-testing-2026", "ssrf-2026-cloud-metadata-exploitation"],
-  },];
+  },
+
+  // ── NEW BLOG POSTS — v4.3.0 release + viral topics ──────────────────────
+
+  {
+    slug: "cybermind-v430-omega-smart-pipeline",
+    title: "CyberMind v4.3.0: OMEGA Smart Pipeline, Isolated Venv, and Brain Self-Learning",
+    description:
+      "A deep breakdown of the v4.3.0 release — OMEGA now auto-detects target type and routes the right pipeline, Python tools install in isolated venv, and the brain learns from every scan.",
+    excerpt:
+      "v4.3.0 is the biggest CLI update since launch. OMEGA now thinks before it runs — detecting whether you gave it a domain, IP, email, phone, binary, or APK and routing the right pipeline automatically.",
+    publishedAt: "2026-04-24",
+    updatedAt: "2026-04-24",
+    readTime: "10 min read",
+    category: "Release Notes",
+    categoryColor: "#00ffff",
+    image: "/blog/release-wave.svg",
+    imageAlt: "OMEGA smart pipeline routing diagram showing target type detection.",
+    tags: ["cybermind v4.3.0", "omega pipeline", "bug bounty automation", "python venv", "brain learning"],
+    basedOn: ["/what-is-new", "/changelog"],
+    takeaways: [
+      "OMEGA target-type detection eliminates manual mode selection.",
+      "Isolated venv fixes the #1 install complaint on modern Kali/Ubuntu.",
+      "Brain self-learning makes every subsequent scan smarter than the last.",
+    ],
+    sections: [
+      {
+        title: "The problem v4.3.0 solves",
+        paragraphs: [
+          "Before v4.3.0, users had to know which mode to run. Got an email? Run /breach then /osint-deep. Got a binary? Run /reveng. Got a domain? Run /recon then /hunt then /abhimanyu. That mental overhead was a real barrier.",
+          "v4.3.0 removes it. OMEGA now detects what you gave it and routes the right pipeline automatically. You just run: cybermind /plan <anything>.",
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "One command, any target type",
+            content:
+              "sudo cybermind /plan target.com          # web → full bug bounty pipeline\n" +
+              "sudo cybermind /plan 8.8.8.8             # IP → port scan + CVE + exploit\n" +
+              "sudo cybermind /plan user@gmail.com      # email → breach + OSINT\n" +
+              "sudo cybermind /plan +91XXXXXXXXXX       # phone → WhatsApp OSINT + locate\n" +
+              "sudo cybermind /plan johndoe             # person → 3000+ site username hunt\n" +
+              "sudo cybermind /plan /path/to/binary     # binary → reverse engineering\n" +
+              "sudo cybermind /plan app.apk             # APK → mobile security analysis",
+          },
+        ],
+      },
+      {
+        title: "Isolated Python venv — the fix everyone needed",
+        paragraphs: [
+          "The most common complaint in the last 6 months: 'pip install fails with externally-managed-environment'. This happens on Kali 2024+, Ubuntu 23+, and Debian 12+ because they block system-wide pip installs by default.",
+          "v4.3.0 fixes this with a 3-layer isolation system. Every Python tool now gets its own venv. No system pollution, no version conflicts, no broken installs.",
+        ],
+        bullets: [
+          "Layer 1: pipx with PIPX_BIN_DIR=/usr/local/bin — binary auto-lands in PATH",
+          "Layer 2: /opt/<toolname>-venv — dedicated venv per tool",
+          "Layer 3: pip3 --break-system-packages — last resort only",
+          "Git tools: .venv inside installDir, wrapper uses venv python",
+        ],
+      },
+      {
+        title: "Brain self-learning — the system gets smarter",
+        paragraphs: [
+          "Every tool run now feeds the brain. If nuclei finds 5 vulns on a PHP target, its confidence score goes up. Next time you scan a PHP target, nuclei runs first. If a tool consistently fails on a target, it gets deprioritized.",
+          "This is real adaptive intelligence — not marketing. The self-model tracks success rates, avg bugs per scan, best vuln types, and best tech targets across all your scans.",
+        ],
+        bullets: [
+          "RecordToolRun() after every recon/hunt tool — success/failure/duration",
+          "RecordScanComplete() after full session — bug types, tech stack saved",
+          "GetAdaptiveToolOrder() — future scans run highest-confidence tools first",
+          "SelfReflect() — generates insights and recommendations",
+        ],
+      },
+      {
+        title: "12 new exploit tools",
+        paragraphs: [
+          "The Abhimanyu arsenal grew by 12 tools, all research-backed from the 2025-2026 offensive security landscape. The most important additions: interactsh-client for blind vulnerability detection, ghauri as a modern sqlmap alternative, and cloud_enum/pacu/roadrecon for cloud exploitation.",
+        ],
+        bullets: [
+          "interactsh-client — blind SSRF/XSS/RCE/Log4Shell detection via OOB callbacks",
+          "ghauri — modern SQLi: WAF bypass, JSON injection, GraphQL SQLi",
+          "cloud_enum + pacu + roadrecon — AWS/Azure/GCP exploitation chain",
+          "puredns — 10M+ subdomains/hour with wildcard filtering",
+          "jwt_tool — none alg, RS256→HS256, key injection attacks",
+          "trufflehog — leaked secrets in repos, S3, filesystem",
+        ],
+      },
+    ],
+    cta: { label: "Update CLI to v4.3.0", href: "/install" },
+    relatedSlugs: ["omega-plan-mode-deep-dive", "bug-bounty-automation-workflow-2026", "ai-autonomous-hacking-2026"],
+  },
+
+  {
+    slug: "how-to-hack-bug-bounty-with-ai-2026",
+    title: "How to Hack Bug Bounty Programs with AI in 2026: A Real Operator Guide",
+    description:
+      "A practical, no-hype guide to using AI-assisted tools for bug bounty hunting in 2026. What actually works, what the top hunters use, and how CyberMind CLI fits into a real workflow.",
+    excerpt:
+      "The hunters making $50k-$200k/year on bug bounty in 2026 are not using AI to replace their judgment. They are using it to compress the boring parts — recon, triage, report writing — so they can spend more time on the interesting parts.",
+    publishedAt: "2026-04-24",
+    updatedAt: "2026-04-24",
+    readTime: "14 min read",
+    category: "Bug Bounty",
+    categoryColor: "#34d399",
+    image: "/blog/operator-surface.svg",
+    imageAlt: "Bug bounty hunter workflow with AI-assisted recon and triage stages.",
+    tags: ["bug bounty 2026", "ai hacking", "recon automation", "cybermind cli", "hackerone", "bugcrowd"],
+    basedOn: ["Workflow analysis", "/features", "/plans"],
+    takeaways: [
+      "AI compresses recon and triage — it does not replace verification and proof quality.",
+      "The best hunters use automation for breadth and manual skill for depth.",
+      "A good tool stack in 2026 includes: subfinder, nuclei, dalfox, sqlmap, and an AI planner.",
+    ],
+    sections: [
+      {
+        title: "What the top bug bounty hunters actually do in 2026",
+        paragraphs: [
+          "The hunters consistently earning $50k-$200k/year on HackerOne and Bugcrowd share one trait: they have a repeatable, documented workflow. They do not rely on luck or random scanning. They have a system.",
+          "That system in 2026 looks like: scope intake → passive recon → active surface mapping → targeted vuln hunting → manual verification → clean report. AI tools accelerate every phase except the last two.",
+        ],
+        bullets: [
+          "Scope intake: normalize all domains, classify target families, check for wildcards",
+          "Passive recon: subfinder, amass, gau, waybackurls, theHarvester",
+          "Active mapping: httpx, nuclei, katana, ffuf, paramspider",
+          "Targeted hunting: dalfox (XSS), sqlmap/ghauri (SQLi), ssrfmap (SSRF), tplmap (SSTI)",
+          "Manual verification: reproduce with clean request/response, confirm impact",
+          "Report: CVSS score, reproduction steps, proof bundle, remediation",
+        ],
+      },
+      {
+        title: "Where AI actually helps (and where it does not)",
+        paragraphs: [
+          "AI is genuinely useful for: deciding which tools to run next based on what was found, clustering noisy scanner output into actionable findings, drafting report sections from raw evidence, and suggesting attack vectors based on detected tech stack.",
+          "AI is not useful for: replacing manual verification, judging business logic impact, writing a convincing proof of concept for a complex chain, or deciding whether a finding is actually in scope.",
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "Real AI-assisted bug bounty workflow with CyberMind",
+            content:
+              "# Step 1: OMEGA builds target-specific plan\nsudo cybermind /plan target.com\n\n" +
+              "# Step 2: Full recon — brain learns from every tool\nsudo cybermind /recon target.com\n\n" +
+              "# Step 3: Hunt for vulns — XSS, SQLi, SSRF, params\nsudo cybermind /hunt target.com\n\n" +
+              "# Step 4: Business logic — IDOR, race conditions, price manipulation\ncybermind /bizlogic target.com\n\n" +
+              "# Step 5: Exploit confirmed findings\nsudo cybermind /abhimanyu target.com\n\n" +
+              "# Step 6: Generate professional report\ncybermind report",
+          },
+        ],
+      },
+      {
+        title: "The tools that matter most in 2026",
+        paragraphs: [
+          "The tool landscape has stabilized. The same core tools dominate: subfinder for subdomain discovery, nuclei for vulnerability scanning, dalfox for XSS, sqlmap/ghauri for SQLi, and ffuf for fuzzing. What has changed is how they are orchestrated.",
+          "The best setups in 2026 use an AI planner (like OMEGA) to decide which tools to run, in what order, with what flags, based on what was found in previous phases. That is the real productivity gain.",
+        ],
+        bullets: [
+          "subfinder + amass + puredns — subdomain discovery (10M+ subdomains/hour)",
+          "nuclei — vulnerability scanning (10,000+ templates, CVEs, misconfigs)",
+          "dalfox + kxss + bxss — XSS hunting with WAF bypass",
+          "sqlmap + ghauri — SQLi (ghauri better for modern apps with WAF)",
+          "ffuf — IDOR fuzzing, auth bypass, API endpoint discovery",
+          "interactsh-client — blind SSRF/XSS/RCE detection via OOB callbacks",
+          "trufflehog — leaked secrets in JS files, repos, S3 buckets",
+        ],
+      },
+      {
+        title: "How to get your first $1000 bug bounty in 2026",
+        paragraphs: [
+          "The fastest path to your first bounty is not the most complex target. It is a well-scoped program with a large attack surface and a history of paying for medium-severity findings.",
+          "Start with: HackerOne public programs with 'web application' scope, run /recon + /hunt on their main domain, look for nuclei findings in the 'medium' severity range, verify manually, and write a clean report. That combination has the highest probability of a first payout.",
+        ],
+        bullets: [
+          "Pick programs with large scope (wildcards like *.company.com)",
+          "Focus on medium severity first — easier to find, still pays $200-$1000",
+          "Run /recon → /hunt → manual verification → clean report",
+          "Use /guide to get AI-generated manual testing checklist for the target",
+          "Submit with: description, reproduction steps, impact, CVSS score, fix suggestion",
+        ],
+        note: "The #1 reason first bounties get rejected: insufficient proof. Always include the full request/response, not just a screenshot.",
+      },
+    ],
+    faq: [
+      {
+        question: "Can AI find bugs automatically without human involvement?",
+        answer:
+          "For known vulnerability classes (CVEs, common misconfigs, XSS in obvious parameters), yes. For business logic, auth chains, and high-impact findings, no — human judgment is still required for verification and impact assessment.",
+      },
+      {
+        question: "What is the best bug bounty platform in 2026?",
+        answer:
+          "HackerOne for volume and payout history. Bugcrowd for enterprise programs. Intigriti for European targets. Immunefi for Web3/crypto (highest payouts). Start with HackerOne public programs.",
+      },
+    ],
+    cta: { label: "Start hunting with CyberMind", href: "/install" },
+    relatedSlugs: ["cybermind-v430-omega-smart-pipeline", "omega-plan-mode-deep-dive", "bug-bounty-automation-workflow-2026"],
+  },
+
+  {
+    slug: "pentestgpt-vs-cybermind-2026",
+    title: "PentestGPT vs CyberMind CLI in 2026: A Real Comparison",
+    description:
+      "An honest, research-backed comparison of PentestGPT and CyberMind CLI — what each does well, where each falls short, and which one is better for different use cases in 2026.",
+    excerpt:
+      "PentestGPT is a chat-first AI that guides you through pentesting. CyberMind CLI is a command-first tool that actually runs the tools. They solve different problems — here is which one you should use.",
+    publishedAt: "2026-04-24",
+    updatedAt: "2026-04-24",
+    readTime: "11 min read",
+    category: "AI Security",
+    categoryColor: "#a78bfa",
+    image: "/blog/omega-planner.svg",
+    imageAlt: "Side-by-side comparison of PentestGPT and CyberMind CLI workflows.",
+    tags: ["pentestgpt", "cybermind cli", "ai pentesting", "comparison", "bug bounty tools 2026"],
+    basedOn: ["Tool research", "https://github.com/GreyDGL/PentestGPT", "/features"],
+    takeaways: [
+      "PentestGPT guides you through pentesting via chat — CyberMind actually runs the tools.",
+      "CyberMind has a larger tool arsenal and real automation — PentestGPT has better reasoning for novel scenarios.",
+      "For bug bounty automation, CyberMind wins. For learning and novel attack research, PentestGPT is useful.",
+    ],
+    sections: [
+      {
+        title: "What PentestGPT actually is",
+        paragraphs: [
+          "PentestGPT (github.com/GreyDGL/PentestGPT) is an LLM-powered pentesting assistant that uses GPT-4 to guide security professionals through penetration testing. It maintains a session tree of the pentest, suggests next steps, and helps interpret tool output.",
+          "It was released in 2023 and has been updated through 2025-2026. The core design is chat-first: you describe what you found, it suggests what to do next. It does not run tools itself — it tells you what to run.",
+        ],
+        bullets: [
+          "Chat-first: you describe findings, it suggests next steps",
+          "Session tree: maintains context across the pentest",
+          "GPT-4 powered: strong reasoning for novel scenarios",
+          "Does NOT run tools: guidance only, no automation",
+          "Open source: github.com/GreyDGL/PentestGPT",
+        ],
+      },
+      {
+        title: "What CyberMind CLI actually is",
+        paragraphs: [
+          "CyberMind CLI is a command-line tool that actually runs security tools. It has 120+ tools integrated across recon, hunt, exploit, OSINT, reverse engineering, and geolocation phases. OMEGA plans the attack, the tools execute it, and the brain learns from the results.",
+          "The key difference: CyberMind runs the tools for you. PentestGPT tells you which tools to run.",
+        ],
+        bullets: [
+          "Command-first: runs tools automatically, not just suggests them",
+          "120+ tools: subfinder, nuclei, dalfox, sqlmap, hydra, linpeas, bloodhound...",
+          "OMEGA planning: auto-detects target type, builds phase-by-phase plan",
+          "Brain learning: confidence scores update after every scan",
+          "Full pipeline: recon → hunt → exploit → report in one command",
+        ],
+      },
+      {
+        title: "Head-to-head comparison",
+        paragraphs: [
+          "The comparison is not really fair because they solve different problems. PentestGPT is a reasoning assistant. CyberMind is an execution engine with AI planning. But since people ask, here is the honest breakdown.",
+        ],
+        bullets: [
+          "Tool execution: CyberMind wins — actually runs 120+ tools automatically",
+          "Novel attack reasoning: PentestGPT wins — GPT-4 reasoning for unusual scenarios",
+          "Bug bounty automation: CyberMind wins — full pipeline from recon to report",
+          "Learning tool: PentestGPT wins — explains why each step matters",
+          "Speed: CyberMind wins — parallel tool execution vs chat back-and-forth",
+          "Cost: PentestGPT requires GPT-4 API key ($$$) — CyberMind has free tier",
+          "Platform: PentestGPT is Python/web — CyberMind is Go binary (faster, no deps)",
+          "OSINT: CyberMind wins — 45 tools, 9 phases vs chat suggestions",
+          "Reporting: CyberMind wins — auto-generates professional pentest report",
+        ],
+      },
+      {
+        title: "Which one should you use?",
+        paragraphs: [
+          "Use PentestGPT if: you are learning pentesting and want an AI tutor, you are doing a novel engagement where standard tools do not apply, or you want to think through an attack chain before executing it.",
+          "Use CyberMind CLI if: you are doing bug bounty hunting and need automation, you want a full pipeline from recon to report, you are on Kali Linux and want tools to actually run, or you want the brain to learn from your scans over time.",
+          "The best setup in 2026: use CyberMind for execution and automation, use PentestGPT (or CyberMind's AI chat) for reasoning about novel scenarios.",
+        ],
+        codeBlocks: [
+          {
+            language: "bash",
+            caption: "CyberMind full pipeline — what PentestGPT can only suggest",
+            content:
+              "# CyberMind actually runs all of this:\nsudo cybermind /plan target.com\n" +
+              "# → auto-detects target type\n# → runs 20+ recon tools\n# → hunts for XSS, SQLi, SSRF\n" +
+              "# → exploits confirmed findings\n# → generates professional report\n\n" +
+              "# PentestGPT would tell you to run these commands.\n# CyberMind runs them for you.",
+          },
+        ],
+      },
+      {
+        title: "Features CyberMind should steal from PentestGPT",
+        paragraphs: [
+          "PentestGPT has one genuinely great feature: the session tree. It maintains a structured view of the pentest — what was found, what was tried, what is next. CyberMind's brain memory does something similar, but the UX is not as visible.",
+          "The next CyberMind upgrade should make the brain memory more visible: show the session tree, let users navigate it, and let OMEGA use it to avoid re-running things that already failed.",
+        ],
+        bullets: [
+          "Visible session tree: show what was found, tried, and pending",
+          "Reasoning explanations: show WHY each tool was chosen",
+          "Novel attack suggestions: when standard tools fail, suggest creative approaches",
+          "Interactive mode: let users ask questions mid-scan",
+        ],
+      },
+    ],
+    references: [
+      { label: "PentestGPT GitHub", href: "https://github.com/GreyDGL/PentestGPT" },
+      { label: "CyberMind CLI features", href: "/features" },
+    ],
+    faq: [
+      {
+        question: "Is PentestGPT better than CyberMind?",
+        answer:
+          "They solve different problems. PentestGPT is a reasoning assistant that guides you. CyberMind is an execution engine that runs tools automatically. For bug bounty automation, CyberMind wins. For learning and novel scenarios, PentestGPT is useful.",
+      },
+      {
+        question: "Can I use both PentestGPT and CyberMind together?",
+        answer:
+          "Yes. Use CyberMind for automated execution and use PentestGPT (or CyberMind's AI chat) for reasoning about what the results mean and what to try next.",
+      },
+    ],
+    cta: { label: "Try CyberMind CLI free", href: "/install" },
+    relatedSlugs: ["ai-autonomous-hacking-2026", "cybermind-v430-omega-smart-pipeline", "how-to-hack-bug-bounty-with-ai-2026"],
+  },
+];
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);

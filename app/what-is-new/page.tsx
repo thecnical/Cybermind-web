@@ -5,161 +5,150 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "What's New — CyberMind CLI v4.3.0",
-  description: "OSINT Deep (45 tools), Reverse Engineering (30 tools), Breach Intelligence (HIBP + RapidAPI), Geolocation Level 1-5 (SDR). The biggest CyberMind update ever.",
+  description:
+    "OMEGA smart target-type pipeline, isolated Python venv, brain self-learning feedback loop, 12 new exploit tools, usage monitoring, and C2 framework documentation.",
 };
 
 const features = [
   {
-    badge: "NEW",
+    badge: "MAJOR",
     badgeColor: "#00FFFF",
-    icon: "🔍",
-    title: "OSINT Deep — 45 Tools, 9 Phases",
-    command: "cybermind /osint-deep <target>",
+    icon: "🎯",
+    title: "OMEGA Smart Target-Type Pipeline",
+    command: "cybermind /plan <any-target>",
     description:
-      "The most comprehensive OSINT pipeline in any CLI tool. Auto-detects target type (domain/email/username/phone/company) and runs the right tools automatically. Phase 0 in /plan runs OSINT before touching the target.",
+      "OMEGA now auto-detects what kind of target you gave it and runs the right pipeline automatically. No more manually picking modes — just give it a target and it figures out the rest.",
     bullets: [
-      "Phase 1: subfinder, amass, dnsx, theHarvester, sublist3r, crt.sh CT logs",
-      "Phase 2: holehe (120+ sites), h8mail, emailfinder, HIBP API, LeakCheck (5B+ records)",
-      "Phase 3: sherlock (400+ sites), maigret (3000+ sites), socialscan, WhatsMyName",
-      "Phase 4: osintgram (Instagram), twscrape (Twitter/X), instaloader, Photon crawler",
-      "Phase 5: recon-ng (76 modules), spiderfoot (200+ modules), crosslinked, linkedin2username, ghunt",
-      "Phase 6: phoneinfoga, geoiplookup",
-      "Phase 7: exiftool GPS, metagoofil document metadata",
-      "Phase 8: trufflehog (GitHub secrets), gitdorker, onionsearch, torbot, pwndb (Tor)",
-      "Phase 9: nmap OSINT scripts, shodan CLI, whois, dig",
-      "Breach check auto-runs on all found emails",
-      "AI: complete digital footprint, attack surface, MITRE ATT&CK mapping",
+      "Web/domain → OSINT Deep → Recon → Hunt → BizLogic → Abhimanyu → Cloud → Aegis → Report",
+      "IP address → OSINT → Port scan → CVE Feed → Abhimanyu network → Report",
+      "Email → Breach check (HIBP + BreachDir) → OSINT Deep → Threat Intel",
+      "Phone (+91...) → WhatsApp OSINT → OSINT Deep → Locate",
+      "Username/person → OSINT Deep (3000+ sites) → Breach check",
+      "Company name → OSINT → Cloud misconfigs → Breach → Recon",
+      "Binary/ELF/PE → RevEng (static + dynamic + decompile) → Malware scan",
+      "APK file → Mobile analysis → RevEng mobile mode",
+      "MD5/SHA hash → VirusTotal + MalwareBazaar + OTX threat intel",
+      "Non-web targets auto-run their pipeline — web/IP continue to full OMEGA flow",
     ],
-    link: "/features",
-    linkLabel: "See full feature list →",
+    link: "/docs/modes/planning",
+    linkLabel: "Planning mode docs →",
   },
   {
-    badge: "NEW",
-    badgeColor: "#FF6600",
-    icon: "⚙️",
-    title: "Reverse Engineering — 30 Tools, 6 Phases",
-    command: "cybermind /reveng <binary> [--mode static|dynamic|decompile|malware|mobile]",
-    description:
-      "Full automated RE pipeline for ELF, PE, APK, firmware, and Mach-O binaries. Static analysis, dynamic tracing, decompilation, malware detection — all in one command.",
-    bullets: [
-      "Phase 1: file, sha256sum, strings, readelf, objdump, exiftool",
-      "Phase 2: checksec (PIE/NX/canary/RELRO), radare2, rizin, binwalk, nm, ldd, floss, diec",
-      "Phase 3: strace, ltrace, gdb+pwndbg, frida-trace, QEMU user mode",
-      "Phase 4: ROPgadget (ROP/JOP chains), pwntools, angr (symbolic execution), cve-bin-tool",
-      "Phase 5: yara, ssdeep, clamscan (malware analysis)",
-      "Phase 6: Ghidra headless, retdec (C decompile), jadx (APK→Java), apktool, r2ghidra",
-      "Session persistence: saves to /tmp/cybermind_reveng_*/session.json",
-      "AI: binary purpose, vulnerabilities, exploit approach, CVEs for libraries",
-    ],
-    link: "/features",
-    linkLabel: "See full feature list →",
-  },
-  {
-    badge: "NEW",
-    badgeColor: "#FF4444",
-    icon: "🔓",
-    title: "Breach Intelligence — HIBP + RapidAPI + Local SQLite",
-    command: "cybermind /breach <email|domain|+phone>",
-    description:
-      "Multi-source breach intelligence. 90% API-based (HIBP, BreachDirectory, LeakCheck) + 10% local SQLite dump fallback. WhatsApp OSINT via RapidAPI.",
-    bullets: [
-      "HIBP v3 — 13B+ records, breach names + data types (free tier)",
-      "BreachDirectory via RapidAPI — email:password plaintext lookup",
-      "LeakCheck.io — 5B+ records, free public API",
-      "WhatsApp OSINT — phone → name, about, photo, business status (RapidAPI)",
-      "Local SQLite indexer — handles 100M+ line dumps (streaming, 50K batch commits)",
-      "cybermind /breach --setup — save RapidAPI key interactively",
-      "cybermind /breach --index /dump.txt — index any breach dump",
-      "Auto-integrated in /osint-deep Phase 2 — runs on all found emails",
-    ],
-    link: "/features",
-    linkLabel: "See full feature list →",
-  },
-  {
-    badge: "NEW",
+    badge: "MAJOR",
     badgeColor: "#00FF88",
-    icon: "🌍",
-    title: "Geolocation — Level 1 to Level 5 (SDR)",
-    command: "cybermind /locate <target>  |  cybermind /locate-advanced <target>",
+    icon: "🐍",
+    title: "Isolated Python Venv — Zero System Pollution",
+    command: "cybermind /doctor  |  sudo cybermind /plan <target>",
     description:
-      "Multi-level geolocation from basic IP lookup to advanced SDR cell tower tracking. /locate works on all OS. /locate-advanced requires Linux + SDR hardware (Pro plan).",
+      "Every Python tool now installs in a fully isolated environment. No more 'externally-managed-environment' errors on Kali 2024+, Ubuntu 23+, or Debian 12+. Three-layer fallback ensures tools always install.",
     bullets: [
-      "Level 1: geoiplookup, ipinfo API, shodan, whois",
-      "Level 2: exiftool GPS from photos, metagoofil document metadata",
-      "Level 3: tshark WiFi SSID capture → wigle.net → coordinates",
-      "Level 4: Creepy social geolocation, osintgram geotags",
-      "Level 5 (SDR): gr-gsm passive GSM sniffing → TAC/LAC → OpenCellID GPS",
-      "Level 5: srsRAN 4G/5G fake BTS, YateBTS GSM tower, SigPloit SS7 simulation",
-      "Hardware: RTL-SDR ($30), HackRF One ($300), BladeRF ($420)",
-      "Hardware setup guide included: cli/locate/sdr_setup.md",
-    ],
-    link: "/features",
-    linkLabel: "See full feature list →",
-  },
-  {
-    badge: "NEW",
-    badgeColor: "#00FF88",
-    icon: "🤖",
-    title: "GitHub Models + Cloudflare Workers AI",
-    command: "Automatic — no setup needed",
-    description:
-      "Two new completely free AI providers added to the fallback chain. More providers means more reliability — if one fails or rate-limits, the next one picks up instantly.",
-    bullets: [
-      "GitHub Models: GPT-4o, Llama 3.3 70B, DeepSeek R1, Phi-4 — 150 req/day free",
-      "Cloudflare Workers AI: Llama 70B, DeepSeek R1, Qwen 72B — 10,000 neurons/day free",
-      "Total: 11 providers, 50+ models in the fallback chain",
-      "Sequential fallback: Groq → Cerebras → OpenRouter → GitHub → Mistral → Cloudflare → ...",
-    ],
-    link: "/docs/reference/providers-and-models",
-    linkLabel: "See all providers →",
-  },
-  {
-    badge: "FIX",
-    badgeColor: "#FFD700",
-    icon: "🔄",
-    title: "Cold Start Auto-Wake",
-    command: "Just send your message — CLI handles the rest",
-    description:
-      "The most common frustration is gone. When the backend is sleeping (Render free tier cold start), the CLI now automatically wakes it and retries your request. You never need to manually resend.",
-    bullets: [
-      "Shows live progress: ⟳ Backend waking up... (3s)",
-      "Auto-retries after wake — no manual action needed",
-      "Works on Windows, Linux, and macOS",
-      "3 attempts total before showing an error",
+      "Layer 1: pipx with PIPX_BIN_DIR=/usr/local/bin — best isolation, binary auto-lands in PATH",
+      "Layer 2: /opt/<toolname>-venv — dedicated venv per tool, symlinked to /usr/local/bin",
+      "Layer 3: pip3 --break-system-packages — last resort for old systems only",
+      "Git tools: .venv inside installDir, wrapper script uses venv python",
+      "C2 tools (sliver, havoc): document-only — setup guide saved to /tmp/cybermind_c2_setup.txt",
+      "installOmegaToolAlt upgraded: uses isolated venv instead of raw pip3",
+      "Abhimanyu InstallTool: Python tools use venv, C2 tools skip with clear message",
+      "Fixes: 'externally-managed-environment', requirements.txt conflicts, version clashes",
     ],
     link: "/docs/resources/troubleshooting",
     linkLabel: "Troubleshooting guide →",
   },
   {
-    badge: "SECURITY",
-    badgeColor: "#FF6B6B",
-    icon: "🔐",
-    title: "Full Security Audit Applied",
-    command: "Automatic — all fixes are live",
+    badge: "NEW",
+    badgeColor: "#FF6600",
+    icon: "🧠",
+    title: "Brain Self-Learning Feedback Loop",
+    command: "Automatic — runs after every scan",
     description:
-      "A complete end-to-end security audit was performed. Critical vulnerabilities fixed, performance improved, and new protections added.",
+      "The brain now learns from every single tool run. Confidence scores update in real-time. Future scans automatically prioritize tools that found things before. The system gets smarter with every target.",
     bullets: [
-      "SSRF protection on all URL fetching — blocks internal IP access",
-      "AI output sanitization — strips leaked secrets from LLM responses",
-      "Blocked device enforcement — 403 response instead of log-only",
-      "Exponential backoff on API key brute force attempts",
-      "GDPR data export endpoint added (/auth/export-data)",
-      "SQL ambiguous column bug fixed in increment_and_check_limit",
+      "RecordToolRun() called after every recon and hunt tool — success/failure/duration tracked",
+      "RecordScanComplete() after full session — bug types, tech stack, WAF vendor saved",
+      "Tool confidence scores: +10-20 on success (more output = bigger boost), -5 on failure",
+      "Self-model: best tools, weak tools, best vuln types, best tech targets — all updated live",
+      "GetAdaptiveToolOrder() — future scans run highest-confidence tools first",
+      "SelfReflect() — generates insights: success rate, avg bugs/scan, recommendations",
+      "Brain memory: ~/.cybermind/brain/targets/<target>.json + self_model.json",
+      "Cross-session: patterns that worked, false positives to skip, tech stack remembered",
+    ],
+    link: "/features",
+    linkLabel: "See all features →",
+  },
+  {
+    badge: "NEW",
+    badgeColor: "#FF4444",
+    icon: "⚔️",
+    title: "12 New Exploit Tools in Abhimanyu",
+    command: "cybermind /abhimanyu <target>  |  sudo cybermind /plan <target>",
+    description:
+      "Research-backed additions from 2025-2026 offensive security landscape. Every tool is real, installable, and integrated into the exploit pipeline with proper fallback args.",
+    bullets: [
+      "interactsh-client — OOB/blind detection: blind SSRF, blind XSS, blind RCE, Log4Shell",
+      "ffuf — IDOR fuzzing (numeric IDs), auth bypass, API endpoint discovery",
+      "ghauri — modern SQLi tool: WAF bypass, JSON injection, GraphQL SQLi (better than sqlmap for modern apps)",
+      "puredns — 10M+ subdomains/hour, wildcard filtering, faster than amass",
+      "jwt_tool — none algorithm, RS256→HS256 confusion, key injection, claim tampering",
+      "cloud_enum — AWS S3, Azure blobs, GCP storage misconfigs",
+      "pacu — AWS post-exploit: IAM privesc, Lambda backdoors, EC2 SSRF",
+      "roadrecon — Azure AD recon: users, groups, apps, conditional access policies",
+      "trufflehog — leaked AWS keys, GitHub tokens, Stripe keys in source code",
+      "sliver — modern C2 framework (documented, not auto-installed)",
+      "havoc — advanced C2 with AMSI/ETW bypass (documented, not auto-installed)",
+      "nuclei-fuzz — fuzzing templates mode, finds logic bugs nuclei misses",
+    ],
+    link: "/features",
+    linkLabel: "Full tool list →",
+  },
+  {
+    badge: "NEW",
+    badgeColor: "#8A2BE2",
+    icon: "📊",
+    title: "Backend Usage Monitoring",
+    command: "GET /usage-stats  (admin only)",
+    description:
+      "Real-time per-user usage tracking across all API endpoints. Anomaly detection for abuse patterns. Admin dashboard endpoint for visibility into who's using what.",
+    bullets: [
+      "Per-user hourly/daily request counts with plan-based limits",
+      "Expensive endpoints (recon/hunt/abhimanyu) count double toward daily limit",
+      "Anomaly detection: hourly spikes (>3x plan limit), near-limit warnings (>80%)",
+      "Scan abuse detection: free plan >3 scan jobs, starter >10 scan jobs",
+      "Endpoint diversity detection: >8 different endpoints in <20 requests (scraping)",
+      "/usage-stats admin endpoint: real-time per-user data, sorted by daily usage",
+      "Async Supabase logging: usage_logs table (fire-and-forget, non-blocking)",
+      "Wired into: chat, recon, hunt, abhimanyu, plan, cve, report, wordlist routes",
     ],
     link: "/docs/reference/privacy-and-security",
     linkLabel: "Security posture →",
   },
+  {
+    badge: "FIX",
+    badgeColor: "#FFD700",
+    icon: "🔧",
+    title: "portListOrDefault + appendUniqueStr Fixes",
+    command: "Automatic — fixes MSF resource script generation",
+    description:
+      "Two missing helper functions that were silently breaking features. portListOrDefault was referenced in abhimanyu/engine.go but never defined — MSF resource scripts were generating with empty port lists.",
+    bullets: [
+      "portListOrDefault() added to omega/plan.go — MSF scripts now include correct port list",
+      "appendUniqueStr() added to hunt/engine.go — bug type deduplication in brain recording",
+      "Both functions were referenced but undefined — silent failures now fixed",
+      "go vet passes clean — zero warnings across all packages",
+    ],
+    link: "/what-is-new",
+    linkLabel: "Full changelog →",
+  },
 ];
 
 const fullFlow = [
-  { step: "1", cmd: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash", desc: "Install or update CLI" },
+  { step: "1", cmd: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash", desc: "Install or update CLI (v4.3.0)" },
   { step: "2", cmd: "cybermind --key cp_live_xxxxx", desc: "Save your API key" },
-  { step: "3", cmd: "cybermind /install-tools", desc: "Install all recon tools (one time)" },
-  { step: "4", cmd: "cybermind /plan target.com", desc: "AI builds your attack plan" },
-  { step: "5", cmd: "cybermind /recon target.com", desc: "Run full recon pipeline" },
-  { step: "6", cmd: "cybermind /hunt target.com", desc: "Hunt for vulnerabilities" },
-  { step: "7", cmd: "cybermind /abhimanyu target.com", desc: "Exploit confirmed vulns (Elite)" },
-  { step: "8", cmd: "cybermind report", desc: "Generate pentest report" },
+  { step: "3", cmd: "sudo cybermind /doctor", desc: "Install ALL tools with isolated venv (one time)" },
+  { step: "4", cmd: "sudo cybermind /plan target.com", desc: "OMEGA auto-detects target type + builds plan" },
+  { step: "5", cmd: "sudo cybermind /recon target.com", desc: "Full recon — brain learns from every tool" },
+  { step: "6", cmd: "sudo cybermind /hunt target.com", desc: "Hunt for vulnerabilities" },
+  { step: "7", cmd: "sudo cybermind /abhimanyu target.com", desc: "Exploit with 12 new tools (Elite)" },
+  { step: "8", cmd: "cybermind report", desc: "Generate professional pentest report" },
 ];
 
 export default function WhatsNewPage() {
@@ -171,23 +160,23 @@ export default function WhatsNewPage() {
         {/* Hero */}
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#00FFFF]/30 bg-[#00FFFF]/10 px-3 py-1 text-xs font-semibold text-[#00FFFF] uppercase tracking-wider mb-4">
-            v2.5.2 — April 2026
+            v4.3.0 — April 24, 2026
           </div>
           <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
             What&apos;s new in CyberMind
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-[var(--text-soft)]">
-            OMEGA Planning Mode, 2 new free AI providers, cold start fix, and a full security audit.
-            The biggest update since launch.
+            OMEGA smart target-type pipeline, isolated Python venv, brain self-learning,
+            12 new exploit tools, and backend usage monitoring.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/docs/modes/planning"
-              className="cm-button-primary px-5 py-2.5 text-sm">
-              Read planning mode docs
-            </Link>
             <Link href="/install"
-              className="cm-button-secondary px-5 py-2.5 text-sm">
+              className="cm-button-primary px-5 py-2.5 text-sm">
               Update CLI
+            </Link>
+            <Link href="/docs/modes/planning"
+              className="cm-button-secondary px-5 py-2.5 text-sm">
+              OMEGA docs
             </Link>
           </div>
         </div>
@@ -231,12 +220,12 @@ export default function WhatsNewPage() {
 
         {/* Full Linux Flow */}
         <div className="mt-12 rounded-[28px] border border-[#8A2BE2]/30 bg-[radial-gradient(circle_at_top,rgba(138,43,226,0.1),transparent_50%)] p-6 md:p-8">
-          <p className="cm-label text-[#8A2BE2]">Linux Full Flow</p>
+          <p className="cm-label text-[#8A2BE2]">Linux Full Flow — v4.3.0</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">
-            From install to exploitation — the complete Linux workflow
+            From install to exploitation — the complete workflow
           </h2>
           <p className="mt-2 text-sm text-[var(--text-soft)]">
-            This is the recommended order on Kali Linux using all new features.
+            Recommended order on Kali Linux using all new features.
           </p>
           <div className="mt-6 space-y-3">
             {fullFlow.map((item) => (
@@ -257,14 +246,14 @@ export default function WhatsNewPage() {
         <div className="mt-12 rounded-[28px] border border-white/8 bg-white/[0.02] p-6 text-center">
           <h2 className="text-2xl font-semibold text-white">Ready to try it?</h2>
           <p className="mt-2 text-sm text-[var(--text-soft)]">
-            Update your CLI and run your first planning mode session.
+            Update your CLI and run your first OMEGA smart pipeline session.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link href="/install" className="cm-button-primary px-6 py-2.5 text-sm">
               Update CLI
             </Link>
             <Link href="/docs/modes/planning" className="cm-button-secondary px-6 py-2.5 text-sm">
-              Planning mode docs
+              OMEGA docs
             </Link>
             <Link href="/docs/changelogs/latest" className="cm-button-secondary px-6 py-2.5 text-sm">
               Full changelog
