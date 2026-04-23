@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
-import { Check, X, Loader2, AlertCircle, CheckCircle2, Zap, Globe, Shield, Star, ArrowRight, Users, Lock, Cpu } from "lucide-react";
+import { Check, X, Loader2, AlertCircle, Zap, Globe, Shield, Star, ArrowRight, Users, Lock, Cpu } from "lucide-react";
 import Accordion from "@/components/Accordion";
 import Footer from "@/components/Footer";
-import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
-import { startPayUCheckout, waitForPayUUpgrade, type PayUPlan } from "@/lib/payu";
+import { startPayUCheckout, type PayUPlan } from "@/lib/payu";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
@@ -189,7 +187,6 @@ export default function PlansPage() {
   const [currency] = useState<"inr" | "usd">(() => detectCurrency());
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const getPrice = useCallback((plan: typeof plans[number]) => {
     if (billing === "annual") {
@@ -215,20 +212,21 @@ export default function PlansPage() {
     setLoading(planId);
     setError(null);
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("api_key, email")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.api_key) throw new Error("API key not found. Please log in again.");
+      // Use Supabase JWT access token directly — works for ALL users including new signups
+      // No need to fetch api_key from profiles (new users don't have one yet)
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const token = currentSession?.access_token;
+      if (!token) {
+        window.location.href = "/auth/login?redirect=/plans";
+        return;
+      }
 
       await startPayUCheckout({
         plan: planId,
         billing,
         currency,
-        apiKey: profile.api_key,
-        email: profile.email || user.email || "",
+        apiKey: token,  // JWT token — backend paymentAuth accepts this
+        email: user.email || "",
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Payment failed. Please try again.");
@@ -372,23 +370,6 @@ export default function PlansPage() {
           }}>
             <AlertCircle size={16} />
             {error}
-          </div>
-        )}
-        {success && (
-          <div style={{
-            background: "rgba(0,255,136,0.08)",
-            border: "1px solid rgba(0,255,136,0.2)",
-            borderRadius: 10,
-            padding: "12px 16px",
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            color: "#00ff88",
-            fontSize: 14,
-          }}>
-            <CheckCircle2 size={16} />
-            {success}
           </div>
         )}
 
