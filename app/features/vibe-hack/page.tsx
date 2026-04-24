@@ -2,12 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FeatureCards from "../FeatureCards";
-import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "/vibe-hack — Real-time AI Hacking | CyberMind CLI",
-  description: "Autonomous AI hacking session with live SSE streaming. AI decides the next attack step in real-time. Available on Pro+ plan.",
-};
+export const metadata = PAGE_META.featureVibeHack;
 
 export default function VibeHackPage() {
   return (

@@ -2,12 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FeatureCards from "../FeatureCards";
-import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "/red-team — Multi-Day Red Team Campaign | CyberMind CLI",
-  description: "Structured 7-day red team campaign: OSINT → Phishing → Initial Access → Lateral Movement → Persistence → Report. Elite plan only.",
-};
+export const metadata = PAGE_META.featureRedTeam;
 
 export default function RedTeamPage() {
   return (

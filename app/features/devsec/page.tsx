@@ -2,12 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FeatureCards from "../FeatureCards";
-import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "/devsec — Developer Security Scanner | CyberMind CLI",
-  description: "Scan GitHub repos and local paths for secrets, SAST issues, and vulnerable dependencies. Available on Starter+ plan.",
-};
+export const metadata = PAGE_META.featureDevsec;
 
 export default function DevSecPage() {
   return (

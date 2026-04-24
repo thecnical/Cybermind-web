@@ -2,12 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FeatureCards from "../FeatureCards";
-import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "/chain — Vulnerability Chaining Engine | CyberMind CLI",
-  description: "Reads Brain_Memory findings and suggests multi-step exploit chains with PoC generation and CVSS uplift analysis. Available on Pro+ plan.",
-};
+export const metadata = PAGE_META.featureChain;
 
 export default function ChainPage() {
   return (

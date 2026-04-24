@@ -39,19 +39,32 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
+    default: "CyberMind CLI — AI-Powered Offensive Security, Bug Bounty & Coding CLI",
     template: "%s | CyberMind CLI",
   },
   description:
-    "CyberMind CLI — AI-powered offensive security CLI with VSCode extension, 20-tool recon chain, OMEGA plan mode, Abhimanyu exploit mode, and cybermindcli fine-tuned security AI model.",
+    "CyberMind CLI — AI-powered offensive security CLI for bug bounty hunters. OMEGA plan mode, 20-tool recon, 30-tool hunt, /devsec secret scanning, /vibe-hack autonomous AI hacking, /chain vuln chaining, /red-team campaigns. Works on Windows, macOS, Linux.",
   keywords: [
-    "cybersecurity CLI", "offensive security", "penetration testing", "bug bounty",
-    "AI hacking tool", "recon automation", "ethical hacking", "kali linux",
-    "cybermind", "security automation", "nuclei", "subfinder", "nmap",
-    "cybermindcli", "AI coding assistant", "VSCode extension",
-    "terminal AI coding", "MiniMax M2.7", "Kimi K2", "DeepSeek R1", "Qwen3 Coder",
-    "free AI coding tool", "Windows AI coding assistant", "NVIDIA NIM",
-    "OMEGA plan mode", "bug bounty automation", "recon automation",
+    // Primary — high search volume
+    "cybersecurity CLI", "offensive security tool", "penetration testing CLI",
+    "bug bounty automation", "AI hacking tool", "ethical hacking CLI",
+    "kali linux security tool", "automated recon tool", "vulnerability scanner",
+    // Product-specific
+    "cybermind CLI", "cybermind security", "cybermindcli AI model",
+    "OMEGA plan mode", "Abhimanyu exploit mode", "recon automation tool",
+    // New v4.4.0 modes — long-tail SEO
+    "developer security scanner", "devsec CLI", "secret scanning tool",
+    "SAST CLI tool", "dependency audit CLI", "trufflehog gitleaks CLI",
+    "autonomous AI hacking", "vibe hack tool", "SSE hacking session",
+    "vulnerability chaining tool", "exploit chain generator", "red team campaign tool",
+    "multi-day red team CLI", "red team automation",
+    // AI coding
+    "AI coding assistant terminal", "VSCode security extension", "free Claude Code alternative",
+    "terminal AI coding", "cybermind vibe coder",
+    // Providers
+    "DeepSeek R1 CLI", "Qwen3 Coder", "GPT-5 security tool",
+    // Platform
+    "windows hacking tool", "kali linux automation", "linux security CLI",
   ],
   authors: [{ name: "Chandan Pandey", url: "https://github.com/thecnical" }],
   creator: "Chandan Pandey",
@@ -75,9 +88,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: BASE_URL,
     siteName: "CyberMind CLI",
-    title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
+    title: "CyberMind CLI — AI-Powered Offensive Security, Bug Bounty & Coding CLI",
     description:
-      "AI-powered offensive security CLI with VSCode extension, OMEGA plan mode, recon, hunt, Abhimanyu exploit mode, and cybermindcli security AI model.",
+      "AI-powered offensive security CLI for bug bounty hunters. OMEGA plan mode, /devsec, /vibe-hack, /chain, /red-team, 20-tool recon, 30-tool hunt, VSCode extension. Free tier available.",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
@@ -89,8 +102,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CyberMind CLI — AI-Powered Offensive Security & Coding CLI",
-    description: "AI-powered offensive security CLI with VSCode extension, OMEGA plan mode, recon, hunt, and Abhimanyu exploit mode.",
+    title: "CyberMind CLI — AI-Powered Offensive Security & Bug Bounty CLI",
+    description: "OMEGA plan mode, /devsec, /vibe-hack, /chain, /red-team — AI-powered offensive security CLI for bug bounty hunters. Free tier available.",
     images: [`${BASE_URL}/og-image.png`],
     creator: "@thecnical",
   },
@@ -126,14 +139,19 @@ const softwareSchema = {
   description: "AI-powered offensive security CLI with VSCode extension, recon, hunt, and exploit automation.",
   featureList: [
     "cybermindcli fine-tuned security AI model",
-    "MiniMax M2.5, DeepSeek R1, Qwen3 Coder support",
+    "DeepSeek R1, Qwen3 Coder, GPT-5, Claude support",
     "11+ AI providers with smart routing",
     "20-tool automated recon chain",
-    "11-tool hunt engine",
-    "Abhimanyu exploit mode",
+    "30-tool hunt engine",
+    "Abhimanyu exploit mode (Elite)",
+    "/devsec — Developer Security Scanner (Starter+)",
+    "/vibe-hack — Autonomous AI hacking with SSE (Pro+)",
+    "/chain — Vulnerability chaining engine (Pro+)",
+    "/red-team — Multi-day red team campaign (Elite)",
+    "OMEGA plan mode — 10-phase autonomous pipeline",
     "Built-in security scanner",
     "MCP (Model Context Protocol) support",
-    "Windows and macOS support",
+    "Windows, macOS, Linux support",
   ],
   offers: [
     { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free Plan" },
@@ -159,7 +177,7 @@ const faqSchema = {
       name: "What is CyberMind CLI?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CyberMind CLI is an AI-powered offensive security CLI with a VSCode extension, 20-tool recon chain, OMEGA plan mode, and the cybermindcli fine-tuned security AI model.",
+        text: "CyberMind CLI is an AI-powered offensive security CLI with a VSCode extension, 20-tool recon chain, OMEGA plan mode, Abhimanyu exploit mode, and four new v4.4.0 modes: /devsec, /vibe-hack, /chain, and /red-team.",
       },
     },
     {
@@ -167,7 +185,7 @@ const faqSchema = {
       name: "Is CyberMind CLI free?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. CyberMind CLI has a free tier where you can bring your own API keys from OpenRouter, Groq, or any provider. No subscription required to start.",
+        text: "Yes. CyberMind CLI has a free tier with 20 requests/day, AI chat, and basic scanning. Paid plans start at $4/month (Starter) for full recon, hunt, and /devsec mode.",
       },
     },
     {
@@ -175,7 +193,7 @@ const faqSchema = {
       name: "Does CyberMind CLI work on Windows?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. CyberMind CLI fully supports Windows via PowerShell. Install with one command and launch with 'cybermind vibe'.",
+        text: "Yes. CyberMind CLI fully supports Windows via PowerShell. AI chat, /scan, /osint, /breach, /cve, /payload, and /devsec all work on Windows. Recon/hunt/Abhimanyu require Linux/Kali.",
       },
     },
     {
@@ -183,7 +201,39 @@ const faqSchema = {
       name: "What AI models does CyberMind CLI use?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CyberMind CLI supports MiniMax M2.5, DeepSeek R1, Qwen3 Coder, Gemma 4, Llama 3.3 70B, GPT-5, Claude, and 11+ other providers. It auto-routes to the best model for your task.",
+        text: "CyberMind CLI supports DeepSeek R1, Qwen3 Coder, GPT-5, Claude Opus 4, Llama 3.3 70B, and 11+ other providers. It auto-routes to the best model for your task and plan tier.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is /devsec mode?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "/devsec is CyberMind's Developer Security Scanner. It scans GitHub repos and local paths for secrets (trufflehog, gitleaks), SAST issues (semgrep), and vulnerable dependencies (trivy, npm audit, pip-audit). Available on Starter+ plan.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is /vibe-hack mode?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "/vibe-hack is an autonomous AI hacking session where the AI decides the next attack step, streams results live via SSE, and saves a full session transcript. Available on Pro+ plan.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is /red-team mode?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "/red-team is a structured 7-day red team campaign with mandatory scope validation, AI-guided phases (OSINT, phishing, initial access, lateral movement, persistence, report), and state persistence between sessions. Elite plan only.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I connect a custom domain to CyberMind on Vercel?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Deploy on Vercel, then go to Project Settings > Domains > Add Domain. In your domain registrar (Hostinger, GoDaddy), add a CNAME record pointing to cname.vercel-dns.com, or an A record pointing to 76.76.21.21. Vercel auto-provisions SSL.",
       },
     },
   ],

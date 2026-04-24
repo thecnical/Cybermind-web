@@ -37,10 +37,10 @@ function meta(
 
 export const PAGE_META = {
   home: meta(
-    "CyberMind CLI — AI Security CLI + VSCode Extension",
-    "Terminal-first AI security CLI with 20-tool recon, 11-tool hunt, Abhimanyu exploit mode, VSCode extension, and cybermindcli fine-tuned security AI. Windows & macOS.",
+    "CyberMind CLI — AI-Powered Bug Bounty & Offensive Security CLI",
+    "AI-powered offensive security CLI for bug bounty hunters. OMEGA plan mode, /devsec, /vibe-hack, /chain, /red-team, 20-tool recon, 30-tool hunt, VSCode extension. Free tier. Works on Windows, macOS, Linux.",
     "/",
-    { keywords: ["cybermind CLI","cybermindcli","AI coding assistant","offensive security CLI","penetration testing","bug bounty","MiniMax M2.5","DeepSeek R1","Qwen3 Coder","free AI coding tool","Windows AI coding","cybermind vibe coder","terminal AI coding","ethical hacking CLI","VSCode extension"] }
+    { keywords: ["cybermind CLI","bug bounty automation","AI hacking tool","offensive security CLI","penetration testing CLI","kali linux tool","recon automation","cybermindcli","OMEGA plan mode","devsec scanner","vibe hack","red team tool","free security CLI","Windows hacking tool"] }
   ),
   extensions: meta(
     "CyberMind AI for VSCode — Security-Focused VSCode Extension",
@@ -71,9 +71,39 @@ export const PAGE_META = {
     "/docs"
   ),
   features: meta(
-    "CyberMind CLI Features — VSCode Extension, Recon, Hunt, Abhimanyu & AI Chat",
-    "VSCode AI extension, 20-tool recon chain, 11-tool hunt engine, Abhimanyu exploit mode, MCP support, 11+ AI providers. Free tier available.",
+    "CyberMind CLI Features — /devsec, /vibe-hack, /chain, /red-team & More",
+    "VSCode AI extension, 20-tool recon, 30-tool hunt, /devsec secret scanning, /vibe-hack autonomous AI hacking, /chain vuln chaining, /red-team campaigns. Free tier available.",
     "/features"
+  ),
+  linuxModes: meta(
+    "Linux Modes — All CyberMind CLI Commands | Kali Linux Security Tool",
+    "Complete list of all CyberMind CLI modes on Linux: OMEGA, /recon, /hunt, /abhimanyu, /devsec, /vibe-hack, /chain, /red-team, /osint-deep, /reveng, /breach, /locate. Free to Elite.",
+    "/linux-modes",
+    { keywords: ["kali linux security tool","linux hacking CLI","offensive security linux","bug bounty linux","recon automation kali","cybermind linux modes","penetration testing linux"] }
+  ),
+  featureDevsec: meta(
+    "/devsec — Developer Security Scanner | CyberMind CLI",
+    "Scan GitHub repos and local paths for secrets (trufflehog, gitleaks), SAST issues (semgrep), and vulnerable dependencies (trivy, npm audit, pip-audit). Starter+ plan.",
+    "/features/devsec",
+    { keywords: ["developer security scanner","secret scanning CLI","SAST tool","dependency audit CLI","trufflehog CLI","gitleaks CLI","semgrep CLI","trivy CLI","devsec tool"] }
+  ),
+  featureVibeHack: meta(
+    "/vibe-hack — Autonomous AI Hacking Session | CyberMind CLI",
+    "Autonomous AI hacking session with live SSE streaming. AI decides the next attack step in real-time, explains reasoning, and saves full session transcript. Pro+ plan.",
+    "/features/vibe-hack",
+    { keywords: ["autonomous AI hacking","AI penetration testing","SSE hacking tool","automated hacking session","AI red team tool","vibe hack","autonomous security testing"] }
+  ),
+  featureChain: meta(
+    "/chain — Vulnerability Chaining Engine | CyberMind CLI",
+    "Reads Brain_Memory findings and suggests multi-step exploit chains (SSRF+IDOR→PII leak) with PoC generation and CVSS uplift analysis. Pro+ plan.",
+    "/features/chain",
+    { keywords: ["vulnerability chaining","exploit chain generator","SSRF IDOR chain","bug chain tool","CVSS uplift","PoC generator","vulnerability escalation"] }
+  ),
+  featureRedTeam: meta(
+    "/red-team — Multi-Day Red Team Campaign | CyberMind CLI",
+    "Structured 7-day red team campaign: OSINT, phishing simulation, initial access, lateral movement, persistence, and final report. Mandatory scope validation. Elite plan only.",
+    "/features/red-team",
+    { keywords: ["red team automation","multi-day red team","red team campaign tool","AI red team","phishing simulation tool","lateral movement automation","red team report generator"] }
   ),
   about: meta(
     "About CyberMind CLI — Built by Security Researchers & Developers",

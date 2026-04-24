@@ -2,12 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ModesList from "./ModesList";
-import type { Metadata } from "next";
+import { PAGE_META } from "@/app/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Linux Modes — All CLI Commands | CyberMind CLI",
-  description: "Complete list of all CyberMind CLI modes available on Linux. From OMEGA plan mode to the four new v4.4.0 offensive modes: /devsec, /vibe-hack, /chain, /red-team.",
-};
+export const metadata = PAGE_META.linuxModes;
 
 const modes = [
   // Core / Cross-platform
