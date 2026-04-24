@@ -2,7 +2,7 @@
 # CyberMind CLI — Linux/Kali Installer v4.4.0
 # Downloads pre-built binary — NO Go required.
 # Full pipeline: recon + hunt + Abhimanyu + OMEGA smart pipeline + AI chat
-# New in v4.4.0: /devsec, /vibe-hack, /chain, /red-team — four new offensive modes
+# New in v4.4.0: /devsec · /vibe-hack · /chain · /red-team
 #
 # Usage:
 #   curl -sL https://cybermindcli1.vercel.app/install.sh | bash
@@ -11,6 +11,8 @@
 set -e
 CYAN='\033[0;36m'; GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; DIM='\033[2m'; NC='\033[0m'
 
+VERSION="4.4.0"
+GITHUB_RAW="https://raw.githubusercontent.com/thecnical/cybermind/main/cli"
 CDN="https://cybermindcli1.vercel.app"
 API_KEY="${CYBERMIND_KEY:-}"
 INSTALL_DIR="/usr/local/bin"
@@ -26,49 +28,70 @@ echo -e "${CYAN}██║      ╚████╔╝ ██████╔╝█
 echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
 echo -e "${CYAN} ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝${NC}"
 echo ""
-echo -e "${GREEN}  ⚡ CyberMind CLI v4.4.0 — Installer${NC}"
-echo -e "${DIM}  No Go required. OMEGA smart pipeline + isolated venv + brain self-learning${NC}"
-echo -e "${DIM}  New in v4.4.0: /devsec · /vibe-hack · /chain · /red-team${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v${VERSION} — Installer${NC}"
+echo -e "${DIM}  OMEGA smart pipeline + /devsec + /vibe-hack + /chain + /red-team${NC}"
 echo ""
 
 # ── Detect architecture ───────────────────────────────────────────────────────
 ARCH=$(uname -m)
 case "$ARCH" in
-  aarch64|arm64) BINARY_URL="${CDN}/cybermind-linux-arm64"; echo -e "${DIM}  Detected: ARM64${NC}" ;;
-  *)             BINARY_URL="${CDN}/cybermind-linux-amd64"; echo -e "${DIM}  Detected: AMD64${NC}" ;;
+  aarch64|arm64) BINARY_NAME="cybermind-linux-arm64" ;;
+  *)             BINARY_NAME="cybermind-linux-amd64" ;;
 esac
+echo -e "${DIM}  Arch: ${ARCH} → ${BINARY_NAME}${NC}"
 
-# ── Download binary ───────────────────────────────────────────────────────────
-echo -e "${DIM}  ⟳ Downloading CyberMind CLI...${NC}"
+# ── Download binary (GitHub primary, Vercel CDN fallback) ────────────────────
+echo -e "${DIM}  ⟳ Downloading CyberMind CLI v${VERSION}...${NC}"
 TMPFILE=$(mktemp /tmp/cybermind-XXXXXX)
 
-if command -v curl &>/dev/null; then
-  HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "$TMPFILE" "$BINARY_URL" 2>/dev/null)
-elif command -v wget &>/dev/null; then
-  wget -q "$BINARY_URL" -O "$TMPFILE" && HTTP_CODE="200" || HTTP_CODE="000"
-else
-  echo -e "${RED}  ✗ curl or wget required. Run: sudo apt install curl${NC}"; exit 1
+download_binary() {
+  local url="$1"
+  local label="$2"
+  echo -e "${DIM}  ⟳ Trying ${label}...${NC}"
+  if command -v curl &>/dev/null; then
+    HTTP_CODE=$(curl -fsSL --connect-timeout 15 --max-time 120 -w "%{http_code}" -o "$TMPFILE" "$url" 2>/dev/null)
+  elif command -v wget &>/dev/null; then
+    wget -q --timeout=120 "$url" -O "$TMPFILE" 2>/dev/null && HTTP_CODE="200" || HTTP_CODE="000"
+  fi
+  FILESIZE=$(stat -c%s "$TMPFILE" 2>/dev/null || stat -f%z "$TMPFILE" 2>/dev/null || echo 0)
+  if [ "${HTTP_CODE:-000}" = "200" ] && [ "$FILESIZE" -gt 5242880 ]; then
+    echo -e "${GREEN}  ✓ Downloaded ${FILESIZE} bytes from ${label}${NC}"
+    return 0
+  fi
+  echo -e "${YELLOW}  ⚠  ${label} failed (HTTP ${HTTP_CODE:-000}, ${FILESIZE} bytes)${NC}"
+  return 1
+}
+
+# Try GitHub first (most reliable, always has latest)
+GITHUB_URL="${GITHUB_RAW}/${BINARY_NAME}"
+CDN_URL="${CDN}/${BINARY_NAME}"
+
+if ! download_binary "$GITHUB_URL" "GitHub"; then
+  if ! download_binary "$CDN_URL" "Vercel CDN"; then
+    rm -f "$TMPFILE"
+    echo -e "${RED}  ✗ All download sources failed. Check your internet connection.${NC}"
+    echo -e "${YELLOW}  Manual: wget ${GITHUB_URL} -O /usr/local/bin/cybermind && chmod +x /usr/local/bin/cybermind${NC}"
+    exit 1
+  fi
 fi
 
-# Validate download
-FILESIZE=$(stat -c%s "$TMPFILE" 2>/dev/null || stat -f%z "$TMPFILE" 2>/dev/null || echo 0)
-if [ "$FILESIZE" -lt 1048576 ]; then
-  rm -f "$TMPFILE"
-  echo -e "${RED}  ✗ Download failed or file too small (${FILESIZE} bytes).${NC}"
-  echo -e "${YELLOW}  Try: sudo apt install curl && CYBERMIND_KEY=${API_KEY} curl -sL ${CDN}/install.sh | bash${NC}"
-  exit 1
-fi
-
-# ── Install globally ──────────────────────────────────────────────────────────
-echo -e "${DIM}  ⟳ Installing to ${INSTALL_DIR}...${NC}"
+# ── Force install (overwrite any existing version) ───────────────────────────
+echo -e "${DIM}  ⟳ Installing to ${INSTALL_DIR} (force overwrite)...${NC}"
 chmod +x "$TMPFILE"
-sudo cp "$TMPFILE" "${INSTALL_DIR}/cybermind"
+
+# Remove old binary first to ensure clean overwrite
+sudo rm -f "${INSTALL_DIR}/cybermind" "${INSTALL_DIR}/cbm" 2>/dev/null || true
+sudo cp -f "$TMPFILE" "${INSTALL_DIR}/cybermind"
 sudo chmod +x "${INSTALL_DIR}/cybermind"
-sudo cp "${INSTALL_DIR}/cybermind" "${INSTALL_DIR}/cbm"
+sudo cp -f "${INSTALL_DIR}/cybermind" "${INSTALL_DIR}/cbm"
 sudo chmod +x "${INSTALL_DIR}/cbm"
 rm -f "$TMPFILE"
+
+# Verify installation
+INSTALLED_VER=$("${INSTALL_DIR}/cybermind" --version 2>/dev/null | head -1 || echo "unknown")
 echo -e "${GREEN}  ✓ Installed: ${INSTALL_DIR}/cybermind${NC}"
 echo -e "${GREEN}  ✓ Alias:     ${INSTALL_DIR}/cbm${NC}"
+echo -e "${GREEN}  ✓ Version:   ${INSTALLED_VER}${NC}"
 
 # ── Save API key ──────────────────────────────────────────────────────────────
 mkdir -p "$HOME/.cybermind"
@@ -89,11 +112,39 @@ for profile in ~/.bashrc ~/.zshrc /root/.bashrc /root/.zshrc; do
   fi
 done
 
+# ── Install auto-update hook ──────────────────────────────────────────────────
+# Adds a startup check: if CLI version < latest, auto-update silently
+AUTOUPDATE_SCRIPT="/usr/local/bin/cybermind-autoupdate"
+sudo tee "$AUTOUPDATE_SCRIPT" > /dev/null << 'AUTOUPDATE'
+#!/bin/bash
+# CyberMind CLI auto-update check — runs on every cybermind startup
+# Checks version against latest, updates silently if outdated
+LATEST_URL="https://cybermindcli1.vercel.app/api/version"
+CURRENT=$(/usr/local/bin/cybermind --version 2>/dev/null | grep -oP 'v[\d.]+' | head -1)
+LATEST=$(curl -fsSL --connect-timeout 5 --max-time 10 "$LATEST_URL" 2>/dev/null | grep -oP '[\d.]+' | head -1)
+if [ -n "$LATEST" ] && [ -n "$CURRENT" ]; then
+  CURRENT_CLEAN="${CURRENT#v}"
+  if [ "$CURRENT_CLEAN" != "$LATEST" ]; then
+    echo -e "\033[0;36m  ⟳ Update available: ${CURRENT} → v${LATEST}. Run: sudo cybermind /doctor\033[0m"
+  fi
+fi
+AUTOUPDATE
+sudo chmod +x "$AUTOUPDATE_SCRIPT"
+
+# Add auto-update check to shell profiles
+for profile in ~/.bashrc ~/.zshrc /root/.bashrc /root/.zshrc; do
+  if [ -f "$profile" ] && ! grep -q "cybermind-autoupdate" "$profile" 2>/dev/null; then
+    echo '# CyberMind CLI auto-update check' >> "$profile"
+    echo 'command -v cybermind-autoupdate &>/dev/null && cybermind-autoupdate &' >> "$profile"
+  fi
+done
+
 # ── Quick tool install (essentials only — /doctor installs everything) ────────
 echo ""
 echo -e "${DIM}  ⟳ Installing essential recon tools...${NC}"
+export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update -qq 2>/dev/null || true
-for tool in nmap whois dnsutils theharvester ffuf gobuster nuclei; do
+for tool in nmap whois dnsutils theharvester ffuf gobuster; do
   command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
 done
 
@@ -119,7 +170,7 @@ else
     || (GITLEAKS_VER="8.18.4" && curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VER}/gitleaks_${GITLEAKS_VER}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz 2>/dev/null \
         && sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks 2>/dev/null \
         && rm -f /tmp/gitleaks.tar.gz \
-        || echo -e "${YELLOW}  ⚠  gitleaks install failed — see https://github.com/gitleaks/gitleaks${NC}")
+        || echo -e "${YELLOW}  ⚠  gitleaks install failed${NC}")
 fi
 
 # semgrep
@@ -139,7 +190,7 @@ else
   echo -e "${DIM}  ⟳ Installing trivy...${NC}"
   sudo apt-get install -y trivy -qq 2>/dev/null \
     || (curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin 2>/dev/null \
-        || echo -e "${YELLOW}  ⚠  trivy install failed — see https://aquasecurity.github.io/trivy${NC}")
+        || echo -e "${YELLOW}  ⚠  trivy install failed${NC}")
 fi
 
 echo -e "${GREEN}  ✓ DevSec tools checked${NC}"
@@ -156,21 +207,18 @@ echo -e "${DIM}     Upgrade at: https://cybermindcli1.vercel.app/plans${NC}"
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡ CyberMind CLI v4.4.0 installed!${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v${VERSION} installed!${NC}"
 echo ""
 echo -e "  ${CYAN}Verify:${NC}      cybermind --version"
 echo -e "  ${CYAN}AI Chat:${NC}     cybermind"
-echo -e "  ${CYAN}Doctor:${NC}      sudo cybermind /doctor   ${DIM}← installs ALL tools (isolated venv)${NC}"
+echo -e "  ${CYAN}Doctor:${NC}      sudo cybermind /doctor   ${DIM}← installs ALL tools${NC}"
 echo -e "  ${CYAN}Recon:${NC}       sudo cybermind /recon example.com"
 echo -e "  ${CYAN}Hunt:${NC}        sudo cybermind /hunt example.com"
-echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan example.com  ${DIM}← auto-detects target type${NC}"
-echo -e "  ${CYAN}OMEGA Auto:${NC}  sudo cybermind /plan --auto-target --skill intermediate"
-echo ""
-echo -e "  ${DIM}New in v4.4.0:${NC}"
-echo -e "  ${DIM}  • /devsec [Starter+]  — secret scanning, SAST, dep audit${NC}"
-echo -e "  ${DIM}  • /vibe-hack [Pro+]   — autonomous AI hacking with live SSE streaming${NC}"
-echo -e "  ${DIM}  • /chain [Pro+]       — vuln chaining engine with PoC generation${NC}"
-echo -e "  ${DIM}  • /red-team [Elite]   — structured 7-day red team campaign${NC}"
+echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan example.com"
+echo -e "  ${CYAN}DevSec:${NC}      cybermind /devsec https://github.com/owner/repo  ${DIM}[Starter+]${NC}"
+echo -e "  ${CYAN}Vibe Hack:${NC}   cybermind /vibe-hack example.com  ${DIM}[Pro+]${NC}"
+echo -e "  ${CYAN}Chain:${NC}       cybermind /chain example.com  ${DIM}[Pro+]${NC}"
+echo -e "  ${CYAN}Red Team:${NC}    cybermind /red-team company --duration 7d  ${DIM}[Elite]${NC}"
 echo ""
 if [ -n "$API_KEY" ]; then
   echo -e "  ${GREEN}✓ API key saved — run: cybermind whoami${NC}"
@@ -178,11 +226,10 @@ fi
 echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-# ── Verify install ────────────────────────────────────────────────────────────
+# ── Final verify ──────────────────────────────────────────────────────────────
 if command -v cybermind &>/dev/null; then
-  VER=$(cybermind --version 2>/dev/null || echo "v4.4.0")
-  echo -e "${GREEN}  ✓ ${VER} — ready!${NC}"
+  cybermind --version
 else
-  echo -e "${YELLOW}  ⚠  Run: hash -r && cybermind --version${NC}"
+  echo -e "${YELLOW}  ⚠  Restart terminal: source ~/.bashrc && cybermind --version${NC}"
 fi
 echo ""
