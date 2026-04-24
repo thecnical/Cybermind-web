@@ -28,7 +28,7 @@ const navLinks: NavItem[] = [
   { href: "/plans", label: "Plans" },
   { href: "/docs", label: "Docs" },
   { href: "/extensions", label: "VSCode Extension" },
-  { href: "/model", label: "AI Model" },
+  { href: "/linux-modes", label: "Linux Modes" },
   { href: "/features", label: "Features" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },

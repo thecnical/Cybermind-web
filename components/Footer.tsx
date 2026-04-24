@@ -9,6 +9,8 @@ const footerColumns = [
       { href: "/install", label: "Install" },
       { href: "/plans", label: "Plans" },
       { href: "/ai-models", label: "AI Models" },
+      { href: "/model", label: "AI Model" },
+      { href: "/linux-modes", label: "Linux Modes" },
       { href: "/features", label: "Features" },
       { href: "/get-tools", label: "Get Tools" },
     ],

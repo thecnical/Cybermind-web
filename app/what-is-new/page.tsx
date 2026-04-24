@@ -4,12 +4,28 @@ import Footer from "@/components/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "What's New — CyberMind CLI v4.3.0",
+  title: "What's New — CyberMind CLI v4.4.0",
   description:
-    "OMEGA smart target-type pipeline, isolated Python venv, brain self-learning feedback loop, 12 new exploit tools, usage monitoring, and C2 framework documentation.",
+    "v4.4.0: Four new offensive modes — /devsec, /vibe-hack, /chain, /red-team. Plus OMEGA smart target-type pipeline, isolated Python venv, brain self-learning, 12 new exploit tools, and usage monitoring.",
 };
 
 const features = [
+  {
+    badge: "MAJOR",
+    badgeColor: "#00FFFF",
+    icon: "⚡",
+    title: "v4.4.0 — Four New Offensive Modes",
+    command: "cybermind /devsec | /vibe-hack | /chain | /red-team",
+    description: "CyberMind v4.4.0 introduces four new specialized offensive security modes: DevSec scanning, autonomous AI hacking, vulnerability chaining, and multi-day red team campaigns.",
+    bullets: [
+      "/devsec [Starter+] — Scan GitHub repos for secrets (trufflehog/gitleaks), SAST (semgrep), and vulnerable deps (trivy/npm audit/pip-audit)",
+      "/vibe-hack [Pro+] — Autonomous AI hacking session: AI decides next attack step, streams live via SSE, saves full transcript",
+      "/chain [Pro+] — Reads Brain_Memory findings and suggests multi-step exploit chains (e.g., SSRF+IDOR → PII leak) with PoC",
+      "/red-team [Elite] — Structured 7-day campaign: OSINT → Phishing → Initial Access → Lateral Movement → Persistence → Report",
+    ],
+    link: "/features",
+    linkLabel: "See all features →",
+  },
   {
     badge: "MAJOR",
     badgeColor: "#00FFFF",
@@ -141,14 +157,17 @@ const features = [
 ];
 
 const fullFlow = [
-  { step: "1", cmd: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash", desc: "Install or update CLI (v4.3.0)" },
+  { step: "1", cmd: "curl -sL https://cybermindcli1.vercel.app/install.sh | bash", desc: "Install or update CLI (v4.4.0)" },
   { step: "2", cmd: "cybermind --key cp_live_xxxxx", desc: "Save your API key" },
   { step: "3", cmd: "sudo cybermind /doctor", desc: "Install ALL tools with isolated venv (one time)" },
   { step: "4", cmd: "sudo cybermind /plan target.com", desc: "OMEGA auto-detects target type + builds plan" },
   { step: "5", cmd: "sudo cybermind /recon target.com", desc: "Full recon — brain learns from every tool" },
   { step: "6", cmd: "sudo cybermind /hunt target.com", desc: "Hunt for vulnerabilities" },
-  { step: "7", cmd: "sudo cybermind /abhimanyu target.com", desc: "Exploit with 12 new tools (Elite)" },
-  { step: "8", cmd: "cybermind report", desc: "Generate professional pentest report" },
+  { step: "7", cmd: "cybermind /devsec https://github.com/owner/repo", desc: "DevSec scan — secrets, SAST, deps [Starter+]" },
+  { step: "8", cmd: "cybermind /vibe-hack target.com", desc: "Autonomous AI hacking session [Pro+]" },
+  { step: "9", cmd: "cybermind /chain target.com", desc: "Vulnerability chaining engine [Pro+]" },
+  { step: "10", cmd: "sudo cybermind /abhimanyu target.com", desc: "Exploit with 12 new tools (Elite)" },
+  { step: "11", cmd: "cybermind report", desc: "Generate professional pentest report" },
 ];
 
 export default function WhatsNewPage() {
@@ -160,14 +179,13 @@ export default function WhatsNewPage() {
         {/* Hero */}
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#00FFFF]/30 bg-[#00FFFF]/10 px-3 py-1 text-xs font-semibold text-[#00FFFF] uppercase tracking-wider mb-4">
-            v4.3.0 — April 24, 2026
+            v4.4.0 — May 2026
           </div>
           <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
             What&apos;s new in CyberMind
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-[var(--text-soft)]">
-            OMEGA smart target-type pipeline, isolated Python venv, brain self-learning,
-            12 new exploit tools, and backend usage monitoring.
+            Four new offensive modes: /devsec, /vibe-hack, /chain, /red-team. Plus OMEGA smart pipeline, isolated Python venv, brain self-learning, and 12 new exploit tools.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/install"
@@ -220,7 +238,7 @@ export default function WhatsNewPage() {
 
         {/* Full Linux Flow */}
         <div className="mt-12 rounded-[28px] border border-[#8A2BE2]/30 bg-[radial-gradient(circle_at_top,rgba(138,43,226,0.1),transparent_50%)] p-6 md:p-8">
-          <p className="cm-label text-[#8A2BE2]">Linux Full Flow — v4.3.0</p>
+          <p className="cm-label text-[#8A2BE2]">Linux Full Flow — v4.4.0</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">
             From install to exploitation — the complete workflow
           </h2>
