@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { MarketingPageView } from "@/components/SitePrimitives";
 import type { Metadata } from "next";
 import { PAGE_META } from "@/app/seo-metadata";
+import NewModesGrid from "./NewModesGrid";
 
 export const metadata: Metadata = PAGE_META.features;
 
@@ -211,6 +212,41 @@ export default function FeaturesPage() {
     <div className="min-h-screen">
       <Navbar />
       <MarketingPageView page={page} />
+
+      {/* New in v4.4.0 section */}
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 20px 80px" }}>
+        <div style={{
+          background: "rgba(0,255,255,0.03)",
+          border: "1px solid rgba(0,255,255,0.12)",
+          borderRadius: 20,
+          padding: "32px",
+        }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
+              display: "inline-block",
+              background: "rgba(0,255,255,0.08)",
+              border: "1px solid rgba(0,255,255,0.2)",
+              borderRadius: 20,
+              padding: "3px 14px",
+              fontSize: 11,
+              color: "#00FFFF",
+              marginBottom: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase" as const,
+            }}>
+              New in v4.4.0
+            </div>
+            <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
+              Four New Offensive Modes
+            </h2>
+            <p style={{ color: "#8b949e", fontSize: 14, marginTop: 8 }}>
+              CyberMind v4.4.0 introduces four new specialized offensive security modes.
+            </p>
+          </div>
+          <NewModesGrid />
+        </div>
+      </div>
+
       <Footer />
     </div>
   );

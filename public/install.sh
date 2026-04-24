@@ -1,8 +1,8 @@
 ﻿#!/bin/bash
-# CyberMind CLI — Linux/Kali Installer v4.3.0
+# CyberMind CLI — Linux/Kali Installer v4.4.0
 # Downloads pre-built binary — NO Go required.
 # Full pipeline: recon + hunt + Abhimanyu + OMEGA smart pipeline + AI chat
-# New in v4.3.0: OMEGA target-type detection, isolated venv, brain self-learning
+# New in v4.4.0: /devsec, /vibe-hack, /chain, /red-team — four new offensive modes
 #
 # Usage:
 #   curl -sL https://cybermindcli1.vercel.app/install.sh | bash
@@ -26,8 +26,9 @@ echo -e "${CYAN}██║      ╚████╔╝ ██████╔╝█
 echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
 echo -e "${CYAN} ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝${NC}"
 echo ""
-echo -e "${GREEN}  ⚡ CyberMind CLI v4.3.0 — Installer${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v4.4.0 — Installer${NC}"
 echo -e "${DIM}  No Go required. OMEGA smart pipeline + isolated venv + brain self-learning${NC}"
+echo -e "${DIM}  New in v4.4.0: /devsec · /vibe-hack · /chain · /red-team${NC}"
 echo ""
 
 # ── Detect architecture ───────────────────────────────────────────────────────
@@ -96,10 +97,66 @@ for tool in nmap whois dnsutils theharvester ffuf gobuster nuclei; do
   command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
 done
 
+# ── DevSec tools (for /devsec — Starter+ plan) ───────────────────────────────
+echo ""
+echo -e "${DIM}  ⟳ Checking DevSec tools (/devsec — Starter+ plan)...${NC}"
+
+# trufflehog
+if command -v trufflehog &>/dev/null; then
+  echo -e "${DIM}  [already installed] trufflehog${NC}"
+else
+  echo -e "${DIM}  ⟳ Installing trufflehog...${NC}"
+  curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin 2>/dev/null \
+    || echo -e "${YELLOW}  ⚠  trufflehog install failed — run: sudo apt install trufflehog${NC}"
+fi
+
+# gitleaks
+if command -v gitleaks &>/dev/null; then
+  echo -e "${DIM}  [already installed] gitleaks${NC}"
+else
+  echo -e "${DIM}  ⟳ Installing gitleaks...${NC}"
+  sudo apt-get install -y gitleaks -qq 2>/dev/null \
+    || (GITLEAKS_VER="8.18.4" && curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VER}/gitleaks_${GITLEAKS_VER}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz 2>/dev/null \
+        && sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks 2>/dev/null \
+        && rm -f /tmp/gitleaks.tar.gz \
+        || echo -e "${YELLOW}  ⚠  gitleaks install failed — see https://github.com/gitleaks/gitleaks${NC}")
+fi
+
+# semgrep
+if command -v semgrep &>/dev/null; then
+  echo -e "${DIM}  [already installed] semgrep${NC}"
+else
+  echo -e "${DIM}  ⟳ Installing semgrep...${NC}"
+  pipx install semgrep 2>/dev/null \
+    || pip3 install semgrep --break-system-packages -q 2>/dev/null \
+    || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
+fi
+
+# trivy
+if command -v trivy &>/dev/null; then
+  echo -e "${DIM}  [already installed] trivy${NC}"
+else
+  echo -e "${DIM}  ⟳ Installing trivy...${NC}"
+  sudo apt-get install -y trivy -qq 2>/dev/null \
+    || (curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin 2>/dev/null \
+        || echo -e "${YELLOW}  ⚠  trivy install failed — see https://aquasecurity.github.io/trivy${NC}")
+fi
+
+echo -e "${GREEN}  ✓ DevSec tools checked${NC}"
+
+# ── Plan-gated mode notice ────────────────────────────────────────────────────
+echo ""
+echo -e "${DIM}  ℹ  Plan-gated modes in v4.4.0:${NC}"
+echo -e "${DIM}     /devsec    — Starter+ plan (₹85/mo)${NC}"
+echo -e "${DIM}     /vibe-hack — Pro+ plan (₹1,149/mo)${NC}"
+echo -e "${DIM}     /chain     — Pro+ plan (₹1,149/mo)${NC}"
+echo -e "${DIM}     /red-team  — Elite plan (₹2,399/mo)${NC}"
+echo -e "${DIM}     Upgrade at: https://cybermindcli1.vercel.app/plans${NC}"
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡ CyberMind CLI v4.3.0 installed!${NC}"
+echo -e "${GREEN}  ⚡ CyberMind CLI v4.4.0 installed!${NC}"
 echo ""
 echo -e "  ${CYAN}Verify:${NC}      cybermind --version"
 echo -e "  ${CYAN}AI Chat:${NC}     cybermind"
@@ -109,11 +166,11 @@ echo -e "  ${CYAN}Hunt:${NC}        sudo cybermind /hunt example.com"
 echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan example.com  ${DIM}← auto-detects target type${NC}"
 echo -e "  ${CYAN}OMEGA Auto:${NC}  sudo cybermind /plan --auto-target --skill intermediate"
 echo ""
-echo -e "  ${DIM}New in v4.3.0:${NC}"
-echo -e "  ${DIM}  • OMEGA smart pipeline: web/IP/email/phone/person/binary/APK/hash${NC}"
-echo -e "  ${DIM}  • Isolated Python venv: no more pip errors on Kali 2024+${NC}"
-echo -e "  ${DIM}  • Brain self-learning: confidence scores update after every scan${NC}"
-echo -e "  ${DIM}  • 12 new exploit tools: interactsh, ghauri, pacu, roadrecon...${NC}"
+echo -e "  ${DIM}New in v4.4.0:${NC}"
+echo -e "  ${DIM}  • /devsec [Starter+]  — secret scanning, SAST, dep audit${NC}"
+echo -e "  ${DIM}  • /vibe-hack [Pro+]   — autonomous AI hacking with live SSE streaming${NC}"
+echo -e "  ${DIM}  • /chain [Pro+]       — vuln chaining engine with PoC generation${NC}"
+echo -e "  ${DIM}  • /red-team [Elite]   — structured 7-day red team campaign${NC}"
 echo ""
 if [ -n "$API_KEY" ]; then
   echo -e "  ${GREEN}✓ API key saved — run: cybermind whoami${NC}"
@@ -123,7 +180,7 @@ echo ""
 
 # ── Verify install ────────────────────────────────────────────────────────────
 if command -v cybermind &>/dev/null; then
-  VER=$(cybermind --version 2>/dev/null || echo "v4.3.0")
+  VER=$(cybermind --version 2>/dev/null || echo "v4.4.0")
   echo -e "${GREEN}  ✓ ${VER} — ready!${NC}"
 else
   echo -e "${YELLOW}  ⚠  Run: hash -r && cybermind --version${NC}"
