@@ -21,6 +21,13 @@ while [[ $# -gt 0 ]]; do
   case $1 in --key) API_KEY="$2"; shift 2 ;; *) shift ;; esac
 done
 
+# ── WSL Detection ─────────────────────────────────────────────────────────────
+IS_WSL=false
+if [ -f /proc/version ] && grep -qi "microsoft\|wsl" /proc/version 2>/dev/null; then
+  IS_WSL=true
+  echo -e "${YELLOW}  ⚠  WSL detected — raw socket tools (masscan, zmap) will be skipped${NC}"
+fi
+
 echo ""
 echo -e "${CYAN} ██████╗██╗   ██╗██████╗ ███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██████╗${NC}"
 echo -e "${CYAN}██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗${NC}"
@@ -148,6 +155,25 @@ for tool in nmap whois dnsutils theharvester ffuf gobuster; do
   command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
 done
 
+# Install naabu (primary port scanner — replaces rustscan)
+if ! command -v naabu &>/dev/null; then
+  echo -e "${DIM}  ⟳ Installing naabu (primary port scanner)...${NC}"
+  sudo apt-get install -y libpcap-dev -qq 2>/dev/null || true
+  if command -v go &>/dev/null; then
+    go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest 2>/dev/null && \
+      sudo ln -sf "$HOME/go/bin/naabu" /usr/local/bin/naabu 2>/dev/null || true
+  fi
+fi
+
+# Skip raw socket tools on WSL
+if [ "$IS_WSL" = "false" ]; then
+  for tool in masscan; do
+    command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
+  done
+else
+  echo -e "${YELLOW}  ⚠  Skipping masscan/zmap on WSL (raw sockets not supported)${NC}"
+fi
+
 # ── DevSec tools (for /devsec — Starter+ plan) ───────────────────────────────
 echo ""
 echo -e "${DIM}  ⟳ Checking DevSec tools (/devsec — Starter+ plan)...${NC}"
@@ -178,9 +204,18 @@ if command -v semgrep &>/dev/null; then
   echo -e "${DIM}  [already installed] semgrep${NC}"
 else
   echo -e "${DIM}  ⟳ Installing semgrep...${NC}"
-  pipx install semgrep 2>/dev/null \
-    || pip3 install semgrep --break-system-packages -q 2>/dev/null \
-    || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
+  # Robust Python tool install: pipx → pip3 --break-system-packages → pip3
+  if command -v pipx &>/dev/null; then
+    PIPX_BIN_DIR=/usr/local/bin PIPX_HOME=/opt/pipx pipx install semgrep 2>/dev/null \
+      && echo -e "${GREEN}  ✓ semgrep installed via pipx${NC}" \
+      || pip3 install semgrep --break-system-packages -q 2>/dev/null \
+      || pip3 install semgrep -q 2>/dev/null \
+      || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
+  else
+    pip3 install semgrep --break-system-packages -q 2>/dev/null \
+      || pip3 install semgrep -q 2>/dev/null \
+      || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
+  fi
 fi
 
 # trivy
