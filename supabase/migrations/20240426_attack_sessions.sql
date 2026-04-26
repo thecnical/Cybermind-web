@@ -38,5 +38,15 @@ CREATE POLICY "Users can update own attack sessions"
   ON public.attack_sessions FOR UPDATE
   USING (auth.uid() = user_id);
 
--- Enable realtime for live dashboard updates
-ALTER PUBLICATION supabase_realtime ADD TABLE public.attack_sessions;
+-- Enable realtime for live dashboard updates (safe — skips if already member)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'attack_sessions'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attack_sessions;
+  END IF;
+END $$;
