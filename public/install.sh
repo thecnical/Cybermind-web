@@ -1,270 +1,347 @@
-﻿#!/bin/bash
-# CyberMind CLI — Linux/Kali Installer v4.4.0
-# Downloads pre-built binary — NO Go required.
-# Full pipeline: recon + hunt + Abhimanyu + OMEGA smart pipeline + AI chat
-# New in v4.4.0: /devsec · /vibe-hack · /chain · /red-team
-#
-# Usage:
-#   curl -sL https://cybermindcli1.vercel.app/install.sh | bash
-#   CYBERMIND_KEY=cp_live_xxx curl -sL https://cybermindcli1.vercel.app/install.sh | bash
+#!/bin/bash
+# CyberMind CLI Installer — Kali Linux / Ubuntu / Debian
+# Downloads pre-built binary from GitHub (fast, no Go needed)
+# Usage: curl -sL https://cybermindcli1.vercel.app/install.sh | bash
+# Usage: CYBERMIND_KEY=cp_live_xxx curl -sL https://cybermindcli1.vercel.app/install.sh | bash
 
 set -e
-CYAN='\033[0;36m'; GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; DIM='\033[2m'; NC='\033[0m'
 
-VERSION="4.4.0"
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+PURPLE='\033[0;35m'
+DIM='\033[0;90m'
+BOLD='\033[1m'
+NC='\033[0m'
+
 GITHUB_RAW="https://raw.githubusercontent.com/thecnical/cybermind/main/cli"
-CDN="https://cybermindcli1.vercel.app"
-API_KEY="${CYBERMIND_KEY:-}"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_PATH="/usr/local/bin/cybermind"
+CBM_PATH="/usr/local/bin/cbm"
+VERSION="4.4.0"
 
-while [[ $# -gt 0 ]]; do
-  case $1 in --key) API_KEY="$2"; shift 2 ;; *) shift ;; esac
-done
-
-# ── WSL Detection ─────────────────────────────────────────────────────────────
-IS_WSL=false
-if [ -f /proc/version ] && grep -qi "microsoft\|wsl" /proc/version 2>/dev/null; then
-  IS_WSL=true
-  echo -e "${YELLOW}  ⚠  WSL detected — raw socket tools (masscan, zmap) will be skipped${NC}"
-fi
-
-echo ""
-echo -e "${CYAN} ██████╗██╗   ██╗██████╗ ███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██████╗${NC}"
-echo -e "${CYAN}██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗${NC}"
-echo -e "${CYAN}██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║  ██║${NC}"
-echo -e "${CYAN}╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝${NC}"
-echo -e "${CYAN} ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝${NC}"
-echo ""
-echo -e "${GREEN}  ⚡ CyberMind CLI v${VERSION} — Installer${NC}"
-echo -e "${DIM}  OMEGA smart pipeline + /devsec + /vibe-hack + /chain + /red-team${NC}"
+echo -e "${CYAN}"
+cat << 'BANNER'
+ ██████╗██╗   ██╗██████╗ ███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██████╗
+██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗
+██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║  ██║
+██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██║  ██║
+╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝
+ ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝
+BANNER
+echo -e "${NC}"
+echo -e "${BOLD}${GREEN}⚡ CyberMind CLI Installer v${VERSION}${NC}"
+echo -e "${DIM}   AI-Powered Bug Bounty & Recon Platform${NC}"
 echo ""
 
-# ── Detect architecture ───────────────────────────────────────────────────────
+# ── Detect OS + arch ──────────────────────────────────────────────────────────
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
+
 case "$ARCH" in
-  aarch64|arm64) BINARY_NAME="cybermind-linux-arm64" ;;
-  *)             BINARY_NAME="cybermind-linux-amd64" ;;
+    x86_64)  BINARY="cybermind-linux-amd64" ;;
+    aarch64) BINARY="cybermind-linux-arm64" ;;
+    arm64)   BINARY="cybermind-linux-arm64" ;;
+    *)
+        echo -e "${YELLOW}[!] Unsupported architecture: $ARCH — building from source...${NC}"
+        BINARY=""
+        ;;
 esac
-echo -e "${DIM}  Arch: ${ARCH} → ${BINARY_NAME}${NC}"
 
-# ── Download binary (GitHub primary, Vercel CDN fallback) ────────────────────
-echo -e "${DIM}  ⟳ Downloading CyberMind CLI v${VERSION}...${NC}"
-TMPFILE=$(mktemp /tmp/cybermind-XXXXXX)
-
-download_binary() {
-  local url="$1"
-  local label="$2"
-  echo -e "${DIM}  ⟳ Trying ${label}...${NC}"
-  if command -v curl &>/dev/null; then
-    HTTP_CODE=$(curl -fsSL --connect-timeout 15 --max-time 120 -w "%{http_code}" -o "$TMPFILE" "$url" 2>/dev/null)
-  elif command -v wget &>/dev/null; then
-    wget -q --timeout=120 "$url" -O "$TMPFILE" 2>/dev/null && HTTP_CODE="200" || HTTP_CODE="000"
-  fi
-  FILESIZE=$(stat -c%s "$TMPFILE" 2>/dev/null || stat -f%z "$TMPFILE" 2>/dev/null || echo 0)
-  if [ "${HTTP_CODE:-000}" = "200" ] && [ "$FILESIZE" -gt 5242880 ]; then
-    echo -e "${GREEN}  ✓ Downloaded ${FILESIZE} bytes from ${label}${NC}"
-    return 0
-  fi
-  echo -e "${YELLOW}  ⚠  ${label} failed (HTTP ${HTTP_CODE:-000}, ${FILESIZE} bytes)${NC}"
-  return 1
-}
-
-# Try GitHub first (most reliable, always has latest)
-GITHUB_URL="${GITHUB_RAW}/${BINARY_NAME}"
-CDN_URL="${CDN}/${BINARY_NAME}"
-
-if ! download_binary "$GITHUB_URL" "GitHub"; then
-  if ! download_binary "$CDN_URL" "Vercel CDN"; then
-    rm -f "$TMPFILE"
-    echo -e "${RED}  ✗ All download sources failed. Check your internet connection.${NC}"
-    echo -e "${YELLOW}  Manual: wget ${GITHUB_URL} -O /usr/local/bin/cybermind && chmod +x /usr/local/bin/cybermind${NC}"
-    exit 1
-  fi
+if [ "$OS" != "linux" ]; then
+    echo -e "${YELLOW}[!] Non-Linux OS detected ($OS). Recon/hunt tools are Linux-only.${NC}"
+    echo -e "${DIM}    AI chat + CBM Code work on all platforms.${NC}"
 fi
 
-# ── Force install (overwrite any existing version) ───────────────────────────
-echo -e "${DIM}  ⟳ Installing to ${INSTALL_DIR} (force overwrite)...${NC}"
-chmod +x "$TMPFILE"
+# ── Step 1: Download pre-built binary from GitHub ─────────────────────────────
+if [ -n "$BINARY" ]; then
+    echo -e "${YELLOW}[*] Downloading CyberMind CLI binary (${BINARY})...${NC}"
+    BINARY_URL="${GITHUB_RAW}/${BINARY}"
+    TMP_BIN="/tmp/cybermind-install-$$"
 
-# Remove old binary first to ensure clean overwrite
-sudo rm -f "${INSTALL_DIR}/cybermind" "${INSTALL_DIR}/cbm" 2>/dev/null || true
-sudo cp -f "$TMPFILE" "${INSTALL_DIR}/cybermind"
-sudo chmod +x "${INSTALL_DIR}/cybermind"
-sudo cp -f "${INSTALL_DIR}/cybermind" "${INSTALL_DIR}/cbm"
-sudo chmod +x "${INSTALL_DIR}/cbm"
-rm -f "$TMPFILE"
+    if command -v curl &>/dev/null; then
+        HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "$TMP_BIN" "$BINARY_URL" 2>/dev/null)
+    elif command -v wget &>/dev/null; then
+        wget -q -O "$TMP_BIN" "$BINARY_URL" 2>/dev/null && HTTP_CODE="200" || HTTP_CODE="404"
+    else
+        echo -e "${RED}[!] curl or wget required${NC}"
+        exit 1
+    fi
 
-# Verify installation
-INSTALLED_VER=$("${INSTALL_DIR}/cybermind" --version 2>/dev/null | head -1 || echo "unknown")
-echo -e "${GREEN}  ✓ Installed: ${INSTALL_DIR}/cybermind${NC}"
-echo -e "${GREEN}  ✓ Alias:     ${INSTALL_DIR}/cbm${NC}"
-echo -e "${GREEN}  ✓ Version:   ${INSTALLED_VER}${NC}"
-
-# ── Save API key ──────────────────────────────────────────────────────────────
-mkdir -p "$HOME/.cybermind"
-chmod 700 "$HOME/.cybermind"
-if [ -n "$API_KEY" ]; then
-  printf '{"key":"%s"}' "$API_KEY" > "$HOME/.cybermind/config.json"
-  chmod 600 "$HOME/.cybermind/config.json"
-  echo -e "${GREEN}  ✓ API key saved to ~/.cybermind/config.json${NC}"
-else
-  echo -e "${YELLOW}  ℹ  No API key provided. Run: cybermind --key cp_live_xxx${NC}"
+    FILE_SIZE=$(stat -c%s "$TMP_BIN" 2>/dev/null || stat -f%z "$TMP_BIN" 2>/dev/null || echo 0)
+    if [ "$HTTP_CODE" = "200" ] && [ -f "$TMP_BIN" ] && [ "$FILE_SIZE" -gt 1048576 ]; then
+        chmod +x "$TMP_BIN"
+        sudo cp "$TMP_BIN" "$INSTALL_PATH"
+        sudo chmod +x "$INSTALL_PATH"
+        sudo cp "$INSTALL_PATH" "$CBM_PATH"
+        sudo chmod +x "$CBM_PATH"
+        rm -f "$TMP_BIN"
+        echo -e "${GREEN}[✓] Binary installed: $INSTALL_PATH${NC}"
+        echo -e "${GREEN}[✓] Alias installed:  $CBM_PATH${NC}"
+    else
+        rm -f "$TMP_BIN"
+        echo -e "${YELLOW}[!] Binary download failed (HTTP $HTTP_CODE, size ${FILE_SIZE}B). Building from source...${NC}"
+        BINARY=""
+    fi
 fi
 
-# ── Configure PATH ────────────────────────────────────────────────────────────
+# ── Step 2: Build from source (fallback) ─────────────────────────────────────
+if [ -z "$BINARY" ] || ! command -v cybermind &>/dev/null; then
+    echo -e "${YELLOW}[*] Building from source (requires Go)...${NC}"
+
+    if ! command -v go &>/dev/null; then
+        echo -e "${YELLOW}[!] Go not found. Installing Go 1.22...${NC}"
+        GO_VERSION="1.22.0"
+        GO_TARBALL="go${GO_VERSION}.linux-amd64.tar.gz"
+        GO_URL="https://go.dev/dl/${GO_TARBALL}"
+        wget -q "$GO_URL" -O "/tmp/${GO_TARBALL}"
+        sudo rm -rf /usr/local/go
+        sudo tar -C /usr/local -xzf "/tmp/${GO_TARBALL}"
+        rm "/tmp/${GO_TARBALL}"
+        export PATH=$PATH:/usr/local/go/bin
+        for profile in /root/.bashrc /root/.zshrc /home/*/.bashrc /home/*/.zshrc; do
+            [ -f "$profile" ] && grep -q "/usr/local/go/bin" "$profile" || \
+                echo 'export PATH=$PATH:/usr/local/go/bin' >> "$profile" 2>/dev/null || true
+        done
+    fi
+    echo -e "${GREEN}[✓] Go $(go version | awk '{print $3}')${NC}"
+
+    REPO_DIR="/tmp/cybermind-src-$$"
+    echo -e "${YELLOW}[*] Cloning CyberMind repo...${NC}"
+    git clone --depth=1 https://github.com/thecnical/cybermind.git "$REPO_DIR" 2>/dev/null
+    cd "$REPO_DIR/cli"
+    go mod tidy -q
+    go build -ldflags="-s -w" -o /tmp/cybermind-built .
+    chmod +x /tmp/cybermind-built
+    sudo cp /tmp/cybermind-built "$INSTALL_PATH"
+    sudo cp /tmp/cybermind-built "$CBM_PATH"
+    rm -rf "$REPO_DIR" /tmp/cybermind-built
+    echo -e "${GREEN}[✓] Built and installed from source${NC}"
+fi
+
+# ── Step 3: Save API key if provided ─────────────────────────────────────────
+if [ -n "$CYBERMIND_KEY" ]; then
+    echo ""
+    echo -e "${YELLOW}[*] Saving API key...${NC}"
+    mkdir -p "$HOME/.cybermind"
+    chmod 700 "$HOME/.cybermind"
+    printf '{"key":"%s"}' "$CYBERMIND_KEY" > "$HOME/.cybermind/config.json"
+    chmod 600 "$HOME/.cybermind/config.json"
+    echo -e "${GREEN}[✓] API key saved to ~/.cybermind/config.json${NC}"
+fi
+
+# ── Step 4: Configure PATH ────────────────────────────────────────────────────
 export PATH=$PATH:/usr/local/bin:$HOME/go/bin:/usr/local/go/bin
-for profile in ~/.bashrc ~/.zshrc /root/.bashrc /root/.zshrc; do
-  if [ -f "$profile" ] && ! grep -q "go/bin" "$profile" 2>/dev/null; then
-    echo 'export PATH=$PATH:$HOME/go/bin:/usr/local/go/bin' >> "$profile"
-  fi
+for profile in ~/.bashrc ~/.zshrc ~/.profile /root/.bashrc /root/.zshrc; do
+    if [ -f "$profile" ] && ! grep -q "go/bin" "$profile"; then
+        echo 'export PATH=$PATH:$HOME/go/bin:/usr/local/go/bin' >> "$profile"
+    fi
 done
 
-# ── Install auto-update hook ──────────────────────────────────────────────────
-# Adds a startup check: if CLI version < latest, auto-update silently
-AUTOUPDATE_SCRIPT="/usr/local/bin/cybermind-autoupdate"
-sudo tee "$AUTOUPDATE_SCRIPT" > /dev/null << 'AUTOUPDATE'
-#!/bin/bash
-# CyberMind CLI auto-update check — runs on every cybermind startup
-# Checks version against latest, updates silently if outdated
-LATEST_URL="https://cybermindcli1.vercel.app/api/version"
-CURRENT=$(/usr/local/bin/cybermind --version 2>/dev/null | grep -oP 'v[\d.]+' | head -1)
-LATEST=$(curl -fsSL --connect-timeout 5 --max-time 10 "$LATEST_URL" 2>/dev/null | grep -oP '[\d.]+' | head -1)
-if [ -n "$LATEST" ] && [ -n "$CURRENT" ]; then
-  CURRENT_CLEAN="${CURRENT#v}"
-  if [ "$CURRENT_CLEAN" != "$LATEST" ]; then
-    echo -e "\033[0;36m  ⟳ Update available: ${CURRENT} → v${LATEST}. Run: sudo cybermind /doctor\033[0m"
-  fi
-fi
-AUTOUPDATE
-sudo chmod +x "$AUTOUPDATE_SCRIPT"
-
-# Add auto-update check to shell profiles
-for profile in ~/.bashrc ~/.zshrc /root/.bashrc /root/.zshrc; do
-  if [ -f "$profile" ] && ! grep -q "cybermind-autoupdate" "$profile" 2>/dev/null; then
-    echo '# CyberMind CLI auto-update check' >> "$profile"
-    echo 'command -v cybermind-autoupdate &>/dev/null && cybermind-autoupdate &' >> "$profile"
-  fi
-done
-
-# ── Quick tool install (essentials only — /doctor installs everything) ────────
+# ── Step 5: Install essential recon + hunt tools ──────────────────────────────
 echo ""
-echo -e "${DIM}  ⟳ Installing essential recon tools...${NC}"
+echo -e "${BOLD}${YELLOW}[*] Installing essential recon + hunt tools...${NC}"
+echo -e "${DIM}    Full install: sudo cybermind /doctor${NC}"
+echo ""
+
+# Non-interactive apt
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update -qq 2>/dev/null || true
-for tool in nmap whois dnsutils theharvester ffuf gobuster; do
-  command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
+
+# ── APT essentials ────────────────────────────────────────────────────────────
+APT_TOOLS=(
+    nmap masscan zmap whois dnsutils theharvester whatweb
+    ffuf feroxbuster gobuster nikto amass sqlmap commix
+    wpscan libpcap-dev python3-pip pipx git curl wget
+    libimage-exiftool-perl wafw00f
+)
+echo -e "${DIM}  Installing apt packages...${NC}"
+sudo apt-get install -y "${APT_TOOLS[@]}" -qq 2>/dev/null || true
+
+# ── Go tools ─────────────────────────────────────────────────────────────────
+symlink_go_tool() {
+    local bin="$1"
+    for gobin in "$HOME/go/bin" "/root/go/bin"; do
+        [ -f "$gobin/$bin" ] && sudo ln -sf "$gobin/$bin" "/usr/local/bin/$bin" 2>/dev/null && return
+    done
+}
+
+echo -e "${DIM}  Installing Go tools...${NC}"
+GO_TOOLS=(
+    "subfinder:github.com/projectdiscovery/subfinder/v2/cmd/subfinder"
+    "httpx:github.com/projectdiscovery/httpx/cmd/httpx"
+    "nuclei:github.com/projectdiscovery/nuclei/v3/cmd/nuclei"
+    "dnsx:github.com/projectdiscovery/dnsx/cmd/dnsx"
+    "naabu:github.com/projectdiscovery/naabu/v2/cmd/naabu"
+    "katana:github.com/projectdiscovery/katana/cmd/katana"
+    "tlsx:github.com/projectdiscovery/tlsx/cmd/tlsx"
+    "urlfinder:github.com/projectdiscovery/urlfinder/cmd/urlfinder"
+    "gau:github.com/lc/gau/v2/cmd/gau"
+    "waybackurls:github.com/tomnomnom/waybackurls"
+    "hakrawler:github.com/hakluke/hakrawler"
+    "dalfox:github.com/hahwul/dalfox/v2"
+    "kxss:github.com/Emoe/kxss"
+    "gospider:github.com/jaeles-project/gospider"
+    "subjs:github.com/lc/subjs"
+    "httprobe:github.com/tomnomnom/httprobe"
+    "gf:github.com/tomnomnom/gf"
+    "chisel:github.com/jpillora/chisel"
+)
+for entry in "${GO_TOOLS[@]}"; do
+    bin="${entry%%:*}"; module="${entry##*:}"
+    if ! command -v "$bin" &>/dev/null; then
+        go install "${module}@latest" 2>/dev/null && symlink_go_tool "$bin" || true
+    fi
 done
 
-# Install naabu (primary port scanner — replaces rustscan)
-if ! command -v naabu &>/dev/null; then
-  echo -e "${DIM}  ⟳ Installing naabu (primary port scanner)...${NC}"
-  sudo apt-get install -y libpcap-dev -qq 2>/dev/null || true
-  if command -v go &>/dev/null; then
-    go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest 2>/dev/null && \
-      sudo ln -sf "$HOME/go/bin/naabu" /usr/local/bin/naabu 2>/dev/null || true
-  fi
+# ── Python tools via pipx ─────────────────────────────────────────────────────
+echo -e "${DIM}  Installing Python tools via pipx (isolated, no system pollution)...${NC}"
+# Ensure pipx is available
+if ! command -v pipx &>/dev/null; then
+    sudo apt-get install -y pipx python3-venv -qq 2>/dev/null || pip3 install pipx -q 2>/dev/null || true
+fi
+export PIPX_BIN_DIR=/usr/local/bin
+export PIPX_HOME=/opt/pipx
+PIPX_TOOLS=(shodan h8mail wafw00f arjun graphw00f waymore)
+for tool in "${PIPX_TOOLS[@]}"; do
+    if ! command -v "$tool" &>/dev/null; then
+        pipx install "$tool" 2>/dev/null || \
+        pip3 install "$tool" --break-system-packages -q 2>/dev/null || \
+        pip3 install "$tool" -q 2>/dev/null || true
+    fi
+done
+
+# ── TruffleHog ────────────────────────────────────────────────────────────────
+if ! command -v trufflehog &>/dev/null; then
+    echo -e "${DIM}  Installing trufflehog...${NC}"
+    curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh \
+        | sh -s -- -b /usr/local/bin 2>/dev/null || true
 fi
 
-# Skip raw socket tools on WSL
-if [ "$IS_WSL" = "false" ]; then
-  for tool in masscan; do
-    command -v "$tool" &>/dev/null || sudo apt-get install -y "$tool" -qq 2>/dev/null || true
-  done
-else
-  echo -e "${YELLOW}  ⚠  Skipping masscan/zmap on WSL (raw sockets not supported)${NC}"
+# ── GF patterns ───────────────────────────────────────────────────────────────
+if command -v gf &>/dev/null && [ ! -d "$HOME/.gf" ]; then
+    git clone --depth=1 https://github.com/1ndianl33t/Gf-Patterns "$HOME/.gf" 2>/dev/null || true
 fi
 
-# ── DevSec tools (for /devsec — Starter+ plan) ───────────────────────────────
-echo ""
-echo -e "${DIM}  ⟳ Checking DevSec tools (/devsec — Starter+ plan)...${NC}"
-
-# trufflehog
-if command -v trufflehog &>/dev/null; then
-  echo -e "${DIM}  [already installed] trufflehog${NC}"
-else
-  echo -e "${DIM}  ⟳ Installing trufflehog...${NC}"
-  curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin 2>/dev/null \
-    || echo -e "${YELLOW}  ⚠  trufflehog install failed — run: sudo apt install trufflehog${NC}"
+# ── Nuclei templates ──────────────────────────────────────────────────────────
+if command -v nuclei &>/dev/null; then
+    nuclei -update-templates 2>/dev/null || true
 fi
 
-# gitleaks
-if command -v gitleaks &>/dev/null; then
-  echo -e "${DIM}  [already installed] gitleaks${NC}"
-else
-  echo -e "${DIM}  ⟳ Installing gitleaks...${NC}"
-  sudo apt-get install -y gitleaks -qq 2>/dev/null \
-    || (GITLEAKS_VER="8.18.4" && curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VER}/gitleaks_${GITLEAKS_VER}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz 2>/dev/null \
-        && sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks 2>/dev/null \
-        && rm -f /tmp/gitleaks.tar.gz \
-        || echo -e "${YELLOW}  ⚠  gitleaks install failed${NC}")
+# ── Interactsh (real SSRF/OOB verification) ───────────────────────────────────
+if ! command -v interactsh-client &>/dev/null; then
+    echo -e "${DIM}  Installing interactsh-client (OOB verification)...${NC}"
+    go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest 2>/dev/null && \
+        symlink_go_tool "interactsh-client" || true
 fi
 
-# semgrep
-if command -v semgrep &>/dev/null; then
-  echo -e "${DIM}  [already installed] semgrep${NC}"
-else
-  echo -e "${DIM}  ⟳ Installing semgrep...${NC}"
-  # Robust Python tool install: pipx → pip3 --break-system-packages → pip3
-  if command -v pipx &>/dev/null; then
-    PIPX_BIN_DIR=/usr/local/bin PIPX_HOME=/opt/pipx pipx install semgrep 2>/dev/null \
-      && echo -e "${GREEN}  ✓ semgrep installed via pipx${NC}" \
-      || pip3 install semgrep --break-system-packages -q 2>/dev/null \
-      || pip3 install semgrep -q 2>/dev/null \
-      || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
-  else
-    pip3 install semgrep --break-system-packages -q 2>/dev/null \
-      || pip3 install semgrep -q 2>/dev/null \
-      || echo -e "${YELLOW}  ⚠  semgrep install failed — run: pip3 install semgrep${NC}"
-  fi
+# ── Playwright (browser automation for XSS/OAuth/race conditions) ─────────────
+if ! command -v node &>/dev/null; then
+    echo -e "${DIM}  Installing Node.js for Playwright...${NC}"
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 2>/dev/null || true
+    sudo apt-get install -y nodejs -qq 2>/dev/null || true
+fi
+if command -v node &>/dev/null && ! node -e "require('playwright')" 2>/dev/null; then
+    echo -e "${DIM}  Installing Playwright (browser automation)...${NC}"
+    sudo npm install -g playwright 2>/dev/null || true
+    sudo npx playwright install chromium --with-deps 2>/dev/null || true
 fi
 
-# trivy
-if command -v trivy &>/dev/null; then
-  echo -e "${DIM}  [already installed] trivy${NC}"
-else
-  echo -e "${DIM}  ⟳ Installing trivy...${NC}"
-  sudo apt-get install -y trivy -qq 2>/dev/null \
-    || (curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin 2>/dev/null \
-        || echo -e "${YELLOW}  ⚠  trivy install failed${NC}")
+# ── install_python_git_tool: installs a Python git tool in isolated venv ──────
+# Usage: install_python_git_tool <name> <repo_url> <install_dir> <main_script>
+install_python_git_tool() {
+    local name="$1" repo="$2" dir="$3" script="$4"
+    command -v "$name" &>/dev/null && return 0
+    git clone --depth=1 "$repo" "$dir" 2>/dev/null || return 1
+    python3 -m venv "$dir/.venv" 2>/dev/null || { sudo apt-get install -y python3-venv -qq 2>/dev/null; python3 -m venv "$dir/.venv"; }
+    "$dir/.venv/bin/pip" install --upgrade pip -q 2>/dev/null
+    [ -f "$dir/requirements.txt" ] && "$dir/.venv/bin/pip" install -r "$dir/requirements.txt" -q 2>/dev/null || true
+    [ -f "$dir/setup.py" ] || [ -f "$dir/pyproject.toml" ] && "$dir/.venv/bin/pip" install -e "$dir" -q 2>/dev/null || true
+    printf '#!/bin/bash\nexec "%s/.venv/bin/python3" "%s/%s" "$@"\n' "$dir" "$dir" "$script" | sudo tee "/usr/local/bin/$name" > /dev/null
+    sudo chmod +x "/usr/local/bin/$name"
+}
+
+# ── Additional exploit + intelligence tools ───────────────────────────────────
+echo -e "${DIM}  Installing additional tools...${NC}"
+# Slither (smart contract analysis) — isolated venv
+if ! command -v slither &>/dev/null; then
+    python3 -m venv /opt/slither-venv 2>/dev/null
+    /opt/slither-venv/bin/pip install slither-analyzer -q 2>/dev/null && \
+    sudo ln -sf /opt/slither-venv/bin/slither /usr/local/bin/slither 2>/dev/null || true
 fi
-
-echo -e "${GREEN}  ✓ DevSec tools checked${NC}"
-
-# ── Plan-gated mode notice ────────────────────────────────────────────────────
-echo ""
-echo -e "${DIM}  ℹ  Plan-gated modes in v4.4.0:${NC}"
-echo -e "${DIM}     /devsec    — Starter+ plan (₹85/mo)${NC}"
-echo -e "${DIM}     /vibe-hack — Pro+ plan (₹1,149/mo)${NC}"
-echo -e "${DIM}     /chain     — Pro+ plan (₹1,149/mo)${NC}"
-echo -e "${DIM}     /red-team  — Elite plan (₹2,399/mo)${NC}"
-echo -e "${DIM}     Upgrade at: https://cybermindcli1.vercel.app/plans${NC}"
+# APK tools (mobile)
+command -v apktool &>/dev/null || sudo apt-get install -y apktool -qq 2>/dev/null || true
+# HTTP smuggling — isolated venv
+install_python_git_tool "smuggler" "https://github.com/defparam/smuggler" "/opt/smuggler" "smuggler.py" 2>/dev/null || true
+# JWT Tool (OAuth/JWT attack engine) — isolated venv
+install_python_git_tool "jwt_tool" "https://github.com/ticarpi/jwt_tool" "/opt/jwt_tool" "jwt_tool.py" 2>/dev/null || true
+# GraphQL attack tool — pipx
+command -v graphw00f &>/dev/null || pipx install graphw00f 2>/dev/null || true
+# SSRF map — isolated venv
+install_python_git_tool "ssrfmap" "https://github.com/swisskyrepo/SSRFmap" "/opt/ssrfmap" "ssrfmap.py" 2>/dev/null || true
+# SSTI exploitation (tplmap) — isolated venv
+install_python_git_tool "tplmap" "https://github.com/epinna/tplmap" "/opt/tplmap" "tplmap.py" 2>/dev/null || true
+# CORS scanner — isolated venv
+install_python_git_tool "corsy" "https://github.com/s0md3v/Corsy" "/opt/corsy" "corsy.py" 2>/dev/null || true
+# ParamSpider — pipx (has proper package)
+command -v paramspider &>/dev/null || pipx install paramspider 2>/dev/null || \
+    install_python_git_tool "paramspider" "https://github.com/devanshbatham/ParamSpider" "/opt/ParamSpider" "paramspider.py" 2>/dev/null || true
+# XSStrike — isolated venv
+install_python_git_tool "xsstrike" "https://github.com/s0md3v/XSStrike" "/opt/XSStrike" "xsstrike.py" 2>/dev/null || true
+# Mantra (JS secret finder), Cariddi (deep crawler), BXss (blind XSS)
+go install github.com/MrEmpy/mantra@latest 2>/dev/null && symlink_go_tool "mantra" || true
+go install github.com/edoardottt/cariddi/cmd/cariddi@latest 2>/dev/null && symlink_go_tool "cariddi" || true
+go install github.com/ethicalhackingplayground/bxss@latest 2>/dev/null && symlink_go_tool "bxss" || true
+# Mega Mode: Reconftw
+if ! command -v reconftw &>/dev/null && [ ! -f /opt/reconftw/reconftw.sh ]; then
+    echo -e "${DIM}  Installing reconftw (Mega Mode — 5-10 min)...${NC}"
+    git clone --depth=1 https://github.com/six2dez/reconftw.git /opt/reconftw 2>/dev/null && \
+    chmod +x /opt/reconftw/reconftw.sh /opt/reconftw/install.sh && \
+    (cd /opt/reconftw && bash install.sh 2>/dev/null || true) && \
+    printf '#!/bin/bash\nexec bash /opt/reconftw/reconftw.sh "$@"\n' | sudo tee /usr/local/bin/reconftw > /dev/null && \
+    sudo chmod +x /usr/local/bin/reconftw 2>/dev/null || true
+fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  ⚡ CyberMind CLI v${VERSION} installed!${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BOLD}${GREEN}⚡ CyberMind CLI v${VERSION} installed!${NC}"
 echo ""
-echo -e "  ${CYAN}Verify:${NC}      cybermind --version"
-echo -e "  ${CYAN}AI Chat:${NC}     cybermind"
-echo -e "  ${CYAN}Doctor:${NC}      sudo cybermind /doctor   ${DIM}← installs ALL tools${NC}"
-echo -e "  ${CYAN}Recon:${NC}       sudo cybermind /recon example.com"
-echo -e "  ${CYAN}Hunt:${NC}        sudo cybermind /hunt example.com"
-echo -e "  ${CYAN}OMEGA Plan:${NC}  sudo cybermind /plan example.com"
-echo -e "  ${CYAN}DevSec:${NC}      cybermind /devsec https://github.com/owner/repo  ${DIM}[Starter+]${NC}"
-echo -e "  ${CYAN}Vibe Hack:${NC}   cybermind /vibe-hack example.com  ${DIM}[Pro+]${NC}"
-echo -e "  ${CYAN}Chain:${NC}       cybermind /chain example.com  ${DIM}[Pro+]${NC}"
-echo -e "  ${CYAN}Red Team:${NC}    cybermind /red-team company --duration 7d  ${DIM}[Elite]${NC}"
+echo -e "  ${CYAN}Verify:${NC}          cybermind --version"
+echo -e "  ${CYAN}AI Chat:${NC}         cybermind"
+echo -e "  ${CYAN}Doctor:${NC}          sudo cybermind /doctor"
+echo -e "  ${CYAN}Recon:${NC}           sudo cybermind /recon example.com"
+echo -e "  ${CYAN}Hunt:${NC}            sudo cybermind /hunt example.com"
+echo -e "  ${CYAN}OMEGA Plan:${NC}      sudo cybermind /plan example.com"
+echo -e "  ${CYAN}Auto-Target:${NC}     sudo cybermind /plan --auto-target --skill intermediate"
+echo -e "  ${CYAN}Mega Mode:${NC}       sudo cybermind /plan --auto-target --mode overnight --continuous"
+echo -e "  ${CYAN}BizLogic:${NC}        sudo cybermind /bizlogic example.com"
+echo -e "  ${CYAN}OAuth Scan:${NC}      sudo cybermind /guide example.com --focus oauth"
+echo -e "  ${CYAN}Novel Attacks:${NC}   sudo cybermind /novel example.com"
+echo -e "  ${CYAN}ZAP Scan:${NC}        sudo cybermind /zap https://example.com full"
+echo -e "  ${CYAN}Cloud Scan:${NC}      cybermind /cloud example.com"
+echo -e "  ${CYAN}Mobile APK:${NC}      sudo cybermind /mobile /tmp/app.apk"
+echo -e "  ${CYAN}CVE Feed:${NC}        cybermind /cve-feed example.com"
+echo -e "  ${CYAN}Abhimanyu:${NC}       sudo cybermind /abhimanyu example.com"
+echo -e "  ${CYAN}Manual Guide:${NC}    sudo cybermind /guide example.com"
+echo -e "  ${CYAN}Vibe Coder:${NC}      cybermind /vibe"
 echo ""
-if [ -n "$API_KEY" ]; then
-  echo -e "  ${GREEN}✓ API key saved — run: cybermind whoami${NC}"
+echo -e "  ${BOLD}${YELLOW}NEW in v4.4.0:${NC}"
+echo -e "  ${DIM}  • DevSec scanner — secrets, SAST, dependency audit${NC}"
+echo -e "  ${DIM}  • Vibe-Hack — autonomous AI hacking session [Pro+]${NC}"
+echo -e "  ${DIM}  • Chain engine — vulnerability chaining [Pro+]${NC}"
+echo -e "  ${DIM}  • Red team campaign — multi-day autonomous [Elite]${NC}"
+echo -e "  ${DIM}  • Python tools now use isolated venvs (no system pollution)${NC}"
+echo -e "  ${DIM}  • Chat AI no longer greets on every message${NC}"
+echo -e "  ${DIM}  • Doctor command auto-updates to latest binary${NC}"
+echo ""
+echo -e "  ${DIM}Full tool install: sudo cybermind /doctor${NC}"
+echo -e "  ${DIM}Browser tests:     Playwright auto-installed above${NC}"
+echo -e "  ${DIM}OOB verification:  interactsh-client auto-installed above${NC}"
+echo ""
+if [ -n "$CYBERMIND_KEY" ]; then
+    echo -e "  ${GREEN}✓ API key saved — run: cybermind whoami${NC}"
+    echo ""
 fi
-echo -e "${GREEN}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-
-# ── Final verify ──────────────────────────────────────────────────────────────
-if command -v cybermind &>/dev/null; then
-  cybermind --version
-else
-  echo -e "${YELLOW}  ⚠  Restart terminal: source ~/.bashrc && cybermind --version${NC}"
-fi
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""

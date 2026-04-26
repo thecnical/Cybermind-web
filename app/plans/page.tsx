@@ -12,6 +12,21 @@ import { startPayUCheckout, type PayUPlan } from "@/lib/payu";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://cybermind-backend-8yrt.onrender.com";
 
+// ─── Plan upgrade status check ────────────────────────────────────────────────
+async function checkCurrentPlan(token: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.profile?.plan ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function detectCurrency(): "inr" | "usd" {
   if (typeof window === "undefined") return "inr";
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -195,6 +210,16 @@ export default function PlansPage() {
   const [currency] = useState<"inr" | "usd">(() => detectCurrency());
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+
+  // Load current plan on mount
+  useState(() => {
+    if (session?.access_token) {
+      checkCurrentPlan(session.access_token).then(plan => {
+        if (plan) setCurrentPlan(plan);
+      });
+    }
+  });
 
   const getPrice = useCallback((plan: typeof plans[number]) => {
     if (billing === "annual") {
@@ -463,6 +488,21 @@ export default function PlansPage() {
                   margin: "0 0 6px",
                 }}>
                   {plan.name}
+                  {currentPlan === plan.id && (
+                    <span style={{
+                      marginLeft: 8,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      background: "rgba(0,255,136,0.15)",
+                      border: "1px solid rgba(0,255,136,0.3)",
+                      color: "#00FF88",
+                      borderRadius: 10,
+                      padding: "2px 8px",
+                      verticalAlign: "middle",
+                    }}>
+                      Current
+                    </span>
+                  )}
                 </h2>
 
                 {/* Price */}
@@ -510,6 +550,24 @@ export default function PlansPage() {
                     {plan.cta}
                     <ArrowRight size={14} />
                   </Link>
+                ) : currentPlan === plan.id ? (
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "12px 20px",
+                    borderRadius: 10,
+                    background: "rgba(0,255,136,0.08)",
+                    border: "1px solid rgba(0,255,136,0.2)",
+                    color: "#00FF88",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    marginBottom: 20,
+                  }}>
+                    <Check size={14} />
+                    Current plan
+                  </div>
                 ) : (
                   <button
                     onClick={() => handleUpgrade(plan.id as PayUPlan)}

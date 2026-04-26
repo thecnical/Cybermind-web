@@ -12,7 +12,7 @@ import {
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 
 // Device limits per plan
-const DEVICE_LIMITS: Record<string, number> = { free: 1, pro: 3, elite: Infinity };
+const DEVICE_LIMITS: Record<string, number> = { free: 1, starter: Infinity, pro: 3, elite: Infinity };
 
 // FIX: install commands use env var instead of CLI arg
 // Prevents API key appearing in `ps aux` output during installation
@@ -594,12 +594,16 @@ export default function DashboardPage() {
           {[
             ["Daily requests",      limit === Infinity ? "Unlimited" : `${limit} / day`],
             ["Devices (API keys)",  deviceLimit === Infinity ? "Unlimited" : `${deviceLimit} devices`],
-            ["Recon mode",          plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
-            ["Hunt mode",           plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
+            ["Recon mode",          plan === "free" ? "❌ Starter+ only" : "✅ Available"],
+            ["Hunt mode",           plan === "free" ? "❌ Starter+ only" : "✅ Available"],
+            ["DevSec scanner",      plan === "free" ? "❌ Starter+ only" : "✅ Available"],
+            ["OSINT Deep",          plan === "free" ? "❌ Starter+ only" : "✅ Available"],
+            ["Vibe-Hack / Chain",   (plan === "free" || plan === "starter") ? "❌ Pro+ only" : "✅ Available"],
             ["Abhimanyu mode",      plan === "elite" ? "✅ Available" : "❌ Elite only"],
+            ["Red Team campaign",   plan === "elite" ? "✅ Available" : "❌ Elite only"],
             ["CVE Intel",           "✅ Available"],
             ["Payload Generator",   "✅ Available"],
-            ["Report Writer",       plan === "free" ? "❌ Pro / Elite only" : "✅ Available"],
+            ["Report Writer",       plan === "free" ? "❌ Starter+ only" : "✅ Available"],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between rounded-xl border border-white/8 px-4 py-2">
               <span className="text-[var(--text-soft)]">{label}</span>
@@ -609,7 +613,7 @@ export default function DashboardPage() {
         </div>
         {plan === "free" && (
           <p className="mt-3 text-xs text-[var(--text-muted)]">
-            Upgrade to Pro or Elite to unlock all features. <Link href="/plans" className="text-[#00d4ff] hover:underline">View plans →</Link>
+            Upgrade to Starter or higher to unlock recon/hunt/OSINT. <Link href="/plans" className="text-[#00d4ff] hover:underline">View plans →</Link>
           </p>
         )}
       </section>
