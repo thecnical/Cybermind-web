@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // Latest CLI version — update this when releasing a new version
-const LATEST_VERSION = "4.4.0";
+const LATEST_VERSION = "4.5.0";
 
 export async function GET() {
   return new NextResponse(JSON.stringify({ version: LATEST_VERSION }), {
