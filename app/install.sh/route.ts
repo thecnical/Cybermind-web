@@ -14,7 +14,7 @@ export async function GET() {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",
-        "X-CyberMind-Version": "4.8.0",
+        "X-CyberMind-Version": "4.9.0",
       },
     });
   } catch {
