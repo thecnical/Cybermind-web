@@ -182,6 +182,10 @@ const comparisonRows = [
   { category: "Recon", icon: <Globe size={14} />, feature: "--monitor mode (continuous)", free: false, starter: false, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "Diff tracking + HTML reports", free: false, starter: false, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "Hotlist + asset store", free: false, starter: false, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Tier 1: wafw00f/uncover/shuffledns/cdncheck", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Tier 2: ctfr/sslscan/misconfig-mapper/second-order", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Tier 3: crosslinked/dorks_hunter/gitleaks", free: false, starter: false, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Recon Brain (attack surface analysis)", free: false, starter: false, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "ASN/IP range discovery", free: false, starter: true, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "Cloud bucket enumeration", free: false, starter: false, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "GitHub/code recon", free: false, starter: false, pro: true, elite: true },
@@ -307,7 +311,7 @@ export default function PlansPage() {
         </span>
         <span style={{ marginRight: 24 }}>
           <Shield size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
-          <strong style={{ color: "#00d4ff" }}>50+</strong> recon tools · <strong style={{ color: "#00d4ff" }}>45</strong> OSINT tools · <strong style={{ color: "#00d4ff" }}>30</strong> RE tools
+          <strong style={{ color: "#00d4ff" }}>60+</strong> recon tools · <strong style={{ color: "#00d4ff" }}>45</strong> OSINT tools · <strong style={{ color: "#00d4ff" }}>30</strong> RE tools
         </span>
         <span>
           <Lock size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
