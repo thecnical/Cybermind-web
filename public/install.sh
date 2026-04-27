@@ -18,7 +18,7 @@ NC='\033[0m'
 GITHUB_RAW="https://raw.githubusercontent.com/thecnical/cybermind/main/cli"
 INSTALL_PATH="/usr/local/bin/cybermind"
 CBM_PATH="/usr/local/bin/cbm"
-VERSION="4.5.0"
+VERSION="4.8.0"
 
 echo -e "${CYAN}"
 cat << 'BANNER'
@@ -215,6 +215,8 @@ if ! command -v pipx &>/dev/null; then
 fi
 export PIPX_BIN_DIR=/usr/local/bin
 export PIPX_HOME=/opt/pipx
+# Fix shodan pkg_resources error
+pip3 install setuptools --break-system-packages -q 2>/dev/null || true
 PIPX_TOOLS=(shodan h8mail wafw00f arjun graphw00f waymore ghauri semgrep pip-audit)
 for tool in "${PIPX_TOOLS[@]}"; do
     if ! command -v "$tool" &>/dev/null; then
@@ -288,8 +290,14 @@ command -v apktool &>/dev/null || sudo apt-get install -y apktool -qq 2>/dev/nul
 install_python_git_tool "smuggler" "https://github.com/defparam/smuggler" "/opt/smuggler" "smuggler.py" 2>/dev/null || true
 # JWT Tool (OAuth/JWT attack engine) — isolated venv
 install_python_git_tool "jwt_tool" "https://github.com/ticarpi/jwt_tool" "/opt/jwt_tool" "jwt_tool.py" 2>/dev/null || true
-# GraphQL attack tool — pipx
-command -v graphw00f &>/dev/null || pipx install graphw00f 2>/dev/null || true
+# GraphQL attack tool — proper git install
+# graphw00f — GraphQL fingerprinting (git install, not pip)
+if ! command -v graphw00f &>/dev/null; then
+    git clone --depth=1 https://github.com/dolevf/graphw00f.git /opt/graphw00f 2>/dev/null && \
+    pip3 install -r /opt/graphw00f/requirements.txt --break-system-packages -q 2>/dev/null && \
+    sudo ln -sf /opt/graphw00f/main.py /usr/local/bin/graphw00f && \
+    sudo chmod +x /usr/local/bin/graphw00f 2>/dev/null || true
+fi
 # SSRF map — isolated venv
 install_python_git_tool "ssrfmap" "https://github.com/swisskyrepo/SSRFmap" "/opt/ssrfmap" "ssrfmap.py" 2>/dev/null || true
 # SSTI exploitation (tplmap) — isolated venv
@@ -332,6 +340,22 @@ command -v notify &>/dev/null || \
 # ── 2025 NEW: ligolo-ng — advanced tunneling for lateral movement ─────────────
 command -v ligolo-ng &>/dev/null || \
     (go install github.com/nicocha30/ligolo-ng/cmd/proxy@latest 2>/dev/null && symlink_go_tool "ligolo-ng") || true
+# ligolo-ng symlink fix (binary is named 'proxy' not 'ligolo-ng')
+if [ -f "$HOME/go/bin/proxy" ] && ! command -v ligolo-ng &>/dev/null; then
+    sudo ln -sf "$HOME/go/bin/proxy" /usr/local/bin/ligolo-ng 2>/dev/null || true
+fi
+# ── 2026 NEW: github-subdomains — find subdomains in GitHub code ──────────────
+command -v github-subdomains &>/dev/null || \
+    (go install github.com/gwen001/github-subdomains@latest 2>/dev/null && symlink_go_tool "github-subdomains") || true
+# ── 2026 NEW: asnmap — ASN to IP range mapping ───────────────────────────────
+command -v asnmap &>/dev/null || \
+    (go install github.com/projectdiscovery/asnmap/cmd/asnmap@latest 2>/dev/null && symlink_go_tool "asnmap") || true
+# ── 2026 NEW: webanalyze — Go-based Wappalyzer ───────────────────────────────
+command -v webanalyze &>/dev/null || \
+    (go install github.com/rverton/webanalyze/cmd/webanalyze@latest 2>/dev/null && symlink_go_tool "webanalyze") || true
+# ── 2026 NEW: favirecon — favicon hash tech detection ────────────────────────
+command -v favirecon &>/dev/null || \
+    (go install github.com/edoardottt/favirecon/cmd/favirecon@latest 2>/dev/null && symlink_go_tool "favirecon") || true
 # ── 2025 NEW: semgrep — SAST code analysis ───────────────────────────────────
 command -v semgrep &>/dev/null || pipx install semgrep 2>/dev/null || \
     pip3 install semgrep --break-system-packages -q 2>/dev/null || true
@@ -339,19 +363,44 @@ command -v semgrep &>/dev/null || pipx install semgrep 2>/dev/null || \
 install_python_git_tool "liffy" "https://github.com/mzfr/liffy" "/opt/liffy" "liffy.py" 2>/dev/null || true
 # ── 2025 NEW: gopherus — SSRF payload generator ──────────────────────────────
 install_python_git_tool "gopherus" "https://github.com/tarunkant/Gopherus" "/opt/gopherus" "gopherus.py" 2>/dev/null || true
-# ── puredns resolvers list ────────────────────────────────────────────────────
-if command -v puredns &>/dev/null && [ ! -f /tmp/cybermind_resolvers.txt ]; then
+# ── 2026 NEW: cloud-enum — S3/Azure/GCP bucket enumeration ───────────────────
+command -v cloud_enum &>/dev/null || pipx install cloud-enum 2>/dev/null || \
+    pip3 install cloud-enum --break-system-packages -q 2>/dev/null || true
+# ── puredns resolvers list (also used by reconftw internally) ────────────────
+if [ ! -f /tmp/cybermind_resolvers.txt ] || [ $(wc -l < /tmp/cybermind_resolvers.txt 2>/dev/null || echo 0) -lt 100 ]; then
     curl -sL "https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt" \
         -o /tmp/cybermind_resolvers.txt 2>/dev/null || true
 fi
-# Mega Mode: Reconftw
-if ! command -v reconftw &>/dev/null && [ ! -f /opt/reconftw/reconftw.sh ]; then
+# ── reconftw — Full reconFTW power (Mega Mode) ───────────────────────────────
+# reconftw is the backbone of CyberMind's recon mode — 50+ tools in one
+# Modes: -s (subdomain, 15min), -r (full recon, 2-4h), -a --deep (all, 6-12h)
+if ! command -v reconftw &>/dev/null || [ ! -f /opt/reconftw/reconftw.sh ]; then
     echo -e "${DIM}  Installing reconftw (Mega Mode — 5-10 min)...${NC}"
+    # Remove stale install if exists
+    [ -d /opt/reconftw ] && sudo rm -rf /opt/reconftw 2>/dev/null || true
     git clone --depth=1 https://github.com/six2dez/reconftw.git /opt/reconftw 2>/dev/null && \
     chmod +x /opt/reconftw/reconftw.sh /opt/reconftw/install.sh && \
-    (cd /opt/reconftw && bash install.sh 2>/dev/null || true) && \
+    (cd /opt/reconftw && timeout 600 bash install.sh 2>/dev/null || true) && \
     printf '#!/bin/bash\nexec bash /opt/reconftw/reconftw.sh "$@"\n' | sudo tee /usr/local/bin/reconftw > /dev/null && \
-    sudo chmod +x /usr/local/bin/reconftw 2>/dev/null || true
+    sudo chmod +x /usr/local/bin/reconftw && \
+    echo -e "${GREEN}[✓] reconftw installed${NC}" || \
+    echo -e "${YELLOW}[!] reconftw install failed — run: sudo cybermind /doctor${NC}"
+elif [ -f /opt/reconftw/reconftw.sh ]; then
+    # Update existing reconftw to latest
+    echo -e "${DIM}  Updating reconftw to latest...${NC}"
+    (cd /opt/reconftw && git pull --ff-only 2>/dev/null || true)
+    # Ensure wrapper is up to date
+    printf '#!/bin/bash\nexec bash /opt/reconftw/reconftw.sh "$@"\n' | sudo tee /usr/local/bin/reconftw > /dev/null
+    sudo chmod +x /usr/local/bin/reconftw
+fi
+
+# ── reconftw resolvers (required for puredns/shuffledns inside reconftw) ──────
+if [ ! -f /tmp/cybermind_resolvers.txt ] || [ $(wc -l < /tmp/cybermind_resolvers.txt 2>/dev/null || echo 0) -lt 100 ]; then
+    echo -e "${DIM}  Downloading DNS resolvers list...${NC}"
+    curl -sL "https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt" \
+        -o /tmp/cybermind_resolvers.txt 2>/dev/null || \
+    curl -sL "https://raw.githubusercontent.com/janmasarik/resolvers/master/resolvers.txt" \
+        -o /tmp/cybermind_resolvers.txt 2>/dev/null || true
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
@@ -378,14 +427,23 @@ echo -e "  ${CYAN}Novel Attacks:${NC}   sudo cybermind /novel example.com"
 echo -e "  ${CYAN}Python Tools:${NC}    sudo cybermind /install-python-tools"
 echo -e "  ${CYAN}Vibe Coder:${NC}      cybermind /vibe"
 echo ""
-echo -e "  ${BOLD}${YELLOW}NEW in v4.5.0:${NC}"
-echo -e "  ${DIM}  • 13 new tools: puredns, alterx, shuffledns, uncover, cdncheck, asnmap, notify${NC}"
-echo -e "  ${DIM}  • ghauri — advanced SQLi (better than sqlmap for modern apps)${NC}"
-echo -e "  ${DIM}  • ligolo-ng — advanced tunneling for lateral movement${NC}"
-echo -e "  ${DIM}  • semgrep — SAST code analysis for DevSec mode${NC}"
-echo -e "  ${DIM}  • Chat AI strict no-greeting (edge-level enforcement)${NC}"
-echo -e "  ${DIM}  • OMEGA brain upgraded with 2025/2026 attack patterns${NC}"
-echo -e "  ${DIM}  • 18 novel attack detectors (CRLF, XXE, LFI, Mass Assignment)${NC}"
+echo -e "  ${BOLD}${YELLOW}NEW in v4.8.0:${NC}"
+echo -e "  ${DIM}  • 7 new recon tools: github-subdomains, asnmap, webanalyze, favirecon, cloud_enum, puredns, alterx${NC}"
+echo -e "  ${DIM}  • Active DNS recon: puredns brute-force + alterx permutations${NC}"
+echo -e "  ${DIM}  • ASN/IP range discovery: asnmap + bgpview + mapcidr${NC}"
+echo -e "  ${DIM}  • Cloud bucket enumeration: cloud_enum (S3/Azure/GCP)${NC}"
+echo -e "  ${DIM}  • GitHub/code recon: github-subdomains + trufflehog${NC}"
+echo -e "  ${DIM}  • Tech fingerprinting: webanalyze + favirecon (favicon hash)${NC}"
+echo -e "  ${DIM}  • reconFTW fully integrated — mode-aware: quick(-s) / deep(-r) / overnight(-a --deep)${NC}"
+echo -e "  ${DIM}  • reconFTW output parsing: subdomains, URLs, vulns, secrets, emails, takeover, buckets${NC}"
+echo -e "  ${DIM}  • reconFTW tech stack + WAF detection fed into agentic brain${NC}"
+echo -e "  ${DIM}  • Brain memory records reconFTW findings for smarter future scans${NC}"
+echo -e "  ${DIM}  • reconFTW auto-updates on re-install (git pull)${NC}"
+echo -e "  ${DIM}  • 14 subdomain file types parsed (passive, brute, permut, crt, noerror, vhosts)${NC}"
+echo -e "  ${DIM}  • 18 vuln file types parsed (XSS, SQLi, SSRF, LFI, SSTI, CRLF, smuggling, cache)${NC}"
+echo -e "  ${DIM}  • Cloud bucket exposure detection (S3Scanner + cloud_enum)${NC}"
+echo -e "  ${DIM}  • JS file secrets extraction (mantra, JSA, subjs)${NC}"
+echo -e "  ${DIM}  • Subdomain takeover candidates auto-flagged${NC}"
 echo ""
 echo -e "  ${DIM}Full tool install: sudo cybermind /doctor${NC}"
 echo -e "  ${DIM}OOB verification:  interactsh-client auto-installed above${NC}"

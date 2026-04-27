@@ -108,7 +108,7 @@ const plans = [
       { text: "AI coding + web search + image gen", included: true },
       { text: "OMEGA plan mode (unlimited)", included: true },
       { text: "Unlimited recon targets (Linux)", included: true },
-      { text: "Full recon chain + reconftw -a", included: true },
+      { text: "Full recon chain + reconftw -a --deep (6h exhaustive)", included: true },
       { text: "OSINT Deep — unlimited targets", included: true },
       { text: "RevEng — unlimited targets", included: true },
       { text: "/locate Level 1-4", included: true },
@@ -140,7 +140,7 @@ const plans = [
       { text: "AI coding with GPT-5 + Claude Opus 4", included: true },
       { text: "OMEGA plan mode (10-phase + Phase 0)", included: true },
       { text: "All modes including Abhimanyu", included: true },
-      { text: "reconftw -a --deep (6h exhaustive)", included: true },
+      { text: "reconftw -a --deep + all 10 recon methodologies", included: true },
       { text: "OSINT Deep + dark web + breach (unlimited)", included: true },
       { text: "RevEng — Ghidra + AI decompile", included: true },
       { text: "/locate-advanced — SDR cell tower (Level 5)", included: true },
@@ -166,6 +166,11 @@ const comparisonRows = [
   { category: "Recon", icon: <Globe size={14} />, feature: "Auto recon (Linux)", free: false, starter: "5/mo", pro: "Unlimited", elite: "Unlimited" },
   { category: "Recon", icon: <Globe size={14} />, feature: "OSINT Deep (45 tools)", free: false, starter: true, pro: true, elite: true },
   { category: "Recon", icon: <Globe size={14} />, feature: "RevEng (30 tools)", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Active DNS recon (puredns/alterx)", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "ASN/IP range discovery", free: false, starter: true, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "Cloud bucket enumeration", free: false, starter: false, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "GitHub/code recon", free: false, starter: false, pro: true, elite: true },
+  { category: "Recon", icon: <Globe size={14} />, feature: "JS/API endpoint recon", free: false, starter: true, pro: true, elite: true },
   { category: "Security", icon: <Shield size={14} />, feature: "Breach intel", free: false, starter: true, pro: true, elite: true },
   { category: "Security", icon: <Shield size={14} />, feature: "Threat intel (/threat)", free: true, starter: true, pro: true, elite: true },
   { category: "Security", icon: <Shield size={14} />, feature: "Abhimanyu exploit mode", free: false, starter: false, pro: false, elite: true },
@@ -287,7 +292,7 @@ export default function PlansPage() {
         </span>
         <span style={{ marginRight: 24 }}>
           <Shield size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
-          <strong style={{ color: "#00d4ff" }}>45</strong> OSINT tools · <strong style={{ color: "#00d4ff" }}>30</strong> RE tools
+          <strong style={{ color: "#00d4ff" }}>50+</strong> recon tools · <strong style={{ color: "#00d4ff" }}>45</strong> OSINT tools · <strong style={{ color: "#00d4ff" }}>30</strong> RE tools
         </span>
         <span>
           <Lock size={13} style={{ display: "inline", marginRight: 6, verticalAlign: "middle" }} />
